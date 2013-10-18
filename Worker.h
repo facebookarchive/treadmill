@@ -29,6 +29,7 @@
 #include <vector>
 
 #include <gflags/gflags.h>
+
 #include "Connection.h"
 
 DECLARE_string(hostname);
@@ -42,15 +43,14 @@ using std::unique_ptr;
 using std::vector;
 
 class Worker {
- public:
-  Worker();
-  void start();
- private:
-  vector<unique_ptr<Connection>> connections;
-  bool running_;
+  public:
+    Worker();
+    void start();
+  private:
+    vector<unique_ptr<Connection>> connections_;
+    bool running_;
 };
 
 }  // namespace treadmill
 }  // namespace windtunnel
 }  // namespace facebook
-

@@ -25,22 +25,22 @@
 
 #include "Connection.h"
 
+#include <arpa/inet.h>
+#include <cstdio>
 #include <errno.h>
+#include <glog/logging.h>
 #include <netdb.h>
+#include <net/if.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <net/if.h>
-#include <netinet/tcp.h>
-#include <netinet/in.h>
+#include <string.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <cstdio>
-#include <string.h>
+#include <unistd.h>
 
-#include <glog/logging.h>
 #include "Request.h"
 #include "Util.h"
 
@@ -51,17 +51,16 @@ namespace treadmill {
 void Connection::sendRequest() {
   // Write out key, flags exptime, and size.
   SetRequest sr("foo", 10);
-  sr.send(sock_, writeBuffer_.get(), valueBuffer_.get());
+  sr.send(sock_, write_buffer_.get(), value_buffer_.get());
 }
 
 void Connection::receiveResponse() {
-  int nBytes = read(sock_, readBuffer_.get(), kBufferSize);
-  readBlock(sock_, readBuffer_.get(), kBufferSize);
-  printf("result: %s", readBuffer_.get());
-
+  int n_bytes = read(sock_, read_buffer_.get(), kBufferSize);
+  readBlock(sock_, read_buffer_.get(), kBufferSize);
+  printf("result: %s", read_buffer_.get());
 }
 
-string Connection::nslookup(const string& hostname) {
+string Connection::nsLookUp(const string& hostname) {
   struct hostent* host_info = 0;
   for (int attempt = 0; (host_info == 0) && (attempt < 3); attempt++) {
     host_info = gethostbyname(hostname.c_str());
@@ -76,6 +75,7 @@ string Connection::nslookup(const string& hostname) {
   } else {
     LOG(FATAL) << "DNS error";
   }
+
   return string(ip_address);
 }
 
@@ -83,12 +83,12 @@ Connection::Connection(const string& ip_address,
                        int port,
                        bool disable_nagles) {
   // Allocate input and ouput buffers.
-  readBuffer_.reset(new char[kBufferSize]);
-  writeBuffer_.reset(new char[kBufferSize]);
-  valueBuffer_.reset(new char[kBufferSize]);
+  read_buffer_.reset(new char[kBufferSize]);
+  write_buffer_.reset(new char[kBufferSize]);
+  value_buffer_.reset(new char[kBufferSize]);
   const string pattern = "test";
   for (int i = 0; i < kBufferSize / pattern.size(); i++) {
-    memcpy(valueBuffer_.get() + i * pattern.size(),
+    memcpy(value_buffer_.get() + i * pattern.size(),
            pattern.c_str(),
            pattern.size());
   }

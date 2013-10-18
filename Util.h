@@ -33,6 +33,6 @@ void writeBlock(int fd,
 
 void readBlock(int fd, char* buffer, int buffer_size);
 
-}
-}
-}
+}  // namespace treadmill
+}  // namespace windtunnel
+}  // namespace facebook

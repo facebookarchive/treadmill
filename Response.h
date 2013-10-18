@@ -36,12 +36,11 @@ using std::unique_ptr;
 using std::vector;
 
 class Response {
- public:
-  Response();
- private:
+  public:
+    Response();
+  private:
 };
 
 }  // namespace treadmill
 }  // namespace windtunnel
 }  // namespace facebook
-

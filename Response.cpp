@@ -30,6 +30,6 @@ namespace windtunnel {
 namespace treadmill {
 
 
-} // treadmill
-} // windtunnel
-} // facebook
+}  // namespace treadmill
+}  // namespace windtunnel
+}  // namespace facebook

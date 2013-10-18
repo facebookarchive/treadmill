@@ -25,7 +25,6 @@
 
 #include "Worker.h"
 
-//#include "common/logging/logging.h"
 #include <glog/logging.h>
 
 namespace facebook {
@@ -37,11 +36,10 @@ Worker::Worker() {
 }
 
 void Worker::start() {
-  const string ipaddress = Connection::nslookup(FLAGS_hostname);
-  Connection c(ipaddress, FLAGS_port);
+  const string ip_address = Connection::nsLookUp(FLAGS_hostname);
+  Connection c(ip_address, FLAGS_port);
   c.sendRequest();
   c.receiveResponse();
-  bool running_;
   while (running_) {
     break;
   }

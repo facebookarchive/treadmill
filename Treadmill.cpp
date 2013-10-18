@@ -44,8 +44,7 @@ namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
-int run(int argc, char *argv[]) {
-
+int run(int argc, char* argv[]) {
   Worker w;
   w.start();
 
@@ -58,7 +57,7 @@ int run(int argc, char *argv[]) {
 } // namespace windtunnel
 } // namespace facebook
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   //facebook::initFacebook(&argc, &argv);
   google::ParseCommandLineFlags(&argc, &argv, true);
   return facebook::windtunnel::treadmill::run(argc, argv);

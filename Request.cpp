@@ -32,38 +32,37 @@ namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
-SetRequest::SetRequest(const string& key, int valueSize) :
+SetRequest::SetRequest(const string& key, int value_size) :
   key_(key),
-  valueSize_(valueSize) {}
+  value_size_(value_size) { }
 
-
-void SetRequest::send(int fd, char* writeBuffer, char* valueBuffer) {
+void SetRequest::send(int fd, char* write_buffer, char* value_buffer) {
   // Write out key, flags exptime, and size.
   const string op = "set";
   const string key = "foo";
   int flag = 0;
   int exptime = 0;
   int size = 10;
-  int res = sprintf(writeBuffer,
-                     "%s %s %d %d %d\r\n",
-                      op.c_str(),
-                      key.c_str(),
-                      flag,
-                      exptime,
-                      size);
+  int res = sprintf(write_buffer,
+                    "%s %s %d %d %d\r\n",
+                    op.c_str(),
+                    key.c_str(),
+                    flag,
+                    exptime,
+                    size);
   if (res < 0) {
     LOG(FATAL) << "Error with formatting key etc.";
   }
-  writeBlock(fd, writeBuffer, res);
+  writeBlock(fd, write_buffer, res);
 
   // Write out value
-  res = sprintf(writeBuffer,
-                    "%.*s\r\n",
-                    size,
-                    valueBuffer);
-  writeBlock(fd, writeBuffer, res);
+  res = sprintf(write_buffer,
+                "%.*s\r\n",
+                size,
+                value_buffer);
+  writeBlock(fd, write_buffer, res);
 }
 
-} // treadmill
-} // windtunnel
-} // facebook
+}  // namespace treadmill
+}  // namespace windtunnel
+}  // namespace facebook
