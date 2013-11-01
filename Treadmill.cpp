@@ -30,23 +30,38 @@
 
 #include "Connection.h"
 #include "Worker.h"
+#include "Workload.h"
 
+using std::shared_ptr;
 using std::string;
 
+// The hostname of the server
 DEFINE_string(hostname,
-              "",
+              "localhost",
               "The host to load test.");
+// The port number to connect
 DEFINE_int32(port,
-             0,
+             11211,
              "The port on the host to connect to.");
+// The number of connections each worker thread handles
+DEFINE_int32(number_of_connections,
+             4,
+             "The number of connections for each thread worker");
 
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
+/**
+ * Press start to rock
+ *
+ * @param argc Argument count
+ * @param argv Argument vector
+ */
 int run(int argc, char* argv[]) {
-  Worker w;
-  w.start();
+  shared_ptr<Workload> workload = Workload::generateWorkloadByParameter();
+  Worker worker(workload);
+  worker.start();
 
   LOG(INFO) << "Complete";
 
@@ -57,8 +72,13 @@ int run(int argc, char* argv[]) {
 } // namespace windtunnel
 } // namespace facebook
 
+/**
+ * Entry function for treadmill
+ *
+ * @param argc Argument count
+ * @param argv Argument vector
+ */
 int main(int argc, char* argv[]) {
-  //facebook::initFacebook(&argc, &argv);
   google::ParseCommandLineFlags(&argc, &argv, true);
   return facebook::windtunnel::treadmill::run(argc, argv);
 }

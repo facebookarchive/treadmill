@@ -32,16 +32,32 @@ namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
+using std::shared_ptr;
 using std::unique_ptr;
-using std::vector;
 
-// Class for the response from the server
-class Response {
+// Class for storing the workload characteristics (e.g. operation distribution)
+class Workload {
   public:
     /**
-     * Constructor for Response
+     * Constructor for Workload
      */
-    Response();
+    Workload();
+    /**
+     * Destructor for Workload
+     */
+    ~Workload();
+
+    /**
+     * Generator method taking a set of parameters including operation
+     * distribution, result size distribution etc.
+     */
+    static shared_ptr<Workload> generateWorkloadByParameter();
+    /**
+     * Generator method taking a JSON configuration file which contains
+     * workload characteristics including operation distribution, result
+     * size distribution etc.
+     */
+    static shared_ptr<Workload> generateWorkloadByConfigFile();
   private:
 };
 

@@ -35,22 +35,59 @@ namespace treadmill {
 using std::string;
 using std::unique_ptr;
 
+// The maximal size of the read/value/write buffer
 const int kBufferSize = 2 * 1024 * 1024;
+// The number of attempts to get host information
+const int kNumberOfAttempts = 3;
 
 // A class to represent a connection to a server
 class Connection {
   public:
+    /**
+     * Constructor for Connection
+     *
+     * @param ip_address A string containing the IP address of the server
+     * @param port Port number of the server under test
+     * @param disable_nagles Whether to disable Nagle's algorithm
+     * @return A connection to ip_address:port
+     */
     Connection(const string& ip_address, int port, bool disable_nagles=true);
+    /**
+     * Destructor for Connection, which closes the connection
+     */
     virtual ~Connection();
+
+    /**
+     * Loop up the IP address given hostname
+     *
+     * @param hostname Hostname for the server in string
+     * @return IP address under the hostname in string
+     */
     static string nsLookUp(const string& hostname);
+    /**
+     * Receive a response
+     */
     void receiveResponse();
+    /**
+     * Send a request
+     */
     void sendRequest();
+    /**
+     * Return the socket number of this connection
+     *
+     * @return Socket number of this connection
+     */
+    int sock();
 
   private:
+    // Socket number for the connection
     int sock_;
+    // Buffer used to read from fd
     unique_ptr<char> read_buffer_;
-    unique_ptr<char> write_buffer_;
+    // Buffer used to set value to fd
     unique_ptr<char> value_buffer_;
+    // Buffer used to write to fd
+    unique_ptr<char> write_buffer_;
 };
 
 }  // namespace treadmill

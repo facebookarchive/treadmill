@@ -23,66 +23,45 @@
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "Workload.h"
+
 #include <glog/logging.h>
-#include <string>
-#include "Util.h"
 
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
 /**
- * Read from block given the file descriptor
- *
- * @param fd The file descriptor
- * @param buffer The buffer to write
- * @param buffer_size The size of the read buffer
+ * Constructor for Workload
  */
-void readBlock(int fd, char* buffer, int buffer_size) {
-  int total_bytes_read = 0;
-  while (total_bytes_read != buffer_size) {
-    int bytes_read = read(fd,
-                          buffer + total_bytes_read,
-                          buffer_size - total_bytes_read);
-    // Read syscall failed.
-    if (bytes_read < 0) {
-      string sys_error = string(strerror(errno));
-      LOG(FATAL) << "Read syscall failed: " + sys_error;
-    }
-    total_bytes_read += bytes_read;
-  }
+Workload::Workload() {
 
-  // Make sure all bytes have been read from the fd.
-  if (total_bytes_read < buffer_size) {
-    LOG(FATAL) << "Read loop exited before all bytes were written."
-                  "This should never happen";
-  }
 }
 
 /**
- * Write to block given the file descriptor
- *
- * @param fd The file descriptor
- * @param buffer The buffer to write
- * @param buffer_size The size of the write buffer
+ * Destructor for Workload
  */
-void writeBlock(int fd,
-                const char* buffer,
-                int buffer_size) {
-  int total_bytes_written = 0;
-  while (total_bytes_written != buffer_size) {
-    int bytes_written = write(fd,
-                              buffer + total_bytes_written,
-                              buffer_size - total_bytes_written);
-    // Write syscall failed.
-    if (bytes_written < 0) {
-      LOG(INFO) << "Attempted write size "
-                << (buffer_size - total_bytes_written);
-      string sys_error = string(strerror(errno));
-      LOG(FATAL) << "Write syscall failed: " + sys_error;
-    }
-    total_bytes_written += bytes_written;
-  }
+Workload::~Workload() {
+
+}
+
+/**
+ * Generator method taking a set of parameters including operation
+ * distribution, result size distribution etc.
+ */
+shared_ptr<Workload> Workload::generateWorkloadByParameter() {
+  shared_ptr<Workload> workload(new Workload());
+  return workload;
+}
+
+/**
+ * Generator method taking a JSON configuration file which contains
+ * workload characteristics including operation distribution, result
+ * size distribution etc.
+ */
+shared_ptr<Workload> Workload::generateWorkloadByConfigFile() {
+  shared_ptr<Workload> workload(new Workload());
+  return workload;
 }
 
 }  // namespace treadmill

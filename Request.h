@@ -37,25 +37,65 @@ using std::string;
 using std::unique_ptr;
 using std::vector;
 
+// Base class for all types of requests
 class Request {
   public:
-    Request() {}
+    /**
+     * Constructor for Request
+     */
+    Request() { }
+    /**
+     * Virtual send method to send out send out the request
+     *
+     * @param fd File descriptor for the request
+     * @param writer_buffer The buffer to write operation, key, flags, etc.
+     * @param value_buffer The buffer to write value (e.g. SET operation)
+     */
     virtual void send(int fd, char* write_buffer, char* value_buffer) = 0;
 };
 
-class SetRequest : Request {
-  public:
-    SetRequest(const string& key, int value_size);
-    void send(int fd, char* write_buffer, char* value_buffer);
-  private:
-    string key_;
-    int value_size_;
-};
-
+// Subclass for GET requests
 class GetRequest : Request {
   public:
+    /**
+     * Constructor for GetRequest
+     *
+     * @param key The key of the request in string
+     */
     explicit GetRequest(const string& key);
+    /**
+     * Send method to send out the GET request
+     *
+     * @param fd File descriptor for the GET request
+     * @param write_buffer The buffer to write operation, key, flags, etc.
+     * @param value_buffer The buffer to write value for the GET operation
+     */
     void send(int fd, char* write_buffer, char* value_buffer) {}
+};
+
+// Subclass for SET requests
+class SetRequest : Request {
+  public:
+    /**
+     * Constructor for SetRequest
+     *
+     * @param key The key of the request in string
+     * @param value_size Size of the value for the SET request
+     */
+    SetRequest(const string& key, int value_size);
+    /**
+     * Send method to send out the SET request
+     *
+     * @param fd File descriptor for the SET request
+     * @param write_buffer The buffer to write operation, key, flags, etc.
+     * @param value_buffer The buffer to write value for the SET operation
+     */
+    void send(int fd, char* write_buffer, char* value_buffer);
+  private:
+    // Key for the SET request
+    string key_;
+    // Size of the value for the SET request
+    int value_size_;
 };
 
 }  // namespace treadmill

@@ -27,11 +27,27 @@ namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
-void writeBlock(int fd,
-                char* buffer,
-                int buffer_size);
+using std::string;
 
+/**
+ * Read from block given the file descriptor
+ *
+ * @param fd The file descriptor
+ * @param buffer The buffer to write
+ * @param buffer_size The size of the read buffer
+ */
 void readBlock(int fd, char* buffer, int buffer_size);
+
+/**
+ * Write to block given the file descriptor
+ *
+ * @param fd The file descriptor
+ * @param buffer The buffer to write
+ * @param buffer_size The size of the write buffer
+ */
+void writeBlock(int fd,
+                const char* buffer,
+                int buffer_size);
 
 }  // namespace treadmill
 }  // namespace windtunnel

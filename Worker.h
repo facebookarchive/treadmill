@@ -26,30 +26,87 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
+#include <event2/event.h>
 #include <gflags/gflags.h>
+#include <pthread.h>
 
 #include "Connection.h"
+#include "Workload.h"
 
+// Hostname of the server
 DECLARE_string(hostname);
+// Port number to connect
 DECLARE_int32(port);
+// Number of connections per thread
+DECLARE_int32(number_of_connections);
 
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
+using std::shared_ptr;
 using std::unique_ptr;
+using std::unordered_map;
 using std::vector;
 
+// The class for worker thread
 class Worker {
   public:
-    Worker();
+    /**
+     * Contructor for Worker
+     *
+     * @param workload The workload object for this worker thread
+     */
+    Worker(shared_ptr<Workload> workload);
+    /**
+     * Main event_base loop for the worker thread
+     */
+    void mainLoop();
+    /**
+     * Call back fucntion for receive event
+     */
+    void receiveCallBack();
+    /**
+     * Call back function for send event
+     *
+     * @param fd The file descriptor for the connection
+     */
+    void sendCallBack(int fd);
+    /**
+     * Start the main event_base loop
+     */
     void start();
+
   private:
-    vector<unique_ptr<Connection>> connections_;
-    bool running_;
+    // A vector of connections wrapped in unique_ptr
+    vector<unique_ptr<Connection> > connections_;
+    // A fd to connection mapping
+    unordered_map<int, int> connection_map_;
+    // Pointer to the event_base struct
+    struct event_base* event_base_;
+    // Number of connections each worker thread handles
+    int number_of_connections_;
+    // pthread object for the worker thread
+    unique_ptr<pthread_t> thread_;
+    // Workload object which is shared among all worker threads
+    shared_ptr<Workload> workload_;
 };
+
+/**
+ * Handler function for mainLoop() to hook it up with libevent
+ */
+void* MainLoopHandler(void* args);
+/**
+ * Handler function for receiveCallBack() to hook it up with libevent
+ */
+void ReceiveCallBackHandler(int fd, short event_type, void* args);
+/**
+ * Handler function for sendCallBack() to hook it up with libevent
+ */
+void SendCallBackHandler(int fd, short event_type, void* args);
 
 }  // namespace treadmill
 }  // namespace windtunnel

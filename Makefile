@@ -1,15 +1,44 @@
-# Include directories
-I = -I ../ -I $(GTEST_INCLUDE_DIR)
+################################################
+# Makefile for building treadmill              #
+#                                              #
+# Targets:                                     #
+#  - all: Build treadmill                      #
+#  - debug: Build debug binary                 #
+#  - clean: Remove binary and build files      #
+################################################
+
+# C++ Compiler
+CXX = clang++
 
 # Compiler flags
-CFLAGS = -Wall -levent -pthread -D_GNU_SOURCE $(I)
-DFLAGS = -g
+CXX_CFLAGS = -std=c++11 -stdlib=libc++ -Wall -D_GNU_SOURCE
+CXX_LFLAGS =
+CXX_DFLAGS = -g
+INCLUDES   =
+LIBRARIES  = -levent -lpthread -lglog -lgflags -L/usr/local/lib
 
-SRC = Treadmill.cpp\
-      Connection.cpp\
-      Request.cpp\
-      Util.cpp\
-      Worker.cpp\
+# Source files
+SRCS = Connection.cpp \
+       Request.cpp \
+       Treadmill.cpp \
+       Util.cpp \
+       Worker.cpp \
+			 Workload.cpp
 
-treadmill: $(SRC)
-	 clang++ -std=c++11 -stdlib=libc++ -L/usr/local/lib -lglog -lgflags -o treadmill $(SRC)
+# Object files
+OBJS = $(SRCS:.cpp=.o)
+
+# Binary file
+BINARY = treadmill
+
+# Build rules
+all: $(BINARY)
+
+debug: CXX += -DDEBUG -g
+debug: $(BINARY)
+
+$(BINARY): $(SRCS)
+	$(CXX) $(CXX_CFLAGS) $(CXX_LFLAGS) $(LIBRARIES) -o $@ $?
+
+clean:
+	$(RM) *.o *~ $(BINARY)

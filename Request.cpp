@@ -32,14 +32,27 @@ namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
+/**
+ * Constructor for SetRequest
+ *
+ * @param key The key of the request in string
+ * @param value_size Size of the value for the SET request
+ */
 SetRequest::SetRequest(const string& key, int value_size) :
   key_(key),
   value_size_(value_size) { }
 
+/**
+ * Send method to send out the SET request
+ *
+ * @param fd File descriptor for the SET request
+ * @param write_buffer The buffer to write operation, key, flags, etc.
+ * @param value_buffer The buffer to write value for the SET operation
+ */
 void SetRequest::send(int fd, char* write_buffer, char* value_buffer) {
   // Write out key, flags exptime, and size.
   const string op = "set";
-  const string key = "foo";
+  const string key = key_;
   int flag = 0;
   int exptime = 0;
   int size = 10;

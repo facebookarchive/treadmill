@@ -48,37 +48,14 @@ namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
-void Connection::sendRequest() {
-  // Write out key, flags exptime, and size.
-  SetRequest sr("foo", 10);
-  sr.send(sock_, write_buffer_.get(), value_buffer_.get());
-}
-
-void Connection::receiveResponse() {
-  int n_bytes = read(sock_, read_buffer_.get(), kBufferSize);
-  readBlock(sock_, read_buffer_.get(), kBufferSize);
-  printf("result: %s", read_buffer_.get());
-}
-
-string Connection::nsLookUp(const string& hostname) {
-  struct hostent* host_info = 0;
-  for (int attempt = 0; (host_info == 0) && (attempt < 3); attempt++) {
-    host_info = gethostbyname(hostname.c_str());
-  }
-
-  char* ip_address;
-  if (host_info) {
-    struct in_addr* address = (struct in_addr*)host_info->h_addr;
-    ip_address = inet_ntoa(*address);
-    printf("Host: %s\n", host_info->h_name);
-    printf("Address: %s\n", ip_address);
-  } else {
-    LOG(FATAL) << "DNS error";
-  }
-
-  return string(ip_address);
-}
-
+/**
+ * Constructor for Connection
+ *
+ * @param ip_address The IP address for the server in string
+ * @param port Port number connecting to
+ * @param disable_nagles Whether disable Nagle's algorithm
+ * @return A connection set up to ip_address:port
+ */
 Connection::Connection(const string& ip_address,
                        int port,
                        bool disable_nagles) {
@@ -86,6 +63,7 @@ Connection::Connection(const string& ip_address,
   read_buffer_.reset(new char[kBufferSize]);
   write_buffer_.reset(new char[kBufferSize]);
   value_buffer_.reset(new char[kBufferSize]);
+
   const string pattern = "test";
   for (int i = 0; i < kBufferSize / pattern.size(); i++) {
     memcpy(value_buffer_.get() + i * pattern.size(),
@@ -116,8 +94,7 @@ Connection::Connection(const string& ip_address,
                       reinterpret_cast<struct sockaddr*>(&server_info),
                       sizeof(server_info));
   if (error < 0) {
-    printf("Connection error: %s\n", strerror(errno));
-    LOG(FATAL) << "Connection error";
+    LOG(FATAL) << "Connection error: " << strerror(errno);
   }
 
   // Disable nagles algorithm preventing batching.
@@ -134,8 +111,65 @@ Connection::Connection(const string& ip_address,
   }
 }
 
+/**
+ * Destructor for Connection
+ */
 Connection::~Connection() {
   close(sock_);
+}
+
+/**
+ * Loop up the IP address given hostname
+ *
+ * @param hostname Hostname for the server in string
+ * @return IP address under the hostname in string
+ */
+string Connection::nsLookUp(const string& hostname) {
+  struct hostent* host_info = 0;
+  for (int attempt = 0;
+       (host_info == 0) && (attempt < kNumberOfAttempts);
+       attempt++) {
+    host_info = gethostbyname(hostname.c_str());
+  }
+
+  char* ip_address;
+  if (host_info) {
+    struct in_addr* address = (struct in_addr*)host_info->h_addr;
+    ip_address = inet_ntoa(*address);
+    LOG(INFO) << "Host: " << host_info->h_name;
+    LOG(INFO) << "Address: " << ip_address;
+  } else {
+    LOG(FATAL) << "DNS error";
+  }
+
+  return string(ip_address);
+}
+
+/**
+ * Receive response
+ */
+void Connection::receiveResponse() {
+  int n_bytes = read(sock_, read_buffer_.get(), kBufferSize);
+  readBlock(sock_, read_buffer_.get(), kBufferSize);
+  LOG(INFO) << "Result: " << read_buffer_.get();
+}
+
+/**
+ * Send request
+ */
+void Connection::sendRequest() {
+  // Write out key, flags exptime, and size.
+  SetRequest sr("foo", 10);
+  sr.send(sock_, write_buffer_.get(), value_buffer_.get());
+}
+
+/**
+ * Return the socket number of this connection
+ *
+ * @return Socket number of this connection
+ */
+int Connection::sock() {
+  return sock_;
 }
 
 }  // namespace treadmill

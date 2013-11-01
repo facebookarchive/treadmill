@@ -31,18 +31,105 @@ namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
-Worker::Worker() {
+/**
+ * Contructor for Worker
+ *
+ * @param workload The workload object for this worker thread
+ */
+Worker::Worker(shared_ptr<Workload> workload)
+  : event_base_(event_base_new()),
+    number_of_connections_(FLAGS_number_of_connections),
+    thread_(unique_ptr<pthread_t>(new pthread_t())),
+    workload_(workload) {
+  const string ip_address = Connection::nsLookUp(FLAGS_hostname);
+  for(int i = 0; i < number_of_connections_; i++) {
+    connections_.push_back(
+        unique_ptr<Connection>(new Connection(ip_address, FLAGS_port)));
+    connection_map_[connections_[i]->sock()] = i;
+  }
+}
+
+/**
+ * Main event_base loop for the worker thread
+ */
+void Worker::mainLoop() {
+  for (int i = 0; i < number_of_connections_; i++) {
+    LOG(INFO) << "Creating socket on fd: " << connections_[i]->sock();
+    struct event* send_event = event_new(event_base_,
+                                         connections_[i]->sock(),
+                                         EV_WRITE | EV_PERSIST,
+                                         SendCallBackHandler,
+                                         this);
+    event_priority_set(send_event, 2);
+    event_add(send_event, NULL);
+
+    struct event* receive_event = event_new(event_base_,
+                                            connections_[i]->sock(),
+                                            EV_READ | EV_PERSIST,
+                                            ReceiveCallBackHandler,
+                                            this);
+    event_priority_set(receive_event, 1);
+    event_add(receive_event, NULL);
+  }
+
+  int error = event_base_loop(event_base_, 0);
+  if (error == -1) {
+    LOG(FATAL) << "Error starting libevent";
+  } else if (error == 1) {
+    LOG(FATAL) << "No events registered with libevent";
+  }
+}
+
+/**
+ * Call back fucntion for receive event
+ */
+void Worker::receiveCallBack() {
 
 }
 
+/**
+ * Call back function for send event
+ */
+void Worker::sendCallBack(int fd) {
+  int connection_id = connection_map_[fd];
+  connections_[connection_id]->sendRequest();
+}
+
+/**
+ * Start the main event_base loop
+ */
 void Worker::start() {
-  const string ip_address = Connection::nsLookUp(FLAGS_hostname);
-  Connection c(ip_address, FLAGS_port);
-  c.sendRequest();
-  c.receiveResponse();
-  while (running_) {
-    break;
+  int rc = pthread_create(thread_.get(), NULL, MainLoopHandler, this);
+  if (rc) {
+    LOG(FATAL) << "Thread failed to start";
   }
+  // Loop forever for now
+  while (1) { };
+}
+
+/**
+ * Handler function for mainLoop() to hook it up with libevent
+ */
+void* MainLoopHandler(void* args) {
+  Worker* worker = static_cast<Worker*>(args);
+  worker->mainLoop();
+  return NULL;
+}
+
+/**
+ * Handler function for receiveCallBack() to hook it up with libevent
+ */
+void SendCallBackHandler(int fd, short event_type, void* args) {
+  Worker* worker = static_cast<Worker*>(args);
+  worker->sendCallBack(fd);
+}
+
+/**
+ * Handler function for sendCallBack() to hook it up with libevent
+ */
+void ReceiveCallBackHandler(int fd, short event_type, void* args) {
+  Worker* worker = static_cast<Worker*>(args);
+  worker->receiveCallBack();
 }
 
 }  // namespace treadmill
