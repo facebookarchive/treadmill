@@ -11,7 +11,7 @@
 CXX = clang++
 
 # Compiler flags
-CXX_CFLAGS = -std=c++11 -stdlib=libc++ -Wall -D_GNU_SOURCE
+CXX_CFLAGS = -std=c++11 -Wall -D_GNU_SOURCE
 CXX_LFLAGS =
 CXX_DFLAGS = -g
 INCLUDES   =
@@ -19,13 +19,13 @@ LIBRARIES  = -levent -lpthread -lglog -lgflags -L/usr/local/lib
 
 # Source files
 SRCS = Connection.cpp \
-			 Histogram.cpp \
+       Histogram.cpp \
        Request.cpp \
-			 Statistic.cpp \
+       Statistic.cpp \
        Treadmill.cpp \
        Util.cpp \
        Worker.cpp \
-			 Workload.cpp
+       Workload.cpp
 
 # Object files
 OBJS = $(SRCS:.cpp=.o)
