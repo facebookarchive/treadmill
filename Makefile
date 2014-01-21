@@ -19,6 +19,7 @@ LIBRARIES  = -levent -lpthread -lglog -lgflags -L/usr/local/lib
 
 # Source files
 SRCS = Connection.cpp \
+			 Distribution.cpp \
        Histogram.cpp \
        Request.cpp \
        Statistic.cpp \
