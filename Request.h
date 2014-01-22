@@ -29,6 +29,8 @@
 #include <string>
 #include <vector>
 
+#include <sys/time.h>
+
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
@@ -52,10 +54,26 @@ class Request {
      * @param value_buffer The buffer to write value (e.g. SET operation)
      */
     virtual void send(int fd, char* write_buffer, char* value_buffer) = 0;
+    /**
+     * Get send time of a request
+     *
+     * @return The time when a request is sent
+     */
+    struct timeval send_time();
+
+  protected:
+    /**
+     * Set the send time of a request
+     */
+    void setSendTime();
+
+  private:
+    // Time when the request is sent
+    struct timeval send_time_;
 };
 
 // Subclass for GET requests
-class GetRequest : Request {
+class GetRequest : public Request {
   public:
     /**
      * Constructor for GetRequest
@@ -74,7 +92,7 @@ class GetRequest : Request {
 };
 
 // Subclass for SET requests
-class SetRequest : Request {
+class SetRequest : public Request {
   public:
     /**
      * Constructor for SetRequest
@@ -91,6 +109,7 @@ class SetRequest : Request {
      * @param value_buffer The buffer to write value for the SET operation
      */
     void send(int fd, char* write_buffer, char* value_buffer);
+
   private:
     // Key for the SET request
     string key_;

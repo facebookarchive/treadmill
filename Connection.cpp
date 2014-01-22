@@ -157,10 +157,9 @@ void Connection::receiveResponse() {
 /**
  * Send request
  */
-void Connection::sendRequest() {
+void Connection::sendRequest(shared_ptr<Request> request) {
   // Write out key, flags exptime, and size.
-  SetRequest sr("foo", 10);
-  sr.send(sock_, write_buffer_.get(), value_buffer_.get());
+  request->send(sock_, write_buffer_.get(), value_buffer_.get());
 }
 
 /**

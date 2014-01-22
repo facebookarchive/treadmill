@@ -33,6 +33,24 @@ namespace windtunnel {
 namespace treadmill {
 
 /**
+ * Get send time of a request
+ *
+ * @return The time when a request is sent
+ */
+struct timeval Request::send_time() {
+  return send_time_;
+}
+
+/**
+ * Set the send time of a request
+ */
+void Request::setSendTime() {
+  struct timeval time_stamp;
+  gettimeofday(&time_stamp, NULL);
+  send_time_ = time_stamp;
+}
+
+/**
  * Constructor for SetRequest
  *
  * @param key The key of the request in string
@@ -74,6 +92,9 @@ void SetRequest::send(int fd, char* write_buffer, char* value_buffer) {
                 size,
                 value_buffer);
   writeBlock(fd, write_buffer, res);
+
+  // Set send time of the request
+  setSendTime();
 }
 
 }  // namespace treadmill

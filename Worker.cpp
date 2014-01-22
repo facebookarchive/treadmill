@@ -45,6 +45,7 @@ Worker::Worker(shared_ptr<Workload> workload)
   for(int i = 0; i < number_of_connections_; i++) {
     connections_.push_back(
         unique_ptr<Connection>(new Connection(ip_address, FLAGS_port)));
+    request_queues_.push_back(queue<shared_ptr<Request> >());
     connection_map_[connections_[i]->sock()] = i;
   }
 }
@@ -83,8 +84,17 @@ void Worker::mainLoop() {
 /**
  * Call back fucntion for receive event
  */
-void Worker::receiveCallBack() {
+void Worker::receiveCallBack(int fd) {
+  int connection_id = connection_map_[fd];
+  shared_ptr<Request> request = request_queues_[connection_id].front();
+  request_queues_[connection_id].pop();
 
+  // Calculate the request latency
+  struct timeval time_stamp, time_diff;
+  gettimeofday(&time_stamp, NULL);
+  struct timeval send_time = request->send_time();
+  timersub(&time_stamp, &send_time, &time_diff);
+  double request_latency = time_diff.tv_usec * 1e-6  + time_diff.tv_sec;
 }
 
 /**
@@ -92,7 +102,9 @@ void Worker::receiveCallBack() {
  */
 void Worker::sendCallBack(int fd) {
   int connection_id = connection_map_[fd];
-  connections_[connection_id]->sendRequest();
+  shared_ptr<SetRequest> set_request (new SetRequest("foo", 10));
+  connections_[connection_id]->sendRequest(set_request);
+  request_queues_[connection_id].push(set_request);
 }
 
 /**
@@ -129,7 +141,7 @@ void SendCallBackHandler(int fd, short event_type, void* args) {
  */
 void ReceiveCallBackHandler(int fd, short event_type, void* args) {
   Worker* worker = static_cast<Worker*>(args);
-  worker->receiveCallBack();
+  worker->receiveCallBack(fd);
 }
 
 }  // namespace treadmill

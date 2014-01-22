@@ -28,10 +28,13 @@
 #include <memory>
 #include <string>
 
+#include "Request.h"
+
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
+using std::shared_ptr;
 using std::string;
 using std::unique_ptr;
 
@@ -71,7 +74,7 @@ class Connection {
     /**
      * Send a request
      */
-    void sendRequest();
+    void sendRequest(shared_ptr<Request> request);
     /**
      * Return the socket number of this connection
      *

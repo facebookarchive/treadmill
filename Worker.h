@@ -26,6 +26,7 @@
 #pragma once
 
 #include <memory>
+#include <queue>
 #include <unordered_map>
 #include <vector>
 
@@ -47,6 +48,8 @@ namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
+using std::deque;
+using std::queue;
 using std::shared_ptr;
 using std::unique_ptr;
 using std::unordered_map;
@@ -67,8 +70,10 @@ class Worker {
     void mainLoop();
     /**
      * Call back fucntion for receive event
+     *
+     * @param fd The file descriptor for the connection
      */
-    void receiveCallBack();
+    void receiveCallBack(int fd);
     /**
      * Call back function for send event
      *
@@ -85,6 +90,8 @@ class Worker {
     vector<unique_ptr<Connection> > connections_;
     // A fd to connection mapping
     unordered_map<int, int> connection_map_;
+    // A vector of queues of outstanding requests indexed by connection
+    vector<queue<shared_ptr<Request> > > request_queues_;
     // Pointer to the event_base struct
     struct event_base* event_base_;
     // Number of connections each worker thread handles
