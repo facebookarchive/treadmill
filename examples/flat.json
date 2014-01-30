@@ -1,0 +1,1538 @@
+[
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.015625, 
+    "key": "0"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.03125, 
+    "key": "1"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.046875, 
+    "key": "2"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.0625, 
+    "key": "3"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.078125, 
+    "key": "4"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.09375, 
+    "key": "5"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.109375, 
+    "key": "6"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.125, 
+    "key": "7"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.140625, 
+    "key": "8"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.15625, 
+    "key": "9"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.171875, 
+    "key": "10"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.1875, 
+    "key": "11"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.203125, 
+    "key": "12"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.21875, 
+    "key": "13"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.234375, 
+    "key": "14"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.25, 
+    "key": "15"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.265625, 
+    "key": "16"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.28125, 
+    "key": "17"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.296875, 
+    "key": "18"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.3125, 
+    "key": "19"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.328125, 
+    "key": "20"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.34375, 
+    "key": "21"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.359375, 
+    "key": "22"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.375, 
+    "key": "23"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.390625, 
+    "key": "24"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.40625, 
+    "key": "25"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.421875, 
+    "key": "26"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.4375, 
+    "key": "27"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.453125, 
+    "key": "28"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.46875, 
+    "key": "29"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.484375, 
+    "key": "30"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.5, 
+    "key": "31"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.515625, 
+    "key": "32"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.53125, 
+    "key": "33"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.546875, 
+    "key": "34"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.5625, 
+    "key": "35"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.578125, 
+    "key": "36"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.59375, 
+    "key": "37"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.609375, 
+    "key": "38"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.625, 
+    "key": "39"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.640625, 
+    "key": "40"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.65625, 
+    "key": "41"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.671875, 
+    "key": "42"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.6875, 
+    "key": "43"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.703125, 
+    "key": "44"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.71875, 
+    "key": "45"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.734375, 
+    "key": "46"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.75, 
+    "key": "47"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.765625, 
+    "key": "48"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.78125, 
+    "key": "49"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.796875, 
+    "key": "50"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.8125, 
+    "key": "51"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.828125, 
+    "key": "52"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.84375, 
+    "key": "53"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.859375, 
+    "key": "54"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.875, 
+    "key": "55"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.890625, 
+    "key": "56"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.90625, 
+    "key": "57"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.921875, 
+    "key": "58"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.9375, 
+    "key": "59"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.953125, 
+    "key": "60"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.96875, 
+    "key": "61"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 0.984375, 
+    "key": "62"
+  }, 
+  {
+    "operation_cdf": [
+      [
+        0.7, 
+        "get_operation"
+      ], 
+      [
+        1.0, 
+        "set_operation"
+      ]
+    ], 
+    "object_size_cdf": [
+      [
+        0.5, 
+        256
+      ], 
+      [
+        1.0, 
+        512
+      ]
+    ], 
+    "key_cdf": 1.0, 
+    "key": "63"
+  }
+]

@@ -31,6 +31,7 @@
 #include <vector>
 
 #include "Histogram.h"
+#include "KeyRecord.h"
 
 namespace facebook {
 namespace windtunnel {
@@ -46,15 +47,6 @@ double kUpperBoundLatency = 1024.0 * 1024.0 * 1024.0;
 double kLowerBoundLatency = 0.0;
 // Number of bins
 int kNumberOfBins = 1000;
-// Error message for non-existing histogram
-double kNonExistingHistogramError = -0.142857;
-
-// Enumerator for operation types
-enum OperationType {
-  ALL_OPERATION = 0,
-  GET_OPERATION = 1,
-  SET_OPERATION = 2,
-};
 
 // Class for non-existing histogram excpetion
 class NonExistingHistogramException : public exception {

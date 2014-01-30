@@ -25,15 +25,33 @@
 
 #pragma once
 
+#include <fstream>
+#include <iostream>
 #include <memory>
+#include <string>
 #include <vector>
+
+#include <folly/dynamic.h>
+#include <folly/json.h>
+
+#include "KeyRecord.h"
 
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
+using folly::dynamic;
+using folly::parseJson;
+
+using std::ifstream;
+using std::istreambuf_iterator;
+using std::make_pair;
 using std::shared_ptr;
+using std::string;
+using std::stringstream;
+using std::to_string;
 using std::unique_ptr;
+using std::vector;
 
 // Class for storing the workload characteristics (e.g. operation distribution)
 class Workload {
@@ -42,23 +60,143 @@ class Workload {
      * Constructor for Workload
      */
     Workload();
-    /**
-     * Destructor for Workload
-     */
-    ~Workload();
 
     /**
-     * Generator method taking a set of parameters including operation
-     * distribution, result size distribution etc.
+     * Generator method taking a set of parameters including number of keys,
+     * operation type CDF and MIN/MAX object size. This method will create
+     * a workload with uniformly distributed key popularity, and each key will
+     * have the same operation CDF and a uniformly distributed object size
+     *
+     * @param number_of_keys The number of keys for the workload
+     * @param operation_cdf The cumulative distribution function for the operation
+     * @param min_object_size The minimal size of an object
+     * @param max_object_size The maximal size of an object
+     * @return A shared pointer to 
      */
-    static shared_ptr<Workload> generateWorkloadByParameter();
+    static shared_ptr<Workload> generateWorkloadByParameter(
+                                const long number_of_keys,
+                                const map<double, OperationType> operation_cdf,
+                                const int min_object_size,
+                                const int max_object_size);
     /**
      * Generator method taking a JSON configuration file which contains
-     * workload characteristics including operation distribution, result
-     * size distribution etc.
+     * workload characteristics, and scale up/down the number of keys to
+     * the amount needed
+     *
+     * @param number_of_keys The number of keys for the workload
+     * @param config_file_path The path to the JSON configuration file
+     * @return A shared pointer to a Workload object
      */
-    static shared_ptr<Workload> generateWorkloadByConfigFile();
+    static shared_ptr<Workload> generateWorkloadByConfigFile(
+                                  const long number_of_keys,
+                                  const string& config_file_path);
+    /**
+     * Return the number of keys in the workload
+     *
+     * @return The number of keys in the workload
+     */
+    long number_of_keys();
+    /**
+     * Return a map to the average operation PDF
+     *
+     * @return A map to the average operation PDF
+     */
+    map<OperationType, double> average_operation_pdf();
+    /**
+     * Return the average object size in the workload
+     *
+     * @return The average object size
+     */
+    double average_object_size();
+
   private:
+    /**
+     * Scale down the number of keys when less keys are needed,
+     * and keep it same if the it is correct
+     *
+     * @param original_number_of_keys The original number of keys in the config
+     *                                file
+     * @param number_of_keys The number of keys needed
+     * @param workload_config The parsed JSON workload configuration
+     * @return A shared pointer to a Workload object
+     */
+    static shared_ptr<Workload> scaleDownNumberOfKeys(
+                                  const long original_number_of_keys,
+                                  const long number_of_keys,
+                                  const dynamic& workload_config);
+    /**
+     * Scale up the number of keys when more keys are needed
+     *
+     * @param original_number_of_keys The original number of keys in the config
+     *                                file
+     * @param number_of_keys The number of keys needed
+     * @param workload_config The parsed JSON workload configuration
+     * @return A shared pointer to a Workload object
+     */
+    static shared_ptr<Workload> scaleUpNumberOfKeys(
+                                  const long original_number_of_keys,
+                                  const long number_of_keys,
+                                  const dynamic& workload_config);
+    /**
+     * Merge multiple keys into one to scale down the number of keys
+     *
+     * @param base_key_index The index of the first key to merge
+     * @param number_of_keys_in_group The number of keys to merge
+     * @param base_key_cdf The key CDF value of the previous key
+     * @param workload_config The parsed JSON workload configuration
+     * @return A unique pointer to the merged KeyRecord of the key
+     */
+    static unique_ptr<KeyRecord> mergeToOneKey(
+                                  const long base_key_index,
+                                  const long number_of_keys_in_group,
+                                  const double base_key_cdf,
+                                  const dynamic& workload_config);
+    /**
+     * Split one key into multiple ones to scale up the number of keys
+     * 
+     * @param base_key_index The index of the key to split
+     * @param number_of_keys_in_group The number of keys to split to
+     * @param base_key_cdf The key CDF value of the previous key
+     * @param workload_config The parsed JSON workload configuration
+     * @return A vector of unique pointers to the splitted keys
+     */
+    static vector<unique_ptr<KeyRecord> > splitToMultipleKeys(
+                                            const long base_key_index,
+                                            const long number_of_keys_in_group,
+                                            const double base_key_cdf,
+                                            const dynamic& workload_config);
+    /**
+     * Set the number of keys for statistics
+     *
+     * @param number_of_keys The number of keys in the workload
+     */
+    void setNumberOfKeys(long number_of_keys);
+    /**
+     * Set the average operation probability distribution function
+     *
+     * @param average_operation_pdf A map of the average operation PDF
+     */
+    void setAverageOperationPDF(
+          map<OperationType, double> average_operation_pdf);
+    /**
+     * Set the average object size for statistics
+     *
+     * @param average_object_size The average object size
+     */
+    void setAverageObjectSize(double average_object_size);
+    /**
+     * Print out the statistics of the workload
+     */
+    void printWorkloadStatistics();
+
+    // A vector of records in the workload
+    vector<unique_ptr<KeyRecord> > workload_records_;
+    // Number of keys in the workload
+    long number_of_keys_;
+    // Map of the average operation type PDF
+    map<OperationType, double> average_operation_pdf_;
+    // Average object size in the workload
+    double average_object_size_;
 };
 
 }  // namespace treadmill
