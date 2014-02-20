@@ -80,7 +80,7 @@ class GetRequest : public Request {
      *
      * @param key The key of the request in string
      */
-    explicit GetRequest(const string& key);
+    GetRequest(const string& key);
     /**
      * Send method to send out the GET request
      *
@@ -88,7 +88,11 @@ class GetRequest : public Request {
      * @param write_buffer The buffer to write operation, key, flags, etc.
      * @param value_buffer The buffer to write value for the GET operation
      */
-    void send(int fd, char* write_buffer, char* value_buffer) {}
+    void send(int fd, char* write_buffer, char* value_buffer);
+
+  private:
+    // Key for the GET request
+    string key_;
 };
 
 // Subclass for SET requests

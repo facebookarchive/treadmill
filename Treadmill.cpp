@@ -24,6 +24,7 @@
 */
 
 #include <string>
+#include <vector>
 
 #include <gflags/gflags.h>
 #include <glog/logging.h>
@@ -34,6 +35,7 @@
 
 using std::shared_ptr;
 using std::string;
+using std::vector;
 
 // The hostname of the server
 DEFINE_string(hostname,
@@ -48,7 +50,7 @@ DEFINE_int32(number_of_connections,
              4,
              "The number of connections for each thread worker");
 // The number of keys in the workload
-DEFINE_int32(number_of_keys,
+DEFINE_int64(number_of_keys,
              1024,
              "The number of keys in the workload");
 // The path to the workload configuration file
@@ -75,6 +77,10 @@ DEFINE_double(get_proportion,
 DEFINE_double(set_proportion,
               0.30,
               "The proportion of SET request");
+// The total number of workers
+DEFINE_int32(number_of_workers,
+             1,
+             "The number of workers");
 
 namespace facebook {
 namespace windtunnel {
@@ -105,9 +111,25 @@ int run(int argc, char* argv[]) {
     workload = Workload::generateWorkloadByConfigFile(FLAGS_number_of_keys,
                                                       FLAGS_config_file);
   }
-  Worker worker(workload);
-  worker.start();
 
+  vector<Worker> workers;
+  // Initialize
+  for (int i = 0; i < FLAGS_number_of_workers; i++) {
+    workers.push_back(Worker(workload, i, FLAGS_number_of_workers));
+  }
+
+  // Warm-Up
+  for (int i = 0; i < FLAGS_number_of_workers; i++) {
+    workers[i].warmUp();
+  }
+  LOG(INFO) << "Warm-Up";
+
+  // Start testing
+  for (int i = 0; i < FLAGS_number_of_workers; i++) {
+    workers[i].start();
+  }
+  // Loop forever for now
+  while (1) { };
   LOG(INFO) << "Complete";
 
   return 0;

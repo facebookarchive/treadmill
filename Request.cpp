@@ -51,6 +51,37 @@ void Request::setSendTime() {
 }
 
 /**
+ * Constructor for GetRequest
+ *
+ * @param key The key of the request in string
+ */
+GetRequest::GetRequest(const string& key) :
+  key_(key) { }
+/**
+ * Send method to send out the GET request
+ *
+ * @param fd File descriptor for the GET request
+ * @param write_buffer The buffer to write operation, key, flags, etc.
+ * @param value_buffer The buffer to write value for the GET operation
+ */
+void GetRequest::send(int fd, char* write_buffer, char* value_buffer) {
+  // Write out key, flags exptime, and size
+  const string op = "get";
+  const string key = key_;
+  int res = sprintf(write_buffer,
+                    "%s %s\r\n",
+                    op.c_str(),
+                    key.c_str());
+  if (res < 0) {
+    LOG(FATAL) << "Error with formatting key etc.";
+  }
+  writeBlock(fd, write_buffer, res);
+
+  // Set send time of the request
+  setSendTime();
+}
+
+/**
  * Constructor for SetRequest
  *
  * @param key The key of the request in string
@@ -73,7 +104,7 @@ void SetRequest::send(int fd, char* write_buffer, char* value_buffer) {
   const string key = key_;
   int flag = 0;
   int exptime = 0;
-  int size = 10;
+  int size = value_size_;
   int res = sprintf(write_buffer,
                     "%s %s %d %d %d\r\n",
                     op.c_str(),

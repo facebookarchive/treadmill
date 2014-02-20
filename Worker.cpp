@@ -35,12 +35,16 @@ namespace treadmill {
  * Contructor for Worker
  *
  * @param workload The workload object for this worker thread
+ * @param worker_id The ID of the worker in [0, number_of_workers)
+ * @param number_of_workers Total number of workers
  */
-Worker::Worker(shared_ptr<Workload> workload)
+Worker::Worker(shared_ptr<Workload> workload, const int worker_id,
+               const int number_of_workers)
   : event_base_(event_base_new()),
     number_of_connections_(FLAGS_number_of_connections),
     thread_(unique_ptr<pthread_t>(new pthread_t())),
-    workload_(workload) {
+    workload_(workload),
+    request_index_(0) {
   const string ip_address = Connection::nsLookUp(FLAGS_hostname);
   for(int i = 0; i < number_of_connections_; i++) {
     connections_.push_back(
@@ -48,12 +52,101 @@ Worker::Worker(shared_ptr<Workload> workload)
     request_queues_.push_back(queue<shared_ptr<Request> >());
     connection_map_[connections_[i]->sock()] = i;
   }
+  warm_up_requests_ = workload_->generateWarmUpRequests(worker_id,
+                                                        number_of_workers);
+  workload_requests_ = workload_->generateRandomRequests(FLAGS_number_of_keys);
+}
+
+/**
+ * Warm-up event_base for the worker thread
+ */
+void Worker::warmUpMainLoop() {
+  for (int i = 0; i < number_of_connections_; i++) {
+    LOG(INFO) << "Creating socket on fd: " << connections_[i]->sock();
+    struct event* send_event = event_new(event_base_,
+                                         connections_[i]->sock(),
+                                         EV_WRITE | EV_PERSIST,
+                                         WarmUpSendCallBackHandler,
+                                         this);
+    event_priority_set(send_event, 2);
+    event_add(send_event, NULL);
+
+    struct event* receive_event = event_new(event_base_,
+                                            connections_[i]->sock(),
+                                            EV_READ | EV_PERSIST,
+                                            WarmUpReceiveCallBackHandler,
+                                            this);
+    event_priority_set(receive_event, 1);
+    event_add(receive_event, NULL);
+  }
+
+  int error = event_base_loop(event_base_, 0);
+  if (error == -1) {
+    LOG(FATAL) << "Error starting libevent";
+  } else if (error == 1) {
+    LOG(FATAL) << "No events registered with libevent";
+  }
+}
+
+/**
+ * Call back function for receive event during warm-up phase
+ *
+ * @param fd The file descriptor for the connection
+ */
+void Worker::warmUpReceiveCallBack(int fd) {
+  int connection_id = connection_map_[fd];
+  shared_ptr<Request> request = request_queues_[connection_id].front();
+  request_queues_[connection_id].pop();
+  connections_[connection_id]->receiveResponse();
+
+  // Check if all the warm-up requests have been sent out
+  if (warm_up_requests_.size() == 0) {
+    for (unordered_map<int, int>::iterator i = connection_map_.begin();
+         i != connection_map_.end(); i++) {
+      // Return if there are still requests in the queue
+      if (request_queues_[i->second].size() != 0) {
+        return ;
+      }
+    }
+    // Break out the event_base loop
+    event_base_loopbreak(event_base_);
+  }
+}
+
+/**
+ * Call back function for send event during warm-up phase
+ *
+ * @param fd The file descriptor for the connection
+ */
+void Worker::warmUpSendCallBack(int fd) {
+  // Return if there are not any more warm-up requests
+  if (warm_up_requests_.size() == 0) {
+    return ;
+  }
+
+  int connection_id = connection_map_[fd];
+  shared_ptr<Request> request = warm_up_requests_.top();
+  warm_up_requests_.pop();
+  connections_[connection_id]->sendRequest(request);
+  request_queues_[connection_id].push(request);
+}
+
+/**
+ * Warm Up the cache with event_base loop
+ */
+void Worker::warmUp() {
+  this->warmUpMainLoop();
 }
 
 /**
  * Main event_base loop for the worker thread
  */
 void Worker::mainLoop() {
+  // Free the current event_base
+  event_base_free(event_base_);
+  // Create the new event_base for actual load testing
+  event_base_ = event_base_new();
+
   for (int i = 0; i < number_of_connections_; i++) {
     LOG(INFO) << "Creating socket on fd: " << connections_[i]->sock();
     struct event* send_event = event_new(event_base_,
@@ -88,6 +181,7 @@ void Worker::receiveCallBack(int fd) {
   int connection_id = connection_map_[fd];
   shared_ptr<Request> request = request_queues_[connection_id].front();
   request_queues_[connection_id].pop();
+  connections_[connection_id]->receiveResponse();
 
   // Calculate the request latency
   struct timeval time_stamp, time_diff;
@@ -102,9 +196,12 @@ void Worker::receiveCallBack(int fd) {
  */
 void Worker::sendCallBack(int fd) {
   int connection_id = connection_map_[fd];
-  shared_ptr<SetRequest> set_request (new SetRequest("foo", 10));
-  connections_[connection_id]->sendRequest(set_request);
-  request_queues_[connection_id].push(set_request);
+  shared_ptr<Request> request = workload_requests_[request_index_++];
+  if (request_index_ == FLAGS_number_of_keys) {
+    request_index_ = 0;
+  }
+  connections_[connection_id]->sendRequest(request);
+  request_queues_[connection_id].push(request);
 }
 
 /**
@@ -115,8 +212,22 @@ void Worker::start() {
   if (rc) {
     LOG(FATAL) << "Thread failed to start";
   }
-  // Loop forever for now
-  while (1) { };
+}
+
+/**
+ * Handler function for warmUpReceiveCallBack() to hook it up with libevent
+ */
+void WarmUpReceiveCallBackHandler(int fd, short event_type, void* args) {
+  Worker* worker = static_cast<Worker*>(args);
+  worker->warmUpReceiveCallBack(fd);
+}
+
+/**
+ * Handler function for warmUpSendCallBack() to hook it up with libevent
+ */
+void WarmUpSendCallBackHandler(int fd, short event_type, void* args) {
+  Worker* worker = static_cast<Worker*>(args);
+  worker->warmUpSendCallBack(fd);
 }
 
 /**
@@ -131,17 +242,17 @@ void* MainLoopHandler(void* args) {
 /**
  * Handler function for receiveCallBack() to hook it up with libevent
  */
-void SendCallBackHandler(int fd, short event_type, void* args) {
+void ReceiveCallBackHandler(int fd, short event_type, void* args) {
   Worker* worker = static_cast<Worker*>(args);
-  worker->sendCallBack(fd);
+  worker->receiveCallBack(fd);
 }
 
 /**
  * Handler function for sendCallBack() to hook it up with libevent
  */
-void ReceiveCallBackHandler(int fd, short event_type, void* args) {
+void SendCallBackHandler(int fd, short event_type, void* args) {
   Worker* worker = static_cast<Worker*>(args);
-  worker->receiveCallBack(fd);
+  worker->sendCallBack(fd);
 }
 
 }  // namespace treadmill

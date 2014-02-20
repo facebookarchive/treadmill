@@ -234,6 +234,46 @@ double Workload::average_object_size() {
 }
 
 /**
+ * Return a vector of shared pointers to randomly generated requests
+ *
+ * @param number_of_requests The number of requests to generate
+ * @return A vector of shared pointers to randomly generated requests
+ */
+vector<shared_ptr<Request> > Workload::generateRandomRequests(
+                                        const long number_of_requests) {
+  long i = 0;
+  vector<shared_ptr<Request> > request_list;
+
+  while (i++ < number_of_requests) {
+    long key_index = this->getRandomKeyIndex(RandomEngine::getDouble());
+    request_list.push_back(
+        this->workload_records_[key_index]->getRandomRequest());
+  }
+  return request_list;
+}
+
+/**
+ * Return a stack of shared pointers to warm-up requests of the workload
+ * for a particular worker, and the requests are sorted from lowest PDF
+ * to highest
+ *
+ * @param worker_id The ID of the current worker [0, number_of_workers)
+ * @param number_of_workers Total number of workers
+ * @return A stack of shared pointers to warm-up requests
+ */
+stack<shared_ptr<Request> > Workload::generateWarmUpRequests(
+                                        const int worker_id,
+                                        const int number_of_workers) {
+  long i = (long) worker_id;
+  stack<shared_ptr<Request> > request_stack;
+  while (i < this->number_of_keys_) {
+    request_stack.push(this->workload_records_[i]->getWarmUpRequest());
+    i += (long) number_of_workers;
+  }
+  return request_stack;
+}
+
+/**
  * Scale down the number of keys when less keys are needed,
  * and keep it same if the it is correct
  *
@@ -470,6 +510,28 @@ vector<unique_ptr<KeyRecord> > Workload::splitToMultipleKeys(
   }
 
   return move(record);
+}
+
+/**
+ * Return the index of the key given the random value and key CDF
+ *
+ * @param random_value A random double value in [0.0, 1.0]
+ * @return The index of the first key with larger key CDF than random_value
+ */
+long Workload::getRandomKeyIndex(double random_value) {
+  long low_index = 0;
+  long high_index = this->number_of_keys_;
+
+  while (low_index != high_index) {
+    long mid_index = (low_index + high_index) / 2;
+    if (this->workload_records_[mid_index]->key_cdf() <= random_value) {
+      low_index = mid_index + 1;
+    } else {
+      high_index = mid_index;
+    }
+  }
+
+  return low_index;
 }
 
 /**

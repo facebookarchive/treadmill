@@ -31,6 +31,9 @@
 #include <string>
 #include <vector>
 
+#include "Request.h"
+#include "Util.h"
+
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
@@ -38,6 +41,7 @@ namespace treadmill {
 using std::exception;
 using std::lower_bound;
 using std::map;
+using std::shared_ptr;
 using std::string;
 using std::vector;
 
@@ -82,8 +86,8 @@ class KeyRecord {
      *                        the object sizes
      */
     KeyRecord(const string& key, const double key_cdf,
-           const map<double, OperationType>& operation_cdf,
-           const map<double, int>& object_size_cdf);
+              const map<double, OperationType>& operation_cdf,
+              const map<double, int>& object_size_cdf);
     /**
      * Get the key of a record
      *
@@ -110,6 +114,20 @@ class KeyRecord {
      */
     map<double, int> object_size_cdf();
     /**
+     * Return a shared pointer to a randomly generated request
+     *
+     * @return A shared pointer to a randomly generated request
+     */
+    shared_ptr<Request> getRandomRequest();
+    /**
+     * Return a shared pointer to a randomly generated warm-up request
+     *
+     * @return A shared pointer to a randomly generated warm-up request
+     */
+    shared_ptr<Request> getWarmUpRequest();
+
+  private:
+    /**
      * Get a random operation type based on the cumulative distribution
      * function for the operation types
      *
@@ -126,7 +144,6 @@ class KeyRecord {
      */
     int getRandomObjectSize(const double random_value);
 
-  private:
     // The key of the workload record in string
     string key_;
     // The cumulative distribution function value of the key

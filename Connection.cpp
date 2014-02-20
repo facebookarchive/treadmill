@@ -149,9 +149,20 @@ string Connection::nsLookUp(const string& hostname) {
  * Receive response
  */
 void Connection::receiveResponse() {
-  int n_bytes = read(sock_, read_buffer_.get(), kBufferSize);
-  readBlock(sock_, read_buffer_.get(), kBufferSize);
-  LOG(INFO) << "Result: " << read_buffer_.get();
+  int total_bytes_read = readLine(sock_, read_buffer_.get(), kBufferSize);
+
+  // reponse for SET request
+  if (read_buffer_.get()[0] == 'V') {
+    int last_space_index = total_bytes_read - 2;
+    while (read_buffer_.get()[last_space_index] != ' ') {
+      last_space_index--;
+    }
+    int object_size = atoi(&read_buffer_.get()[last_space_index + 1]);
+    // Read the result (+2 for \r\n)
+    readBlock(sock_, read_buffer_.get(), object_size + 2);
+    // Read END\r\n
+    readLine(sock_, read_buffer_.get(), kBufferSize);
+  }
 }
 
 /**

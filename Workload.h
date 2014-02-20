@@ -28,6 +28,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <stack>
 #include <string>
 #include <vector>
 
@@ -47,6 +48,7 @@ using std::ifstream;
 using std::istreambuf_iterator;
 using std::make_pair;
 using std::shared_ptr;
+using std::stack;
 using std::string;
 using std::stringstream;
 using std::to_string;
@@ -108,6 +110,26 @@ class Workload {
      * @return The average object size
      */
     double average_object_size();
+    /**
+     * Return a vector of shared pointers to randomly generated requests
+     *
+     * @param number_of_requests The number of requests to generate
+     * @return A vector of shared pointers to randomly generated requests
+     */
+    vector<shared_ptr<Request> > generateRandomRequests(
+                                  const long number_of_requests);
+    /**
+     * Return a stack of shared pointers to warm-up requests of the workload
+     * for a particular worker, and the requests are sorted from lowest PDF
+     * to highest
+     *
+     * @param worker_id The ID of the current worker [0, number_of_workers)
+     * @param number_of_workers Total number of workers
+     * @return A stack of shared pointers to warm-up requests
+     */
+    stack<shared_ptr<Request> > generateWarmUpRequests(
+                                  const int worker_id,
+                                  const int number_of_workers);
 
   private:
     /**
@@ -165,6 +187,13 @@ class Workload {
                                             const long number_of_keys_in_group,
                                             const double base_key_cdf,
                                             const dynamic& workload_config);
+    /**
+     * Return the index of the key given the random value and key CDF
+     *
+     * @param random_value A random double value in [0.0, 1.0]
+     * @return The index of the first key with larger key CDF than random_value
+     */
+    long getRandomKeyIndex(double random_value);
     /**
      * Set the number of keys for statistics
      *

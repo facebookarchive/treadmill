@@ -23,11 +23,43 @@
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <random>
+#include <sys/time.h>
+
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
+using std::mt19937_64;
 using std::string;
+using std::uniform_real_distribution;
+
+// Struct for Mersene Twister 19937 generator (64 bit)
+struct RandomEngine {
+  public:
+    /**
+     * Return a random number ranging in [0.0, 1.0] in double
+     *
+     * @return A random number ranging in [0.0, 1.0] in double
+     */
+    static double getDouble();
+
+  private:
+    // The Mersene Twister 19937 random engine (64 bit)
+    static mt19937_64 random_engine_;
+    // A uniform distribution for real numbers
+    static uniform_real_distribution<double> uniform_distribution_;
+};
+
+/**
+ * Read a line from the file descriptor
+ *
+ * @param fd The file descriptor
+ * @param buffer The buffer to write
+ * @param buffer_size The size of the read buffer
+ * @return The total amount of bytes read
+ */
+int readLine(int fd, char* buffer, int buffer_size);
 
 /**
  * Read from block given the file descriptor

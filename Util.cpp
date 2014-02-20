@@ -25,11 +25,46 @@
 
 #include <glog/logging.h>
 #include <string>
+
 #include "Util.h"
 
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
+
+// Seed the random engine
+mt19937_64 RandomEngine::random_engine_(time(NULL));
+// Generate a uniform distribution
+uniform_real_distribution<double>
+  RandomEngine::uniform_distribution_(0.0, 1.0);
+
+/**
+ * Return a random number ranging in [0.0, 1.0] in double
+ *
+ * @return A random number ranging in [0.0, 1.0] in double
+ */
+double RandomEngine::getDouble() {
+  return uniform_distribution_(random_engine_);
+}
+
+/**
+ * Read a line from the file descriptor
+ *
+ * @param fd The file descriptor
+ * @param buffer The buffer to write
+ * @param buffer_size The size of the read buffer
+ * @return The total amount of bytes read
+ */
+int readLine(int fd, char* buffer, int buffer_size) {
+  int total_bytes_read = 0;
+  do {
+    read(fd, buffer + total_bytes_read, 1);
+    total_bytes_read++;
+  } while (total_bytes_read < buffer_size &&
+           (buffer[total_bytes_read - 2] != '\r' ||
+            buffer[total_bytes_read - 1] != '\n'));
+  return total_bytes_read;
+}
 
 /**
  * Read from block given the file descriptor

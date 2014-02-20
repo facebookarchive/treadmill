@@ -43,6 +43,8 @@ DECLARE_string(hostname);
 DECLARE_int32(port);
 // Number of connections per thread
 DECLARE_int32(number_of_connections);
+// Number of keys
+DECLARE_int64(number_of_keys);
 
 namespace facebook {
 namespace windtunnel {
@@ -62,8 +64,31 @@ class Worker {
      * Contructor for Worker
      *
      * @param workload The workload object for this worker thread
+     * @param worker_id The ID of the worker in [0, number_of_workers)
+     * @param number_of_workers Total number of workers
      */
-    Worker(shared_ptr<Workload> workload);
+    Worker(shared_ptr<Workload> workload, const int worker_id,
+           const int number_of_workers);
+    /**
+     * Warm-up event_base for the worker thread
+     */
+    void warmUpMainLoop();
+    /**
+     * Call back function for receive event during warm-up phase
+     *
+     * @param fd The file descriptor for the connection
+     */
+    void warmUpReceiveCallBack(int fd);
+    /**
+     * Call back function for send event during warm-up phase
+     *
+     * @param fd The file descriptor for the connection
+     */
+    void warmUpSendCallBack(int fd);
+    /**
+     * Warm Up the cache with event_base loop
+     */
+    void warmUp();
     /**
      * Main event_base loop for the worker thread
      */
@@ -100,8 +125,22 @@ class Worker {
     unique_ptr<pthread_t> thread_;
     // Workload object which is shared among all worker threads
     shared_ptr<Workload> workload_;
+    // A stack of warm-up requests
+    stack<shared_ptr<Request> > warm_up_requests_;
+    // A list of randomly generated requests
+    vector<shared_ptr<Request> > workload_requests_;
+    // Index for the next request to send
+    long request_index_;
 };
 
+/**
+ * Handler function for warmUpReceiveCallBack() to hook it up with libevent
+ */
+void WarmUpReceiveCallBackHandler(int fd, short event_type, void* args);
+/**
+ * Handler function for warmUpSendCallBack() to hook it up with libevent
+ */
+void WarmUpSendCallBackHandler(int fd, short event_type, void* args);
 /**
  * Handler function for mainLoop() to hook it up with libevent
  */

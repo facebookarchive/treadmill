@@ -84,6 +84,30 @@ map<double, int> KeyRecord::object_size_cdf() {
 }
 
 /**
+ * Return a shared pointer to a randomly generated request
+ *
+ * @return A shared pointer to a randomly generated request
+ */
+shared_ptr<Request> KeyRecord::getRandomRequest() {
+  if (this->getRandomOperation(RandomEngine::getDouble()) == GET_OPERATION) {
+    return shared_ptr<GetRequest>(new GetRequest(this->key_));
+  } else {
+    int object_size = this->getRandomObjectSize(RandomEngine::getDouble());
+    return shared_ptr<SetRequest>(new SetRequest(this->key_, object_size));
+  }
+}
+
+/**
+ * Return a shared pointer to a randomly generated warm-up request
+ *
+ * @return A shared pointer to a randomly generated warm-up request
+ */
+shared_ptr<Request> KeyRecord::getWarmUpRequest() {
+  int object_size = this->getRandomObjectSize(RandomEngine::getDouble());
+  return shared_ptr<SetRequest>(new SetRequest(this->key_, object_size));
+}
+
+/**
  * Get a random operation type based on the probability distribution
  * function for the operation types
  *
