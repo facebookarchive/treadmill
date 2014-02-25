@@ -47,6 +47,7 @@ using folly::parseJson;
 using std::ifstream;
 using std::istreambuf_iterator;
 using std::make_pair;
+using std::map;
 using std::shared_ptr;
 using std::stack;
 using std::string;

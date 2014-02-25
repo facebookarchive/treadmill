@@ -23,6 +23,8 @@
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <glog/logging.h>
+
 #include "Histogram.h"
 
 namespace facebook {
@@ -39,7 +41,8 @@ namespace treadmill {
 Histogram::Histogram(const int number_of_bins, const double min_value,
                      const double max_value)
   : x_values_(vector<double>(number_of_bins)),
-    y_values_(vector<double>(number_of_bins)) {
+    y_values_(vector<double>(number_of_bins)),
+    cdf_values_(vector<double>(number_of_bins)) {
   double delta_x = (max_value - min_value) / number_of_bins;
   for (int i = 0; i < number_of_bins; i++) {
     x_values_[i] = (i + 1) * delta_x;
@@ -82,6 +85,19 @@ double Histogram::getQuantile(const double quantile) {
 
   return Histogram::linearInterpolate(bottom_x, top_x, bottom_y, top_y,
                                       quantile);
+}
+
+/**
+ * Print out the statistic of the histogram
+ */
+void Histogram::printHistogram() {
+  double sample_count = accumulate(y_values_.begin(), y_values_.end(), 0.0);
+
+  LOG(INFO) << "\tTotal Count: " << sample_count;
+  LOG(INFO) << "\t50\% Percentile Latency: " << this->getQuantile(0.50);
+  LOG(INFO) << "\t90\% Percentile Latency: " << this->getQuantile(0.90);
+  LOG(INFO) << "\t95\% Percentile Latency: " << this->getQuantile(0.95);
+  LOG(INFO) << "\t99\% Percentile Latency: " << this->getQuantile(0.99);
 }
 
 /**

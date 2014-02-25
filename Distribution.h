@@ -55,33 +55,36 @@ class Distribution {
 
 // Subclass for constant distribution
 class ConstantDistribution : public Distribution {
-  /**
-   * Constructor for ConstantDistribution
-   *
-   * @param constant_value The value of the constant in the distribution
-   */
-  explicit ConstantDistribution(const double constant_value);
+  public:
+    /**
+     * Constructor for ConstantDistribution
+     *
+     * @param constant_value The value of the constant in the distribution
+     */
+    explicit ConstantDistribution(const double constant_value);
 };
 
 // Subclass for uniform distribution
 class UniformDistribution : public Distribution {
-  /**
-   * Constructor for UniformDistribution
-   *
-   * @param min_value The minimal value of the uniform distribution
-   * @param max_value The maximal value of the uniform distribution
-   */
-  explicit UniformDistribution(const double min_value, const double max_value);
+  public:
+    /**
+     * Constructor for UniformDistribution
+     *
+     * @param min_value The minimal value of the uniform distribution
+     * @param max_value The maximal value of the uniform distribution
+     */
+    explicit UniformDistribution(const double min_value, const double max_value);
 };
 
 // Subclass for exponential distribution
 class ExponentialDistribution : public Distribution {
-  /**
-   * Constructor for ExponentialDistribution
-   *
-   * @param mean_value The mean value of the exponential distribution
-   */
-  explicit ExponentialDistribution(const double mean_value);
+  public:
+    /**
+     * Constructor for ExponentialDistribution
+     *
+     * @param mean_value The mean value of the exponential distribution
+     */
+    explicit ExponentialDistribution(const double mean_value);
 };
 
 }  // namespace treadmill

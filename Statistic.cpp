@@ -23,6 +23,8 @@
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <glog/logging.h>
+
 #include "Statistic.h"
 
 namespace facebook {
@@ -84,6 +86,24 @@ double Statistic::getQuantile(double quantile, OperationType operation_type) {
  */
 void Statistic::reset() {
   histograms_.clear();
+}
+
+/**
+ * Print out all the statistic
+ */
+void Statistic::printStatistic() {
+  // Print out statistic for ALL_OPERATION
+  LOG(INFO) << "Statistic for all_operation:";
+  histograms_.find(ALL_OPERATION)->second.printHistogram();
+
+  // Print out statistic for other operations
+  for (map<string, OperationType>::iterator i = kOperationTypeMap.begin();
+       i != kOperationTypeMap.end(); i++) {
+    if (histograms_.find(i->second) != histograms_.end()) {
+      LOG(INFO) << "Statistic for " << i->first;
+      histograms_.find(i->second)->second.printHistogram();
+    }
+  }
 }
 
 }  // namespace treadmill

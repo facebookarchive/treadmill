@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -35,9 +36,24 @@ namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
+using std::map;
+using std::shared_ptr;
 using std::string;
 using std::unique_ptr;
 using std::vector;
+
+// Enumerator for operation types
+typedef enum {
+  ALL_OPERATION = 0,
+  GET_OPERATION = 1,
+  SET_OPERATION = 2,
+} OperationType;
+
+// Constant map of operation types
+static map<string, OperationType> kOperationTypeMap = {
+  {"get_operation", GET_OPERATION},
+  {"set_operation", SET_OPERATION}
+};
 
 // Base class for all types of requests
 class Request {
@@ -54,6 +70,20 @@ class Request {
      * @param value_buffer The buffer to write value (e.g. SET operation)
      */
     virtual void send(int fd, char* write_buffer, char* value_buffer) = 0;
+    /**
+     * Virtual receive method to receive response for a request
+     *
+     * @param fd File descriptor for the request
+     * @param read_buffer The buffer to read the response
+     * @param kBufferSize The size of the read buffer
+     */
+    virtual void receive(int fd, char* read_buffer, const int kBufferSize) = 0;
+    /**
+     * Virtual get method that returns the request type
+     *
+     * @return The type of the request
+     */
+    virtual OperationType getRequestType() = 0;
     /**
      * Get send time of a request
      *
@@ -89,6 +119,20 @@ class GetRequest : public Request {
      * @param value_buffer The buffer to write value for the GET operation
      */
     void send(int fd, char* write_buffer, char* value_buffer);
+    /**
+     * Receive method to receive response for a request
+     *
+     * @param fd File descriptor for the request
+     * @param read_buffer The buffer to read the response
+     * @param kBufferSize The size of the read buffer
+     */
+    void receive(int fd, char* read_buffer, const int kBufferSize);
+    /**
+     * Virtual get method that returns the request type
+     *
+     * @return The type of the request
+     */
+    OperationType getRequestType();
 
   private:
     // Key for the GET request
@@ -113,6 +157,20 @@ class SetRequest : public Request {
      * @param value_buffer The buffer to write value for the SET operation
      */
     void send(int fd, char* write_buffer, char* value_buffer);
+    /**
+     * Receive method to receive response for a request
+     *
+     * @param fd File descriptor for the request
+     * @param read_buffer The buffer to read the response
+     * @param kBufferSize The size of the read buffer
+     */
+    void receive(int fd, char* read_buffer, const int kBufferSize);
+    /**
+     * Virtual get method that returns the request type
+     *
+     * @return The type of the request
+     */
+    OperationType getRequestType();
 
   private:
     // Key for the SET request

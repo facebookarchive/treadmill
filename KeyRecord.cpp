@@ -25,6 +25,8 @@
 
 #include "KeyRecord.h"
 
+#include "Util.h"
+
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {

@@ -65,6 +65,10 @@ class Histogram {
      * @return The X value of the quantile in the sample histogram
      */
     double getQuantile(const double quantile);
+    /**
+     * Print out the statistic of the histogram
+     */
+    void printHistogram();
 
   private:
     /**

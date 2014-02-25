@@ -32,7 +32,6 @@
 #include <vector>
 
 #include "Request.h"
-#include "Util.h"
 
 namespace facebook {
 namespace windtunnel {
@@ -44,19 +43,6 @@ using std::map;
 using std::shared_ptr;
 using std::string;
 using std::vector;
-
-// Enumerator for operation types
-enum OperationType {
-  ALL_OPERATION = 0,
-  GET_OPERATION = 1,
-  SET_OPERATION = 2,
-};
-
-// Constant map of operation types
-static map<string, OperationType> kOperationTypeMap = {
-  {"get_operation", GET_OPERATION},
-  {"set_operation", SET_OPERATION}
-};
 
 // Class for out-of-range random value exception
 class OutOfRangeRandomValueException : public exception {

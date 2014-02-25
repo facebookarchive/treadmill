@@ -24,6 +24,7 @@
 */
 
 #include "Worker.h"
+#include "Util.h"
 
 #include <glog/logging.h>
 
@@ -35,15 +36,20 @@ namespace treadmill {
  * Contructor for Worker
  *
  * @param workload The workload object for this worker thread
+ * @param statistic The shared statistic pointer for the worker thread
+ * @param interarrival_distribution The interarrival distribution
  * @param worker_id The ID of the worker in [0, number_of_workers)
  * @param number_of_workers Total number of workers
  */
-Worker::Worker(shared_ptr<Workload> workload, const int worker_id,
-               const int number_of_workers)
+Worker::Worker(shared_ptr<Workload> workload, shared_ptr<Statistic> statistic,
+               shared_ptr<Distribution> interarrival_distribution,
+               const int worker_id, const int number_of_workers)
   : event_base_(event_base_new()),
     number_of_connections_(FLAGS_number_of_connections),
     thread_(unique_ptr<pthread_t>(new pthread_t())),
     workload_(workload),
+    statistic_(statistic),
+    interarrival_distribution_(interarrival_distribution),
     request_index_(0) {
   const string ip_address = Connection::nsLookUp(FLAGS_hostname);
   for(int i = 0; i < number_of_connections_; i++) {
@@ -51,6 +57,10 @@ Worker::Worker(shared_ptr<Workload> workload, const int worker_id,
         unique_ptr<Connection>(new Connection(ip_address, FLAGS_port)));
     request_queues_.push_back(queue<shared_ptr<Request> >());
     connection_map_[connections_[i]->sock()] = i;
+    struct timeval time_value;
+    gettimeofday(&time_value, NULL);
+    last_send_times_.push_back(time_value);
+    interarrival_times_.push_back(-1.0);
   }
   warm_up_requests_ = workload_->generateWarmUpRequests(worker_id,
                                                         number_of_workers);
@@ -97,7 +107,7 @@ void Worker::warmUpReceiveCallBack(int fd) {
   int connection_id = connection_map_[fd];
   shared_ptr<Request> request = request_queues_[connection_id].front();
   request_queues_[connection_id].pop();
-  connections_[connection_id]->receiveResponse();
+  connections_[connection_id]->receiveResponse(request);
 
   // Check if all the warm-up requests have been sent out
   if (warm_up_requests_.size() == 0) {
@@ -181,14 +191,16 @@ void Worker::receiveCallBack(int fd) {
   int connection_id = connection_map_[fd];
   shared_ptr<Request> request = request_queues_[connection_id].front();
   request_queues_[connection_id].pop();
-  connections_[connection_id]->receiveResponse();
+  connections_[connection_id]->receiveResponse(request);
 
   // Calculate the request latency
   struct timeval time_stamp, time_diff;
   gettimeofday(&time_stamp, NULL);
   struct timeval send_time = request->send_time();
   timersub(&time_stamp, &send_time, &time_diff);
-  double request_latency = time_diff.tv_usec * 1e-6  + time_diff.tv_sec;
+  double request_latency = time_diff.tv_sec * 1e6 + time_diff.tv_usec;
+
+  statistic_->addSample(request_latency, request->getRequestType());
 }
 
 /**
@@ -196,12 +208,33 @@ void Worker::receiveCallBack(int fd) {
  */
 void Worker::sendCallBack(int fd) {
   int connection_id = connection_map_[fd];
+
+  // Get the time difference from last request sent
+  struct timeval time_value, time_diff; 
+  gettimeofday(&time_value, NULL);
+  timersub(&time_value, &last_send_times_[connection_id], &time_diff);
+  double diff = time_diff.tv_sec * 1e6  + time_diff.tv_usec;
+
+  // Check if we waited enough interarrival time
+  if (interarrival_times_[connection_id] < 0.0) {
+    int quantile_index =
+      (int) (RandomEngine::getDouble() * (kNumberOfValues - 1));
+    double interarrival_time =
+      interarrival_distribution_->getQuantileByIndex(quantile_index);
+    interarrival_times_[connection_id] = interarrival_time;
+  }
+  if (diff < interarrival_times_[connection_id]) {
+    return ;
+  }
+
   shared_ptr<Request> request = workload_requests_[request_index_++];
   if (request_index_ == FLAGS_number_of_keys) {
     request_index_ = 0;
   }
   connections_[connection_id]->sendRequest(request);
   request_queues_[connection_id].push(request);
+  interarrival_times_[connection_id] = -1.0;
+  last_send_times_[connection_id] = request->send_time();
 }
 
 /**
@@ -212,6 +245,16 @@ void Worker::start() {
   if (rc) {
     LOG(FATAL) << "Thread failed to start";
   }
+}
+
+/**
+ * Stop the main event_base loop
+ */
+void Worker::stop() {
+  // Break out the event_base loop
+  event_base_loopbreak(event_base_);
+  // Free the current event_base
+  event_base_free(event_base_);
 }
 
 /**

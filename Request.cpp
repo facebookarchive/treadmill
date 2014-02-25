@@ -82,6 +82,36 @@ void GetRequest::send(int fd, char* write_buffer, char* value_buffer) {
 }
 
 /**
+ * Receive method to receive response for a request
+ *
+ * @param fd File descriptor for the request
+ * @param read_buffer The buffer to read the response
+ * @param kBufferSize The size of the read buffer
+ */
+void GetRequest::receive(int fd, char* read_buffer, const int kBufferSize) {
+  int total_bytes_read = readLine(fd, read_buffer, kBufferSize);
+
+  int last_space_index = total_bytes_read - 2;
+  while (read_buffer[last_space_index] != ' ') {
+    last_space_index--;
+  }
+  int object_size = atoi(&read_buffer[last_space_index + 1]);
+  // Read the result (+2 for \r\n)
+  readBlock(fd, read_buffer, object_size + 2);
+  // Read END\r\n
+  readLine(fd, read_buffer, kBufferSize);
+}
+
+/**
+ * Virtual get method that returns the request type
+ *
+ * @return The type of the request
+ */
+OperationType GetRequest::getRequestType() {
+  return GET_OPERATION;
+}
+
+/**
  * Constructor for SetRequest
  *
  * @param key The key of the request in string
@@ -126,6 +156,26 @@ void SetRequest::send(int fd, char* write_buffer, char* value_buffer) {
 
   // Set send time of the request
   setSendTime();
+}
+
+/**
+ * Receive method to receive response for a request
+ *
+ * @param fd File descriptor for the request
+ * @param read_buffer The buffer to read the response
+ * @param kBufferSize The size of the read buffer
+ */
+void SetRequest::receive(int fd, char* read_buffer, const int kBufferSize) {
+  readLine(fd, read_buffer, kBufferSize);
+}
+
+/**
+ * Virtual get method that returns the request type
+ *
+ * @return The type of the request
+ */
+OperationType SetRequest::getRequestType() {
+  return SET_OPERATION;
 }
 
 }  // namespace treadmill

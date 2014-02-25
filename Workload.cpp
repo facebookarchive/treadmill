@@ -27,6 +27,8 @@
 
 #include <glog/logging.h>
 
+#include "Util.h"
+
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
@@ -439,7 +441,7 @@ unique_ptr<KeyRecord> Workload::mergeToOneKey(
   for (map<OperationType, double>::iterator i = operation_pdf.begin();
        i != operation_pdf.end(); i++) {
     operation_cdf[i->second + operation_cdf_base] = i->first;
-    operation_cdf_base = i->second;
+    operation_cdf_base += i->second;
   }
 
   // Turn object size PDF map to CDF map
@@ -447,7 +449,7 @@ unique_ptr<KeyRecord> Workload::mergeToOneKey(
   for (map<int, double>::iterator i = object_size_pdf.begin();
        i != object_size_pdf.end(); i++) {
     object_size_cdf[i->second + object_size_cdf_base] = i->first;
-    object_size_cdf_base = i->second;
+    object_size_cdf_base += i->second;
   }
 
   // Create the KeyRecord object for the new key
@@ -490,7 +492,8 @@ vector<unique_ptr<KeyRecord> > Workload::splitToMultipleKeys(
 
     // Operation CDF map
     map<double, OperationType> operation_cdf;
-    for (auto& operation_array : workload_config[i]["operation_cdf"]) {
+    for (auto& operation_array :
+         workload_config[base_key_index]["operation_cdf"]) {
       OperationType operation_type =
         kOperationTypeMap[operation_array[1].asString().toStdString()];
       operation_cdf[operation_array[0].asDouble()] = operation_type;
@@ -498,7 +501,8 @@ vector<unique_ptr<KeyRecord> > Workload::splitToMultipleKeys(
 
     // Object size CDF map
     map<double, int> object_size_cdf;
-    for (auto& object_size_array : workload_config[i]["object_size_cdf"]) {
+    for (auto& object_size_array :
+         workload_config[base_key_index]["object_size_cdf"]) {
       object_size_cdf[object_size_array[0].asDouble()] = 
         object_size_array[1].asInt();
     }
@@ -571,7 +575,7 @@ void Workload::printWorkloadStatistics() {
   LOG(INFO) << "\t- " << "Number of Keys: " << this->number_of_keys_;
   for (map<string, OperationType>::iterator i = kOperationTypeMap.begin();
        i != kOperationTypeMap.end(); i++) {
-    LOG(INFO) << "\t- " << "Portion of " << i->first << "Operations: "
+    LOG(INFO) << "\t- " << "Portion of " << i->first << " Operations: "
               << this->average_operation_pdf_[i->second];
   }
   LOG(INFO) << "\t- " << "Average Object Size: " << this->average_object_size_;

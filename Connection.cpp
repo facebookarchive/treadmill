@@ -41,7 +41,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "Request.h"
 #include "Util.h"
 
 namespace facebook {
@@ -146,23 +145,13 @@ string Connection::nsLookUp(const string& hostname) {
 }
 
 /**
- * Receive response
+ * Receive a response
+ *
+ * @param request The request sent out for the response
  */
-void Connection::receiveResponse() {
-  int total_bytes_read = readLine(sock_, read_buffer_.get(), kBufferSize);
-
-  // reponse for SET request
-  if (read_buffer_.get()[0] == 'V') {
-    int last_space_index = total_bytes_read - 2;
-    while (read_buffer_.get()[last_space_index] != ' ') {
-      last_space_index--;
-    }
-    int object_size = atoi(&read_buffer_.get()[last_space_index + 1]);
-    // Read the result (+2 for \r\n)
-    readBlock(sock_, read_buffer_.get(), object_size + 2);
-    // Read END\r\n
-    readLine(sock_, read_buffer_.get(), kBufferSize);
-  }
+void Connection::receiveResponse(shared_ptr<Request> request) {
+  // Receive the response for request
+  request->receive(sock_, read_buffer_.get(), kBufferSize);
 }
 
 /**

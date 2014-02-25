@@ -35,6 +35,8 @@
 #include <pthread.h>
 
 #include "Connection.h"
+#include "Distribution.h"
+#include "Statistic.h"
 #include "Workload.h"
 
 // Hostname of the server
@@ -64,11 +66,14 @@ class Worker {
      * Contructor for Worker
      *
      * @param workload The workload object for this worker thread
+     * @param statistic The shared statistic pointer for the worker thread
+     * @param interarrival_distribution The interarrival distribution
      * @param worker_id The ID of the worker in [0, number_of_workers)
      * @param number_of_workers Total number of workers
      */
-    Worker(shared_ptr<Workload> workload, const int worker_id,
-           const int number_of_workers);
+    Worker(shared_ptr<Workload> workload, shared_ptr<Statistic> statistic,
+           shared_ptr<Distribution> interarrival_distribution,
+           const int worker_id, const int number_of_workers);
     /**
      * Warm-up event_base for the worker thread
      */
@@ -109,6 +114,10 @@ class Worker {
      * Start the main event_base loop
      */
     void start();
+    /**
+     * Stop the main event_base loop
+     */
+    void stop();
 
   private:
     // A vector of connections wrapped in unique_ptr
@@ -117,6 +126,10 @@ class Worker {
     unordered_map<int, int> connection_map_;
     // A vector of queues of outstanding requests indexed by connection
     vector<queue<shared_ptr<Request> > > request_queues_;
+    // A vector of timestamps for last request sent
+    vector<struct timeval> last_send_times_;
+    // A vector of interarrival times
+    vector<double> interarrival_times_;
     // Pointer to the event_base struct
     struct event_base* event_base_;
     // Number of connections each worker thread handles
@@ -125,6 +138,10 @@ class Worker {
     unique_ptr<pthread_t> thread_;
     // Workload object which is shared among all worker threads
     shared_ptr<Workload> workload_;
+    // Statistic object which is shared among all the worker threads
+    shared_ptr<Statistic> statistic_;
+    // Interarrival distribution which is shared among all the worker threads
+    shared_ptr<Distribution> interarrival_distribution_;
     // A stack of warm-up requests
     stack<shared_ptr<Request> > warm_up_requests_;
     // A list of randomly generated requests

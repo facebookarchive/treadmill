@@ -70,8 +70,10 @@ class Connection {
     static string nsLookUp(const string& hostname);
     /**
      * Receive a response
+     *
+     * @param request The request sent out for the response
      */
-    void receiveResponse();
+    void receiveResponse(shared_ptr<Request> request);
     /**
      * Send a request
      */

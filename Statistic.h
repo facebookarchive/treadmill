@@ -42,11 +42,11 @@ using std::make_pair;
 using std::map;
 
 // Upper bound for latency
-double kUpperBoundLatency = 1024.0 * 1024.0 * 1024.0;
+const double kUpperBoundLatency = 1024.0 * 1024.0;
 // Lower bound for latency
-double kLowerBoundLatency = 0.0;
+const double kLowerBoundLatency = 0.0;
 // Number of bins
-int kNumberOfBins = 1000;
+const int kNumberOfBins = 1024 * 1024;
 
 // Class for non-existing histogram excpetion
 class NonExistingHistogramException : public exception {
@@ -88,6 +88,10 @@ class Statistic {
      * Reset all the statistics to initial state
      */
     void reset();
+    /**
+     * Print out all the statistic
+     */
+    void printStatistic();
 
   private:
     // A vector of added samples
