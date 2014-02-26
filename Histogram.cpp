@@ -107,7 +107,7 @@ void Histogram::printHistogram() {
  * @param search_value The value to search for
  * @return The index of the closest bin
  */
-int Histogram::findClosestBin(const vector<double> values,
+int Histogram::findClosestBin(const vector<double>& values,
                               const double search_value) {
   auto bin_iter = lower_bound(values.begin(), values.end(), search_value);
   return distance(values.begin(), bin_iter);

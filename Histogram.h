@@ -78,7 +78,8 @@ class Histogram {
      * @param search_value The value to search for
      * @return The index of the closest bin
      */
-    static int findClosestBin(const vector<double> values, const double search_value);
+    static int findClosestBin(const vector<double>& values,
+                              const double search_value);
     /**
      * Simple linear interpolation
      *
@@ -90,8 +91,8 @@ class Histogram {
      * @return The interpolated Y value
      */
     static double linearInterpolate(const double bottom_x, const double top_x,
-                             const double bottom_y, const double top_y,
-                             const double x_value);
+                                    const double bottom_y, const double top_y,
+                                    const double x_value);
     /**
      * Update the CDF of the sample histogram
      */
