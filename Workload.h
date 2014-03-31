@@ -71,14 +71,15 @@ class Workload {
      * have the same operation CDF and a uniformly distributed object size
      *
      * @param number_of_keys The number of keys for the workload
-     * @param operation_cdf The cumulative distribution function for the operation
+     * @param operation_cdf The cumulative distribution function for the
+     *                      operation
      * @param min_object_size The minimal size of an object
      * @param max_object_size The maximal size of an object
      * @return A shared pointer to 
      */
     static shared_ptr<Workload> generateWorkloadByParameter(
                                 const long number_of_keys,
-                                const map<double, OperationType> operation_cdf,
+                                const map<double, string> operation_cdf,
                                 const int min_object_size,
                                 const int max_object_size);
     /**
@@ -104,7 +105,7 @@ class Workload {
      *
      * @return A map to the average operation PDF
      */
-    map<OperationType, double> average_operation_pdf();
+    map<string, double> average_operation_pdf();
     /**
      * Return the average object size in the workload
      *
@@ -207,7 +208,7 @@ class Workload {
      * @param average_operation_pdf A map of the average operation PDF
      */
     void setAverageOperationPDF(
-          map<OperationType, double> average_operation_pdf);
+          map<string, double> average_operation_pdf);
     /**
      * Set the average object size for statistics
      *
@@ -224,7 +225,7 @@ class Workload {
     // Number of keys in the workload
     long number_of_keys_;
     // Map of the average operation type PDF
-    map<OperationType, double> average_operation_pdf_;
+    map<string, double> average_operation_pdf_;
     // Average object size in the workload
     double average_object_size_;
 };

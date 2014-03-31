@@ -24,13 +24,20 @@
 */
 
 #include "Request.h"
-#include "Util.h"
-
-#include <glog/logging.h>
 
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
+
+/**
+ * Constructor for Request
+ *
+ * @param key Key of the request
+ * @param value_size Value size of the request
+ */
+Request::Request(const string& key, int value_size)
+  : key_(key),
+    value_size_(value_size) { }
 
 /**
  * Get send time of a request
@@ -50,132 +57,70 @@ void Request::setSendTime() {
   send_time_ = time_stamp;
 }
 
+// Define the request type map and initialize it
+RequestTypeFactory::request_type_map*
+RequestTypeFactory::request_type_map_ = new request_type_map();
+
+// Define the request type vector in current workload and initialize it
+vector<string> RequestTypeFactory::request_types_in_workload_;
+
 /**
- * Constructor for GetRequest
+ * Static function to create a request by name
  *
- * @param key The key of the request in string
+ * @param request_type The type of the request in string
+ * @param key Key of the request
+ * @param value_size Value size of the request
+ * @return A pointer to the created request
  */
-GetRequest::GetRequest(const string& key) :
-  key_(key) { }
-/**
- * Send method to send out the GET request
- *
- * @param fd File descriptor for the GET request
- * @param write_buffer The buffer to write operation, key, flags, etc.
- * @param value_buffer The buffer to write value for the GET operation
- */
-void GetRequest::send(int fd, char* write_buffer, char* value_buffer) {
-  // Write out key, flags exptime, and size
-  const string op = "get";
-  const string key = key_;
-  int res = sprintf(write_buffer,
-                    "%s %s\r\n",
-                    op.c_str(),
-                    key.c_str());
-  if (res < 0) {
-    LOG(FATAL) << "Error with formatting key etc.";
+Request* RequestTypeFactory::createRequestByName(const string& request_type,
+                                                 const string& key,
+                                                 int value_size) {
+  request_type_map::iterator i = getRequestTypeMap()->find(request_type);
+  if (i == getRequestTypeMap()->end()) {
+    // Throw an exception if the request type has not been registered
+    throw UnregisteredRequestTypeException();
+  } else {
+    return i->second(key, value_size);
   }
-  writeBlock(fd, write_buffer, res);
-
-  // Set send time of the request
-  setSendTime();
 }
 
 /**
- * Receive method to receive response for a request
- *
- * @param fd File descriptor for the request
- * @param read_buffer The buffer to read the response
- * @param kBufferSize The size of the read buffer
+ * Static function to initialize the map that contains all the request
+ * types in a certain workload
+ * 
+ * @param workload_type The name of the workload in string
  */
-void GetRequest::receive(int fd, char* read_buffer, const int kBufferSize) {
-  int total_bytes_read = readLine(fd, read_buffer, kBufferSize);
-
-  int last_space_index = total_bytes_read - 2;
-  while (read_buffer[last_space_index] != ' ') {
-    last_space_index--;
+void RequestTypeFactory::initializeRequestTypesByWorkload(
+                              const string& workload_type) {
+  for (request_type_map::iterator i = getRequestTypeMap()->begin();
+       i != getRequestTypeMap()->end(); i++) {
+    if (i->first.find(workload_type) == 0) {
+      request_types_in_workload_.push_back(i->first);
+    }
   }
-  int object_size = atoi(&read_buffer[last_space_index + 1]);
-  // Read the result (+2 for \r\n)
-  readBlock(fd, read_buffer, object_size + 2);
-  // Read END\r\n
-  readLine(fd, read_buffer, kBufferSize);
 }
 
 /**
- * Virtual get method that returns the request type
+ * Static function to get a vector of all the request types in the
+ * workload
  *
- * @return The type of the request
+ * @return A vector of all the request types in string
  */
-OperationType GetRequest::getRequestType() {
-  return GET_OPERATION;
+vector<string> RequestTypeFactory::request_types_in_workload() {
+  return request_types_in_workload_;
 }
 
 /**
- * Constructor for SetRequest
+ * Static function to get a pointer to the global request type map
  *
- * @param key The key of the request in string
- * @param value_size Size of the value for the SET request
+ * @return A pointer to request_type_map_
  */
-SetRequest::SetRequest(const string& key, int value_size) :
-  key_(key),
-  value_size_(value_size) { }
-
-/**
- * Send method to send out the SET request
- *
- * @param fd File descriptor for the SET request
- * @param write_buffer The buffer to write operation, key, flags, etc.
- * @param value_buffer The buffer to write value for the SET operation
- */
-void SetRequest::send(int fd, char* write_buffer, char* value_buffer) {
-  // Write out key, flags exptime, and size.
-  const string op = "set";
-  const string key = key_;
-  int flag = 0;
-  int exptime = 0;
-  int size = value_size_;
-  int res = sprintf(write_buffer,
-                    "%s %s %d %d %d\r\n",
-                    op.c_str(),
-                    key.c_str(),
-                    flag,
-                    exptime,
-                    size);
-  if (res < 0) {
-    LOG(FATAL) << "Error with formatting key etc.";
+RequestTypeFactory::request_type_map* RequestTypeFactory::getRequestTypeMap() {
+  if (!request_type_map_) {
+    // This should not happen
+    request_type_map_ = new RequestTypeFactory::request_type_map;
   }
-  writeBlock(fd, write_buffer, res);
-
-  // Write out value
-  res = sprintf(write_buffer,
-                "%.*s\r\n",
-                size,
-                value_buffer);
-  writeBlock(fd, write_buffer, res);
-
-  // Set send time of the request
-  setSendTime();
-}
-
-/**
- * Receive method to receive response for a request
- *
- * @param fd File descriptor for the request
- * @param read_buffer The buffer to read the response
- * @param kBufferSize The size of the read buffer
- */
-void SetRequest::receive(int fd, char* read_buffer, const int kBufferSize) {
-  readLine(fd, read_buffer, kBufferSize);
-}
-
-/**
- * Virtual get method that returns the request type
- *
- * @return The type of the request
- */
-OperationType SetRequest::getRequestType() {
-  return SET_OPERATION;
+  return request_type_map_;
 }
 
 }  // namespace treadmill

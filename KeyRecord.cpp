@@ -42,7 +42,7 @@ namespace treadmill {
  *                        the object sizes
  */
 KeyRecord::KeyRecord(const string& key, const double key_cdf,
-                     const map<double, OperationType>& operation_cdf,
+                     const map<double, string>& operation_cdf,
                      const map<double, int>& object_size_cdf)
   : key_(key),
     key_cdf_(key_cdf),
@@ -73,7 +73,7 @@ double KeyRecord::key_cdf() {
  * @return The cumulative distribution function for the operation
  *         types
  */
-map<double, OperationType> KeyRecord::operation_cdf() {
+map<double, string> KeyRecord::operation_cdf() {
   return this->operation_cdf_;
 }
 /**
@@ -91,12 +91,12 @@ map<double, int> KeyRecord::object_size_cdf() {
  * @return A shared pointer to a randomly generated request
  */
 shared_ptr<Request> KeyRecord::getRandomRequest() {
-  if (this->getRandomOperation(RandomEngine::getDouble()) == GET_OPERATION) {
-    return shared_ptr<GetRequest>(new GetRequest(this->key_));
-  } else {
-    int object_size = this->getRandomObjectSize(RandomEngine::getDouble());
-    return shared_ptr<SetRequest>(new SetRequest(this->key_, object_size));
-  }
+  string request_type = this->getRandomOperation(RandomEngine::getDouble());
+  int object_size = this->getRandomObjectSize(RandomEngine::getDouble());
+  return shared_ptr<Request>(
+      RequestTypeFactory::createRequestByName(request_type,
+                                              this->key_,
+                                              object_size));
 }
 
 /**
@@ -106,7 +106,10 @@ shared_ptr<Request> KeyRecord::getRandomRequest() {
  */
 shared_ptr<Request> KeyRecord::getWarmUpRequest() {
   int object_size = this->getRandomObjectSize(RandomEngine::getDouble());
-  return shared_ptr<SetRequest>(new SetRequest(this->key_, object_size));
+  return shared_ptr<Request>(
+      RequestTypeFactory::createRequestByName(FLAGS_warmup_request_type,
+                                              this->key_,
+                                              object_size));
 }
 
 /**
@@ -116,7 +119,7 @@ shared_ptr<Request> KeyRecord::getWarmUpRequest() {
  * @param random_value A random value in [0.0, 1.0)
  * @return An operation type
  */
-OperationType KeyRecord::getRandomOperation(const double random_value) {
+string KeyRecord::getRandomOperation(const double random_value) {
   // Throw an exception if random_value is out of range [0.0, 1.0)
   if (random_value < 0.0 || random_value >= 1.0) {
     throw OutOfRangeRandomValueException();

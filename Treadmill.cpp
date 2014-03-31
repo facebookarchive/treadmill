@@ -30,6 +30,7 @@
 #include <glog/logging.h>
 
 #include "Distribution.h"
+#include "Request.h"
 #include "Worker.h"
 #include "Workload.h"
 
@@ -41,26 +42,10 @@ using std::vector;
 DEFINE_string(config_file,
               "./examples/flat.json",
               "The path to the workload configuration file");
-// Whether to generate workload from parameters
-DEFINE_bool(from_parameters,
-            false,
-            "Whether to generate workload from parameters");
-// The proportion of GET requests
-DEFINE_double(get_proportion,
-              0.70,
-              "The proportion of GET request");
 // The hostname of the server
 DEFINE_string(hostname,
               "localhost",
               "The host to load test.");
-// The maximal size of an object
-DEFINE_int32(max_object_size,
-             1024,
-             "The maximal size of an object");
-// The minimal size of an object
-DEFINE_int32(min_object_size,
-             1,
-             "The minimal size of an object");
 // The number of connections each worker thread handles
 DEFINE_int32(number_of_connections,
              4,
@@ -85,10 +70,14 @@ DEFINE_int32(request_per_second,
 DEFINE_int32(runtime,
              120,
              "The total runtime in seconds.");
-// The proportion of SET requests
-DEFINE_double(set_proportion,
-              0.30,
-              "The proportion of SET request");
+// The request type used for warm-up
+DEFINE_string(warmup_request_type,
+              "MemcachedSetRequest",
+              "The request type used for warm-up.");
+// The workload to test
+DEFINE_string(workload_type,
+              "Memcached",
+              "The workload type to test.");
 
 namespace facebook {
 namespace windtunnel {
@@ -101,30 +90,21 @@ namespace treadmill {
  * @param argv Argument vector
  */
 int run(int argc, char* argv[]) {
-  shared_ptr<Workload> workload;
-  if (FLAGS_from_parameters) {
-    map<double, OperationType> operation_cdf = {
-      {
-        FLAGS_get_proportion, GET_OPERATION
-      },
-      {
-        FLAGS_get_proportion + FLAGS_set_proportion, SET_OPERATION
-      }
-    };
-    workload = Workload::generateWorkloadByParameter(FLAGS_number_of_keys,
-                                                     operation_cdf,
-                                                     FLAGS_min_object_size,
-                                                     FLAGS_max_object_size);
-  } else {
-    workload = Workload::generateWorkloadByConfigFile(FLAGS_number_of_keys,
-                                                      FLAGS_config_file);
-  }
+  shared_ptr<Workload> workload =
+    Workload::generateWorkloadByConfigFile(FLAGS_number_of_keys,
+                                           FLAGS_config_file);
+
+  // Initialize the map of request types in the workload
+  RequestTypeFactory::initializeRequestTypesByWorkload(FLAGS_workload_type);
+  vector<string> request_types_in_workload =
+    RequestTypeFactory::request_types_in_workload();
 
   // Initialize statistic
   shared_ptr<Statistic> statistic = shared_ptr<Statistic>(new Statistic());
-  statistic->addStatistic(ALL_OPERATION);
-  statistic->addStatistic(GET_OPERATION);
-  statistic->addStatistic(SET_OPERATION);
+  statistic->addStatistic(kAllTypesOfRequest);
+  for (int i = 0; i < request_types_in_workload.size(); i++) {
+    statistic->addStatistic(request_types_in_workload[i]);
+  }
 
   // Initialize the interarrival rate distribution
   double interarrival_rate =

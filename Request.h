@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include <exception>
 #include <map>
 #include <memory>
 #include <string>
@@ -32,27 +33,31 @@
 
 #include <sys/time.h>
 
+// Macro to declare a request type (should be a private member of the class)
+#define REGISTER_DECLARE_REQUEST_TYPE(NAME) \
+  static RequestTypeRegister<NAME> request_type_register
+
+// Macro to define a request type (should be put in the cpp file)
+#define REGISTER_DEFINE_REQUEST_TYPE(NAME) \
+  RequestTypeRegister<NAME> NAME::request_type_register(#NAME)
+
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
+using std::exception;
+using std::make_pair;
 using std::map;
+using std::iterator;
 using std::shared_ptr;
 using std::string;
-using std::unique_ptr;
 using std::vector;
 
-// Enumerator for operation types
-typedef enum {
-  ALL_OPERATION = 0,
-  GET_OPERATION = 1,
-  SET_OPERATION = 2,
-} OperationType;
-
-// Constant map of operation types
-static map<string, OperationType> kOperationTypeMap = {
-  {"get_operation", GET_OPERATION},
-  {"set_operation", SET_OPERATION}
+// Class for unregistered request type exception
+class UnregisteredRequestTypeException : public exception {
+  const char* what () const throw () {
+    return "Unregistered request type being called";
+  }
 };
 
 // Base class for all types of requests
@@ -60,8 +65,11 @@ class Request {
   public:
     /**
      * Constructor for Request
+     *
+     * @param key Key of the request
+     * @param value_size Value size of the request
      */
-    Request() { }
+    Request(const string& key, int value_size);
     /**
      * Virtual send method to send out send out the request
      *
@@ -83,7 +91,7 @@ class Request {
      *
      * @return The type of the request
      */
-    virtual OperationType getRequestType() = 0;
+    virtual string getRequestType() = 0;
     /**
      * Get send time of a request
      *
@@ -97,86 +105,86 @@ class Request {
      */
     void setSendTime();
 
+    // Key for the request
+    string key_;
+    // Size of the value for the request
+    int value_size_;
+
   private:
     // Time when the request is sent
     struct timeval send_time_;
 };
 
-// Subclass for GET requests
-class GetRequest : public Request {
+/**
+ * Template function to create a request
+ *
+ * @param key Key of the request
+ * @param value_size Value size of the request
+ */
+template<typename T>
+Request* createRequest(const string& key, int value_size) {
+  return new T(key, value_size);
+}
+
+// Factory struct for different types of request
+struct RequestTypeFactory {
   public:
+    // Define the type of the request type map
+    typedef map<string, Request*(*)(const string&, int)> request_type_map;
     /**
-     * Constructor for GetRequest
+     * Static function to create a request by name
      *
-     * @param key The key of the request in string
+     * @param request_type The type of the request in string
+     * @param key Key of the request
+     * @param value_size Value size of the request
+     * @return A pointer to the created request
      */
-    GetRequest(const string& key);
+    static Request* createRequestByName(const string& request_type,
+                                        const string& key,
+                                        int value_size);
     /**
-     * Send method to send out the GET request
-     *
-     * @param fd File descriptor for the GET request
-     * @param write_buffer The buffer to write operation, key, flags, etc.
-     * @param value_buffer The buffer to write value for the GET operation
+     * Static function to initialize the map that contains all the request
+     * types in a certain workload
+     * 
+     * @param workload_type The name of the workload in string
      */
-    void send(int fd, char* write_buffer, char* value_buffer);
+    static void initializeRequestTypesByWorkload(const string& workload_type);
     /**
-     * Receive method to receive response for a request
+     * Static function to get a vector of all the request types in the
+     * workload
      *
-     * @param fd File descriptor for the request
-     * @param read_buffer The buffer to read the response
-     * @param kBufferSize The size of the read buffer
+     * @return A vector of all the request types in string
      */
-    void receive(int fd, char* read_buffer, const int kBufferSize);
+    static vector<string> request_types_in_workload();
+
+  protected:
     /**
-     * Virtual get method that returns the request type
+     * Static function to get a pointer to the global request type map
      *
-     * @return The type of the request
+     * @return A pointer to request_type_map_
      */
-    OperationType getRequestType();
+    static request_type_map* getRequestTypeMap();
 
   private:
-    // Key for the GET request
-    string key_;
+    // Static request type map
+    static request_type_map* request_type_map_;
+    // Static vector of all the request types in certain workload
+    static vector<string> request_types_in_workload_;
 };
 
-// Subclass for SET requests
-class SetRequest : public Request {
+// Template struct for request type register
+template<typename T> struct RequestTypeRegister : RequestTypeFactory {
   public:
     /**
-     * Constructor for SetRequest
+     * Function to register the request type
      *
-     * @param key The key of the request in string
-     * @param value_size Size of the value for the SET request
+     * @param request_type The name of the request type in string
      */
-    SetRequest(const string& key, int value_size);
-    /**
-     * Send method to send out the SET request
-     *
-     * @param fd File descriptor for the SET request
-     * @param write_buffer The buffer to write operation, key, flags, etc.
-     * @param value_buffer The buffer to write value for the SET operation
-     */
-    void send(int fd, char* write_buffer, char* value_buffer);
-    /**
-     * Receive method to receive response for a request
-     *
-     * @param fd File descriptor for the request
-     * @param read_buffer The buffer to read the response
-     * @param kBufferSize The size of the read buffer
-     */
-    void receive(int fd, char* read_buffer, const int kBufferSize);
-    /**
-     * Virtual get method that returns the request type
-     *
-     * @return The type of the request
-     */
-    OperationType getRequestType();
-
-  private:
-    // Key for the SET request
-    string key_;
-    // Size of the value for the SET request
-    int value_size_;
+    RequestTypeRegister(const string& request_type) {
+      // Create an entry in the request type map
+      getRequestTypeMap()->insert(make_pair(request_type,
+                                            &createRequest<T>));
+    }
 };
 
 }  // namespace treadmill

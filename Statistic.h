@@ -32,6 +32,7 @@
 
 #include "Histogram.h"
 #include "KeyRecord.h"
+#include "Request.h"
 
 namespace facebook {
 namespace windtunnel {
@@ -41,6 +42,8 @@ using std::exception;
 using std::make_pair;
 using std::map;
 
+// Key of the histogram for all types of request
+const string kAllTypesOfRequest = "All Types of Request";
 // Upper bound for latency
 const double kUpperBoundLatency = 1024.0 * 1024.0;
 // Lower bound for latency
@@ -68,14 +71,14 @@ class Statistic {
      *
      * @param operation_type The operation type to look up
      */
-    void addStatistic(OperationType operation_type);
+    void addStatistic(const string& operation_type);
     /**
      * Add a sample to corresponding sample histograms
      *
      * @param latency The latency of the sampled request
      * @param operation_type The operation type of the sampled request
      */
-    void addSample(double latency, OperationType operation_type);
+    void addSample(double latency, const string& operation_type);
     /**
      * Get the quantile for particular operation type
      *
@@ -83,7 +86,7 @@ class Statistic {
      * @param operation_type The operation type querying for,
      *        ALL_OPERATION for all types of operations
      */
-    double getQuantile(double quantile, OperationType operation_type);
+    double getQuantile(double quantile, const string& operation_type);
     /**
      * Reset all the statistics to initial state
      */
@@ -95,7 +98,7 @@ class Statistic {
 
   private:
     // A vector of added samples
-    map<OperationType, Histogram> histograms_;
+    map<string, Histogram> histograms_;
 };
 
 }  // namespace treadmill

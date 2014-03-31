@@ -25,17 +25,24 @@ CXX_CFLAGS = -std=c++11 -Wall -D_GNU_SOURCE $(INCLUDES)
 CXX_LFLAGS = $(LIBRARIES)
 CXX_DFLAGS = -DDEBUG -g
 
-# Source files
-SRCS = Connection.cpp \
-       Distribution.cpp \
-       Histogram.cpp \
-       KeyRecord.cpp \
-       Request.cpp \
-       Statistic.cpp \
-       Treadmill.cpp \
-       Util.cpp \
-       Worker.cpp \
-       Workload.cpp
+# Source files for treadmill framework
+TREADMILL_SRCS = Connection.cpp \
+								 Distribution.cpp \
+								 Histogram.cpp \
+								 KeyRecord.cpp \
+								 Request.cpp \
+								 Statistic.cpp \
+								 Treadmill.cpp \
+								 Util.cpp \
+								 Worker.cpp \
+								 Workload.cpp
+
+# Source files for supported workloads
+WORKLOAD_SRCS = MemcachedRequest.cpp
+
+# Source files all together
+SRCS = $(TREADMILL_SRCS) \
+			 $(WORKLOAD_SRCS)
 
 # Object files
 OBJS = $(SRCS:.cpp=.o)

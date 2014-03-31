@@ -43,7 +43,7 @@ Statistic::Statistic() {
  *
  * @param operation_type The operation type to look up
  */
-void Statistic::addStatistic(OperationType operation_type) {
+void Statistic::addStatistic(const string& operation_type) {
   Histogram histogram (kNumberOfBins, kLowerBoundLatency,
                        kUpperBoundLatency);
   histograms_.insert(make_pair(operation_type, histogram));
@@ -55,10 +55,10 @@ void Statistic::addStatistic(OperationType operation_type) {
  * @param latency The latency of the sampled request
  * @param operation_type The operation type of the sampled request
  */
-void Statistic::addSample(double latency, OperationType operation_type) {
+void Statistic::addSample(double latency, const string& operation_type) {
   // Add sample to all operation histogram
-  if (histograms_.find(ALL_OPERATION) != histograms_.end()) {
-    histograms_.find(ALL_OPERATION)->second.addSample(latency);
+  if (histograms_.find(kAllTypesOfRequest) != histograms_.end()) {
+    histograms_.find(kAllTypesOfRequest)->second.addSample(latency);
   }
   // Add sample one corresponding operation histogram
   if (histograms_.find(operation_type) != histograms_.end() ) {
@@ -73,7 +73,7 @@ void Statistic::addSample(double latency, OperationType operation_type) {
  * @param operation_type The operation type querying for,
  *        ALL_OPERATION for all types of operations
  */
-double Statistic::getQuantile(double quantile, OperationType operation_type) {
+double Statistic::getQuantile(double quantile, const string& operation_type) {
   if (histograms_.find(operation_type) != histograms_.end()) {
     return histograms_.find(operation_type)->second.getQuantile(quantile);
   } else {
@@ -92,16 +92,17 @@ void Statistic::reset() {
  * Print out all the statistic
  */
 void Statistic::printStatistic() {
-  // Print out statistic for ALL_OPERATION
-  LOG(INFO) << "Statistic for all_operation:";
-  histograms_.find(ALL_OPERATION)->second.printHistogram();
+  // Print out statistic for all types of request
+  LOG(INFO) << "Statistic for " << kAllTypesOfRequest << ":";
+  histograms_.find(kAllTypesOfRequest)->second.printHistogram();
 
   // Print out statistic for other operations
-  for (map<string, OperationType>::iterator i = kOperationTypeMap.begin();
-       i != kOperationTypeMap.end(); i++) {
-    if (histograms_.find(i->second) != histograms_.end()) {
-      LOG(INFO) << "Statistic for " << i->first;
-      histograms_.find(i->second)->second.printHistogram();
+  vector<string> request_types_in_workload =
+    RequestTypeFactory::request_types_in_workload();
+  for (int i = 0; i < request_types_in_workload.size(); i++) {
+    if (histograms_.find(request_types_in_workload[i]) != histograms_.end()) {
+      LOG(INFO) << "Statistic for " << request_types_in_workload[i];
+      histograms_.find(request_types_in_workload[i])->second.printHistogram();
     }
   }
 }

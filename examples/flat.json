@@ -3,11 +3,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -27,11 +27,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -51,11 +51,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -75,11 +75,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -99,11 +99,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -123,11 +123,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -147,11 +147,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -171,11 +171,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -195,11 +195,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -219,11 +219,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -243,11 +243,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -267,11 +267,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -291,11 +291,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -315,11 +315,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -339,11 +339,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -363,11 +363,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -387,11 +387,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -411,11 +411,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -435,11 +435,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -459,11 +459,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -483,11 +483,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -507,11 +507,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -531,11 +531,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -555,11 +555,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -579,11 +579,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -603,11 +603,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -627,11 +627,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -651,11 +651,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -675,11 +675,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -699,11 +699,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -723,11 +723,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -747,11 +747,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -771,11 +771,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -795,11 +795,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -819,11 +819,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -843,11 +843,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -867,11 +867,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -891,11 +891,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -915,11 +915,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -939,11 +939,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -963,11 +963,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -987,11 +987,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -1011,11 +1011,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -1035,11 +1035,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -1059,11 +1059,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -1083,11 +1083,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -1107,11 +1107,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -1131,11 +1131,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -1155,11 +1155,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -1179,11 +1179,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -1203,11 +1203,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -1227,11 +1227,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -1251,11 +1251,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -1275,11 +1275,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -1299,11 +1299,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -1323,11 +1323,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -1347,11 +1347,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -1371,11 +1371,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -1395,11 +1395,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -1419,11 +1419,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -1443,11 +1443,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -1467,11 +1467,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -1491,11 +1491,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [
@@ -1515,11 +1515,11 @@
     "operation_cdf": [
       [
         0.7, 
-        "get_operation"
+        "MemcachedGetRequest"
       ], 
       [
         1.0, 
-        "set_operation"
+        "MemcachedSetRequest"
       ]
     ], 
     "object_size_cdf": [

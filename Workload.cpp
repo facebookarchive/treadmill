@@ -54,7 +54,7 @@ Workload::Workload() {
  */
 shared_ptr<Workload> Workload::generateWorkloadByParameter(
                                 const long number_of_keys,
-                                const map<double, OperationType> operation_cdf,
+                                const map<double, string> operation_cdf,
                                 const int min_object_size,
                                 const int max_object_size) {
   // Create the workload object
@@ -76,7 +76,7 @@ shared_ptr<Workload> Workload::generateWorkloadByParameter(
     }
 
     // The cumulative distribution function for the operation
-    map<double, OperationType> operation_cdf_map = operation_cdf;
+    map<double, string> operation_cdf_map = operation_cdf;
 
     // The cumulative distribution function for the object sizes
     double object_size_cdf = 0.0;
@@ -99,10 +99,10 @@ shared_ptr<Workload> Workload::generateWorkloadByParameter(
 
   // Set the statistics about the workload
   workload->setNumberOfKeys(number_of_keys);
-  map<OperationType, double> average_operation_pdf;
-  map<double, OperationType> operation_cdf_map = operation_cdf;
+  map<string, double> average_operation_pdf;
+  map<double, string> operation_cdf_map = operation_cdf;
   double base_average_operation_cdf= 0.0;
-  for (map<double, OperationType>::iterator i = operation_cdf_map.begin();
+  for (map<double, string>::iterator i = operation_cdf_map.begin();
        i != operation_cdf_map.end(); i++) {
     average_operation_pdf.insert(
         make_pair(i->second, i->first - base_average_operation_cdf));
@@ -162,17 +162,17 @@ shared_ptr<Workload> Workload::generateWorkloadByConfigFile(
 
   // Set the statistics about the workload
   workload->setNumberOfKeys(number_of_keys);
-  map<OperationType, double> average_operation_pdf;
+  map<string, double> average_operation_pdf;
   double average_object_size = 0.0;
   double base_key_cdf = 0.0;
   for (long i = 0; i < number_of_keys; i++) {
-    map<double, OperationType> current_operation_cdf =
+    map<double, string> current_operation_cdf =
       workload->workload_records_[i]->operation_cdf();
     map<double, int> current_object_size_cdf =
       workload->workload_records_[i]->object_size_cdf();
     // Update average operation PDF
     double base_operation_cdf = 0.0;
-    for (map<double, OperationType>::iterator j =
+    for (map<double, string>::iterator j =
            current_operation_cdf.begin();
          j != current_operation_cdf.end(); j++) {
       if (average_operation_pdf.find(j->second) != 
@@ -222,7 +222,7 @@ long Workload::number_of_keys() {
  *
  * @return A map to the average operation PDF
  */
-map<OperationType, double> Workload::average_operation_pdf() {
+map<string, double> Workload::average_operation_pdf() {
   return this->average_operation_pdf_;
 }
 
@@ -389,9 +389,9 @@ unique_ptr<KeyRecord> Workload::mergeToOneKey(
   // The range that the new key covers
   double key_cdf_range = merged_key_cdf - local_base_key_cdf;
   // Operation PDF map
-  map<OperationType, double> operation_pdf;
+  map<string, double> operation_pdf;
   // Operation CDF map
-  map<double, OperationType> operation_cdf;
+  map<double, string> operation_cdf;
   // Object size PDF map
   map<int, double> object_size_pdf;
   // Object size CDF map
@@ -401,8 +401,7 @@ unique_ptr<KeyRecord> Workload::mergeToOneKey(
     // Operation PDF
     double operation_cdf_base = 0.0;
     for (auto& operation_array : workload_config[i]["operation_cdf"]) {
-      OperationType operation_type =
-        kOperationTypeMap[operation_array[1].asString().toStdString()];
+      string operation_type = operation_array[1].asString().toStdString();
       if (operation_pdf.find(operation_type) != operation_pdf.end()) {
         operation_pdf[operation_type] +=
           (operation_array[0].asDouble() - operation_cdf_base) *
@@ -438,7 +437,7 @@ unique_ptr<KeyRecord> Workload::mergeToOneKey(
   
   // Turn operation PDF map to CDF map
   double operation_cdf_base = 0.0;
-  for (map<OperationType, double>::iterator i = operation_pdf.begin();
+  for (map<string, double>::iterator i = operation_pdf.begin();
        i != operation_pdf.end(); i++) {
     operation_cdf[i->second + operation_cdf_base] = i->first;
     operation_cdf_base += i->second;
@@ -491,11 +490,10 @@ vector<unique_ptr<KeyRecord> > Workload::splitToMultipleKeys(
     double splitted_key_cdf = base_key_cdf + (i + 1) * key_cdf_unit;
 
     // Operation CDF map
-    map<double, OperationType> operation_cdf;
+    map<double, string> operation_cdf;
     for (auto& operation_array :
          workload_config[base_key_index]["operation_cdf"]) {
-      OperationType operation_type =
-        kOperationTypeMap[operation_array[1].asString().toStdString()];
+      string operation_type = operation_array[1].asString().toStdString();
       operation_cdf[operation_array[0].asDouble()] = operation_type;
     }
 
@@ -552,7 +550,7 @@ void Workload::setNumberOfKeys(long number_of_keys) {
  * @param average_operation_pdf A map of the average operation PDF
  */
 void Workload::setAverageOperationPDF(
-                map<OperationType, double> average_operation_pdf) {
+                map<string, double> average_operation_pdf) {
   this->average_operation_pdf_ = average_operation_pdf;
 }
 
@@ -573,10 +571,12 @@ void Workload::printWorkloadStatistics() {
   // Statistics about the workload
   LOG(INFO) << "Workload Statistics:";
   LOG(INFO) << "\t- " << "Number of Keys: " << this->number_of_keys_;
-  for (map<string, OperationType>::iterator i = kOperationTypeMap.begin();
-       i != kOperationTypeMap.end(); i++) {
-    LOG(INFO) << "\t- " << "Portion of " << i->first << " Operations: "
-              << this->average_operation_pdf_[i->second];
+  vector<string> request_types_in_workload =
+    RequestTypeFactory::request_types_in_workload();
+  for (int i = 0; i < request_types_in_workload.size(); i++) {
+    LOG(INFO) << "\t- " << "Portion of " << request_types_in_workload[i]
+              << " Operations: " 
+              << this->average_operation_pdf_[request_types_in_workload[i]];
   }
   LOG(INFO) << "\t- " << "Average Object Size: " << this->average_object_size_;
   LOG(INFO) << "\t- " << "Total Working Set Size: " << working_set_size;

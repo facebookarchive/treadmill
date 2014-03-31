@@ -31,7 +31,11 @@
 #include <string>
 #include <vector>
 
+#include <gflags/gflags.h>
+
 #include "Request.h"
+
+DECLARE_string(warmup_request_type);
 
 namespace facebook {
 namespace windtunnel {
@@ -72,7 +76,7 @@ class KeyRecord {
      *                        the object sizes
      */
     KeyRecord(const string& key, const double key_cdf,
-              const map<double, OperationType>& operation_cdf,
+              const map<double, string>& operation_cdf,
               const map<double, int>& object_size_cdf);
     /**
      * Get the key of a record
@@ -92,7 +96,7 @@ class KeyRecord {
      * @return The cumulative distribution function for the operation
      *         types
      */
-    map<double, OperationType> operation_cdf();
+    map<double, string> operation_cdf();
     /**
      * Get the cumulative distribution function for the object sizes
      *
@@ -120,7 +124,7 @@ class KeyRecord {
      * @param random_value A random value in [0.0, 1.0)
      * @return An operation type
      */
-    OperationType getRandomOperation(const double random_value);
+    string getRandomOperation(const double random_value);
     /**
      * Get a random object size based on the cumulative distribution
      * function for the object sizes
@@ -135,7 +139,7 @@ class KeyRecord {
     // The cumulative distribution function value of the key
     double key_cdf_;
     // The cumulative distribution function for operation types
-    map<double, OperationType> operation_cdf_;
+    map<double, string> operation_cdf_;
     // The cumulative distribtuion function for the object sizes
     map<double, int> object_size_cdf_;
 };
