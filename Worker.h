@@ -47,6 +47,8 @@ DECLARE_int32(port);
 DECLARE_int32(number_of_connections);
 // Number of keys
 DECLARE_int64(number_of_keys);
+// Whether to disable Nagle's algorithm
+DECLARE_bool(disable_nagles);
 
 namespace facebook {
 namespace windtunnel {

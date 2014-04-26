@@ -54,7 +54,8 @@ Worker::Worker(shared_ptr<Workload> workload, shared_ptr<Statistic> statistic,
   const string ip_address = Connection::nsLookUp(FLAGS_hostname);
   for(int i = 0; i < number_of_connections_; i++) {
     connections_.push_back(
-        unique_ptr<Connection>(new Connection(ip_address, FLAGS_port)));
+        unique_ptr<Connection>(new Connection(ip_address, FLAGS_port,
+                                              FLAGS_disable_nagles)));
     request_queues_.push_back(queue<shared_ptr<Request> >());
     connection_map_[connections_[i]->sock()] = i;
     struct timeval time_value;

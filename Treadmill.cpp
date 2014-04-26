@@ -78,6 +78,10 @@ DEFINE_string(warmup_request_type,
 DEFINE_string(workload_type,
               "Memcached",
               "The workload type to test.");
+// Whether to disable Nagle's algorithm
+DEFINE_bool(disable_nagles,
+            true,
+            "Whether to disable Nagle's algorithm. (Default: TRUE)");
 
 namespace facebook {
 namespace windtunnel {
