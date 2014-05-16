@@ -17,7 +17,7 @@ CXX = clang++
 
 # Includes and libraries
 INCLUDES   = -I$(PATH_DBCON)src -I$(PATH_FOLLY)
-LIBRARIES  = -levent -lfolly -lgflags -lglog -lpthread -lprofiler \
+LIBRARIES  = -levent -lfolly -lgflags -lglog -lpthread \
              -L$(PATH_DBCON) -L/usr/local/lib
 
 # Compiler flags
