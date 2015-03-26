@@ -13,7 +13,7 @@
 
 #include "thrift/lib/cpp2/server/ThriftServer.h"
 
-#include "SleepHandler.h"
+#include "services/sleep/sleepserver/SleepHandler.h"
 
 using namespace apache::thrift;
 using namespace apache::thrift::async;

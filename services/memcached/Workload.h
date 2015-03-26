@@ -12,7 +12,7 @@
 
 #include <vector>
 
-#include "MemcachedService.h"
+#include "services/memcached/MemcachedService.h"
 
 #include "Workload.h"
 

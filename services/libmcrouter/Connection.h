@@ -15,7 +15,7 @@
 
 #include "Connection.h"
 
-#include "LibmcrouterService.h"
+#include "services/libmcrouter/LibmcrouterService.h"
 
 DECLARE_string(libmcrouter_flavor);
 

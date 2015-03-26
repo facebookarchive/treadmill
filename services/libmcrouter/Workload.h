@@ -11,7 +11,7 @@
 #pragma once
 
 #include "Workload.h"
-#include "LibmcrouterService.h"
+#include "services/libmcrouter/LibmcrouterService.h"
 
 DECLARE_int64(number_of_keys);
 DECLARE_string(libmcrouter_keys_prefix);

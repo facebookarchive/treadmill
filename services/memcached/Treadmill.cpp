@@ -10,9 +10,9 @@
 
 #include <gflags/gflags.h>
 
-#include "Connection.h"
-#include "MemcachedService.h"
-#include "Workload.h"
+#include "services/memcached/Connection.h"
+#include "services/memcached/MemcachedService.h"
+#include "services/memcached/Workload.h"
 
 #include "Treadmill.h"
 

@@ -10,8 +10,6 @@
 
 #include <gtest/gtest.h>
 
-#include "common/init/Init.h"
-
 #include "Statistic.h"
 
 namespace facebook {
@@ -50,6 +48,5 @@ TEST(StatisticTest, RebinTest) {
 
 int main(int argc, char *argv[]) {
   testing::InitGoogleTest(&argc, argv);
-  facebook::initFacebook(&argc, &argv);
   return RUN_ALL_TESTS();
 }
