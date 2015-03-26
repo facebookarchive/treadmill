@@ -10,14 +10,22 @@
 
 #pragma once
 
+#include "Request.h"
+
+DEFINE_int64(sleep_time,
+             1000,
+             "Requested microseconds to sleep for (default:1000)");
+
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
-template <class Service>
-class Workload {
+class SleepService {
+ public:
+  typedef SleepRequest Request;
+  typedef SleepReply Reply;
 };
 
-}  // namespace treadmill
-}  // namespace windtunnel
-}  // namespace facebook
+} // namespace treadmill
+} // namespace windtunnel
+} // namespace facebook
