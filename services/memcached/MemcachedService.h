@@ -10,14 +10,18 @@
 
 #pragma once
 
+#include "Request.h"
+
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
-template <class Service>
-class Workload {
+class MemcachedService {
+ public:
+  typedef MemcachedRequest Request;
+  typedef MemcachedReply Reply;
 };
 
-}  // namespace treadmill
-}  // namespace windtunnel
-}  // namespace facebook
+} // namespace treadmill
+} // namespace windtunnel
+} // namespace facebook

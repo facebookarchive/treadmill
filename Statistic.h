@@ -1,104 +1,151 @@
 /*
-* Copyright (c) 2013, Facebook, Inc.
-* All rights reserved.
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-*   * Redistributions of source code must retain the above copyright notice,
-*     this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above copyright notice,
-*     this list of conditions and the following disclaimer in the documentation
-*     and/or other materials provided with the distribution.
-*   * Neither the name Facebook nor the names of its contributors may be used to
-*     endorse or promote products derived from this software without specific
-*     prior written permission.
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ *  Copyright (c) 2014, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
 
 #pragma once
 
-#include <exception>
-#include <map>
-#include <memory>
 #include <vector>
 
+#include <folly/dynamic.h>
+
 #include "Histogram.h"
-#include "KeyRecord.h"
-#include "Request.h"
 
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
-using std::exception;
-using std::make_pair;
-using std::map;
+const int kNumberOfBins = 1024;
 
-// Key of the histogram for all types of request
-const string kAllTypesOfRequest = "All Types of Request";
-// Upper bound for latency
-const double kUpperBoundLatency = 1024.0 * 1024.0;
-// Lower bound for latency
-const double kLowerBoundLatency = 0.0;
-// Number of bins
-const int kNumberOfBins = 1024 * 1024;
+const int kCalibrationSamples = 10;
 
-// Class for non-existing histogram excpetion
-class NonExistingHistogramException : public exception {
-  const char* what () const throw () {
-    return "Non-existing histogram exception";
-  }
-};
+const int kWarmupSamples = 10;
 
-// Class for statistic tools
+const int kExceptionalValues = 1000;
+
+/**
+ * Uses a similar methodology to:
+ * http://web.eecs.umich.edu/~twenisch/papers/ispass12.pdf
+ *
+ */
 class Statistic {
-  public:
-    /**
-     * Constructor for Statistic
-     */
-    Statistic();
+ public:
+  Statistic() : Statistic("") {}
 
-    /**
-     * Add a statistic histogram for certain operation type
-     *
-     * @param operation_type The operation type to look up
-     */
-    void addStatistic(const string& operation_type);
-    /**
-     * Add a sample to corresponding sample histograms
-     *
-     * @param latency The latency of the sampled request
-     * @param operation_type The operation type of the sampled request
-     */
-    void addSample(double latency, const string& operation_type);
-    /**
-     * Get the quantile for particular operation type
-     *
-     * @param quantile The quantile to search for
-     * @param operation_type The operation type querying for,
-     *        ALL_OPERATION for all types of operations
-     */
-    double getQuantile(double quantile, const string& operation_type);
-    /**
-     * Reset all the statistics to initial state
-     */
-    void reset();
-    /**
-     * Print out all the statistic
-     */
-    void printStatistic();
+  Statistic(const std::string name,
+            int nWarmupSamples,
+            int nCalibrationSamples) :
+      name_(name),
+      histogram_(),
+      nWarmupSamples_(nWarmupSamples),
+      warmupSamples_(0),
+      nCalibrationSamples_(nCalibrationSamples),
+      s0_(0),
+      s1_(0.0),
+      s2_(0.0),
+      a_(0.0),
+      q_(0.0),
+      minSet_(false),
+      maxSet_(false),
+      min_(0),
+      max_(0) {}
 
-  private:
-    // A vector of added samples
-    map<string, Histogram> histograms_;
+  Statistic(const Statistic& s)
+    : name_(s.name_),
+      nWarmupSamples_(s.nWarmupSamples_),
+      warmupSamples_(s.warmupSamples_),
+      nCalibrationSamples_(s.nCalibrationSamples_),
+      s0_(s.s0_),
+      s1_(s.s1_),
+      s2_(s.s2_),
+      a_(s.a_),
+      q_(s.q_),
+      minSet_(s.minSet_),
+      maxSet_(s.maxSet_),
+      min_(s.min_),
+      max_(s.max_),
+      exceptional_index_(s.exceptional_index_) {
+    if (s.histogram_ != nullptr) {
+      histogram_.reset(new Histogram(*s.histogram_));
+    }
+    for (int i = 0; i < exceptional_index_; i++) {
+      exceptional_values_[i] = s.exceptional_values_[i];
+    }
+  }
+
+  explicit Statistic(const std::string name) :
+    Statistic(name, kWarmupSamples, kCalibrationSamples) {}
+  /**
+   * Add a statistic histogram for certain operation type
+   *
+   * @param operation_type The operation type to look up
+   */
+  void addStatistic(const std::string& operation_type);
+
+  /**
+   * Add a sample to the statistic
+   *
+   * @param value
+   */
+  void addSample(double latency);
+
+  double getAverage() const;
+
+  double getStdDev() const;
+
+  double getCV() const;
+
+  /**
+   * Estimate a quantile
+   *
+   * @param quantile
+   */
+  double getQuantile(double quantile);
+
+  /**
+   * Print out all the statistic
+   */
+  void printStatistic() const;
+
+  folly::dynamic toDynamic() const;
+
+  void combine(const Statistic& stat);
+
+  std::string getName() const {
+    return name_;
+  }
+
+ private:
+  void rebinHistogram(double target_max_value = -1.0);
+
+  void setHistogramBins();
+
+  double meanConfidence() const;
+
+  double quantileConfidence(double quantile) const;
+
+  std::string name_;
+  std::unique_ptr<Histogram> histogram_;
+  int nWarmupSamples_;
+  int warmupSamples_;
+  std::vector<double> calibrationSamples_;
+  int nCalibrationSamples_;
+  int s0_;
+  double s1_;
+  double s2_;
+  double a_;
+  double q_;
+  bool minSet_;
+  bool maxSet_;
+  double min_;
+  double max_;
+  double exceptional_values_[kExceptionalValues];
+  int exceptional_index_{0};
 };
 
 }  // namespace treadmill

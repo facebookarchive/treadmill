@@ -1,109 +1,296 @@
 /*
-* Copyright (c) 2013, Facebook, Inc.
-* All rights reserved.
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-*   * Redistributions of source code must retain the above copyright notice,
-*     this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above copyright notice,
-*     this list of conditions and the following disclaimer in the documentation
-*     and/or other materials provided with the distribution.
-*   * Neither the name Facebook nor the names of its contributors may be used to
-*     endorse or promote products derived from this software without specific
-*     prior written permission.
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-
-#include <glog/logging.h>
+ *  Copyright (c) 2014, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
 
 #include "Statistic.h"
+#include "Util.h"
+
+#include <cmath>
+#include <mutex>
+#include <unordered_map>
+
+#include <glog/logging.h>
 
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
 /**
- * Constructor for Statistic
+ * Orchestrates synchronization of histogram inputs so all threads have
+ * the same bins in their histogram. A thread passes in |proposed| and if
+ * it the first thread to propose a set of inputs it will be used from
+ * then on. The function returns a set of inputs that should be used
+ * regardless.
+ *
  */
-Statistic::Statistic() {
+HistogramInput synchronizeGlobalHistogramRange(
+                    std::string name,
+                    const HistogramInput& proposed) {
+  static std::mutex global_mutex;
+  static std::unordered_map<std::string, HistogramInput>
+            proto_histogram_inputs;
+  std::lock_guard<std::mutex> lock(global_mutex);
 
+  HistogramInput accepted = proposed;
+  auto it = proto_histogram_inputs.find(name);
+  if (it == proto_histogram_inputs.end()) {
+    proto_histogram_inputs[name] = proposed;
+  } else {
+    accepted = it->second;
+  }
+
+  return accepted;
 }
 
-/**
- * Add a statistic histogram for certain operation type
- *
- * @param operation_type The operation type to look up
- */
-void Statistic::addStatistic(const string& operation_type) {
-  Histogram histogram (kNumberOfBins, kLowerBoundLatency,
-                       kUpperBoundLatency);
-  histograms_.insert(make_pair(operation_type, histogram));
+void Statistic::rebinHistogram(double target_max_value) {
+  double min_value = this->histogram_->getMinBin();
+  double max_value = this->histogram_->getMaxBin();
+
+  double new_max_value = 0.0;
+  if (target_max_value < 0.0) {
+    double max_exceptional = 0;
+    for (int i = 0; i < exceptional_index_; i++) {
+      max_exceptional = std::max(max_exceptional, exceptional_values_[i]);
+    }
+    double pow = std::log2(max_exceptional);
+    new_max_value = std::pow(2, ceil(pow));
+  } else {
+    new_max_value = target_max_value;
+  }
+
+  HistogramInput input(kNumberOfBins,
+                       min_value,
+                       new_max_value);
+  std::unique_ptr<Histogram> new_histogram(new Histogram(input));
+  new_histogram->insertSmallerHistogramSamples(this->histogram_);
+
+  for (int i = 0; i < exceptional_index_; i++) {
+    new_histogram->addSample(exceptional_values_[i]);
+  }
+  exceptional_index_ = 0;
+  this->histogram_.swap(new_histogram);
+}
+
+void Statistic::setHistogramBins() {
+  double min_value = 0.0;
+  double max_value = 1.0;
+  if (!calibrationSamples_.empty()) {
+    min_value = *std::min_element(calibrationSamples_.begin(),
+                                  calibrationSamples_.end());
+    max_value = *std::max_element(calibrationSamples_.begin(),
+                                  calibrationSamples_.end());
+  }
+  HistogramInput input(kNumberOfBins,
+                       min_value / 2.0,
+                       max_value * 2.0);
+  HistogramInput acceptedHistogram
+      = synchronizeGlobalHistogramRange(
+          this->getName(),
+          input);
+  histogram_.reset(new Histogram(acceptedHistogram));
 }
 
 /**
  * Add a sample to statistic
  *
- * @param latency The latency of the sampled request
- * @param operation_type The operation type of the sampled request
+ * @param value
  */
-void Statistic::addSample(double latency, const string& operation_type) {
-  // Add sample to all operation histogram
-  if (histograms_.find(kAllTypesOfRequest) != histograms_.end()) {
-    histograms_.find(kAllTypesOfRequest)->second.addSample(latency);
+void Statistic::addSample(double value) {
+  if (histogram_ == nullptr) {
+    if (warmupSamples_ < nWarmupSamples_) {
+      warmupSamples_++;
+      return;
+    }
+    if (calibrationSamples_.size() < nCalibrationSamples_) {
+      calibrationSamples_.push_back(value);
+      return;
+    }
+    if (calibrationSamples_.size() == nCalibrationSamples_) {
+      this->setHistogramBins();
+      // Set all stats back to 0 after calibration
+      s0_ = 0;
+      s1_ = 0.0;
+      s2_ = 0.0;
+      a_ = 0.0;
+      q_ = 0.0;
+      min_ = 0.0;
+      max_ = 0.0;
+      minSet_ = false;
+      maxSet_ = false;
+    }
   }
-  // Add sample one corresponding operation histogram
-  if (histograms_.find(operation_type) != histograms_.end() ) {
-    histograms_.find(operation_type)->second.addSample(latency);
-  }
-}
-
-/**
- * Get the quantile for particular operation type
- *
- * @param quantile The quantile to search for
- * @param operation_type The operation type querying for,
- *        ALL_OPERATION for all types of operations
- */
-double Statistic::getQuantile(double quantile, const string& operation_type) {
-  if (histograms_.find(operation_type) != histograms_.end()) {
-    return histograms_.find(operation_type)->second.getQuantile(quantile);
+  if (value > this->histogram_->getMaxBin()) {
+    exceptional_values_[exceptional_index_] = value;
+    exceptional_index_++;
+    if (exceptional_index_ == kExceptionalValues) {
+      this->rebinHistogram();
+    }
   } else {
-    throw NonExistingHistogramException();
+    histogram_->addSample(value);
+  }
+  s0_ += 1.0;
+  s1_ += value;
+  s2_ += (value * value);
+  double tempA = a_;
+  a_ = a_ + (value - a_) / s0_;
+  q_ = q_ + (value - tempA) * (value - a_);
+  if (minSet_) {
+    min_ = std::min(min_, value);
+  } else {
+    min_ = value;
+    minSet_ = true;
+  }
+  if (maxSet_) {
+    max_ = std::max(max_, value);
+  } else {
+    max_ = value;
+    maxSet_ = true;
   }
 }
 
+double Statistic::getAverage() const {
+  if (s0_ == 0) {
+    return 0;
+  }
+  return s1_ / (double) s0_;
+}
+
+double Statistic::getStdDev() const {
+  if (s0_ == 0) {
+    return 0;
+  }
+  return sqrt(q_ / (s0_ - 1.0));
+}
+
+double Statistic::getCV() const {
+  return this->getStdDev() / this->getAverage();
+}
+
 /**
- * Reset all the statistics to initial stat
+ * Estimate a quantile
+ *
+ * @param quantile
  */
-void Statistic::reset() {
-  histograms_.clear();
+double Statistic::getQuantile(double quantile) {
+  return histogram_->getQuantile(quantile);
+}
+
+double Statistic::meanConfidence() const {
+  double z = 1.96;
+  double e = z * this->getStdDev() / sqrt(this->s0_);
+  return e;
+}
+
+double Statistic::quantileConfidence(double quantile) const {
+  int nResamples = 100;
+  Statistic estimateStatistic;
+  for (int i = 0; i < nResamples; i++) {
+    Statistic resampled;
+    for (int j = 0; j < this->s0_; j++) {
+      double randQuantile = RandomEngine::getDouble();
+      double sample = this->histogram_->getQuantile(randQuantile);
+      resampled.addSample(sample);
+    }
+    estimateStatistic.addSample(resampled.getAverage());
+  }
+  return estimateStatistic.meanConfidence();
 }
 
 /**
  * Print out all the statistic
  */
-void Statistic::printStatistic() {
-  // Print out statistic for all types of request
-  LOG(INFO) << "Statistic for " << kAllTypesOfRequest << ":";
-  histograms_.find(kAllTypesOfRequest)->second.printHistogram();
+void Statistic::printStatistic() const {
+  if (!histogram_) {
+    LOG(INFO) << "Did not collect enough samples";
+    return;
+  }
+  LOG(INFO) << "N Samples: " << s0_;
+  LOG(INFO) << "Average: " << this->getAverage()
+            << " +/- " << meanConfidence();
+  LOG(INFO) << "Std. Dev.: " << this->getStdDev();
+  LOG(INFO) << "Cv.: " << this->getCV();
+  LOG(INFO) << "Min: " << this->min_;
+  LOG(INFO) << "Max: " << this->max_;
+  auto quantiles = {50, 90, 95, 99};
+  for (auto quantile: quantiles) {
+    LOG(INFO) << quantile << "\% Percentile: "
+              << this->histogram_->getQuantile(quantile / 100.0);
+  //            << " +/- " << quantileConfidence(quantile / 100.0);
+  }
+  LOG(INFO) << "Min Bin " << histogram_->getMinBin();
+  LOG(INFO) << "Max Bin " << histogram_->getMaxBin();
 
-  // Print out statistic for other operations
-  vector<string> request_types_in_workload =
-    RequestTypeFactory::request_types_in_workload();
-  for (int i = 0; i < request_types_in_workload.size(); i++) {
-    if (histograms_.find(request_types_in_workload[i]) != histograms_.end()) {
-      LOG(INFO) << "Statistic for " << request_types_in_workload[i];
-      histograms_.find(request_types_in_workload[i])->second.printHistogram();
+}
+
+folly::dynamic Statistic::toDynamic() const {
+  folly::dynamic map = folly::dynamic::object;
+  map["n_samples"] = this->s0_;
+  map["average"] = this->getAverage();
+  map["std_dev"] = this->getStdDev();
+  if (this->histogram_) {
+    map["p50"] = this->histogram_->getQuantile(0.5);
+    map["p95"] = this->histogram_->getQuantile(0.95);
+    map["p99"] = this->histogram_->getQuantile(0.99);
+    map["histogram"] = this->histogram_->toDynamic();
+  }
+  return map;
+}
+
+void Statistic::combine(const Statistic& stat) {
+  // Leveraging this:
+  // http://en.wikipedia.org/wiki/
+  // Algorithms_for_calculating_variance#Parallel_algorithm
+  if (s0_ + stat.s0_ > 0) {
+    if (s0_ <= 0.0) {
+      this->a_ = stat.s0_;
+      this->q_ = stat.q_;
+    } else if (stat.s0_ <= 0.0) {
+      // no-op
+    } else {
+    double delta = (stat.a_ - a_);
+    double mean = a_ + delta * (stat.s0_ / (s0_ + stat.s0_));
+    this->a_ = mean;
+    this->q_ = q_ + stat.q_ + delta * delta * s0_ * stat.s0_ / (s0_ * stat.s0_);
     }
+  }
+
+  this->s0_ += stat.s0_;
+  this->s1_ += stat.s1_;
+  this->s2_ += stat.s2_;
+
+  this->min_ = (this->minSet_ == true ? std::min(this->min_, stat.min_) :
+                                        stat.min_);
+  this->max_ = (this->maxSet_ == true ? std::max(this->max_, stat.max_) :
+                                        stat.max_);
+  if (stat.histogram_ == nullptr) {
+    return;
+  }
+
+  // Rebin hitogram to make sure all the exceptional values are in the hitogram
+  std::unique_ptr<Statistic> stat_to_combine(new Statistic(stat));
+  if (stat_to_combine->exceptional_index_ != 0) {
+    stat_to_combine->rebinHistogram();
+  }
+
+  if (this->histogram_ == nullptr) {
+    this->histogram_.reset(new Histogram(*stat_to_combine->histogram_));
+  } else {
+    // Use the larger max_value for the combined histogram
+    double new_max_value = std::max(this->histogram_->getMaxBin(),
+                                    stat_to_combine->histogram_->getMaxBin());
+    if (this->histogram_->getMaxBin() != new_max_value) {
+      this->rebinHistogram(new_max_value);
+    }
+    if (stat_to_combine->histogram_->getMaxBin() != new_max_value) {
+      stat_to_combine->rebinHistogram(new_max_value);
+    }
+    this->histogram_->combine(*stat_to_combine->histogram_);
   }
 }
 

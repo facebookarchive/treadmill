@@ -1,39 +1,36 @@
 /*
-* Copyright (c) 2013, Facebook, Inc.
-* All rights reserved.
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-*   * Redistributions of source code must retain the above copyright notice,
-*     this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above copyright notice,
-*     this list of conditions and the following disclaimer in the documentation
-*     and/or other materials provided with the distribution.
-*   * Neither the name Facebook nor the names of its contributors may be used to
-*     endorse or promote products derived from this software without specific
-*     prior written permission.
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-
-#include <glog/logging.h>
-#include <string>
+ *  Copyright (c) 2014, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
 
 #include "Util.h"
+
+#include <arpa/inet.h>
+#include <fstream>
+#include <netdb.h>
+#include <glog/logging.h>
+#include <sys/time.h>
+
+#include <folly/json.h>
+
+using std::mt19937_64;
+using std::string;
+using std::uniform_real_distribution;
 
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
+// The number of attempts to get host information
+const int kNumberOfAttempts = 3;
+
 // Seed the random engine
-mt19937_64 RandomEngine::random_engine_(time(NULL));
+mt19937_64 RandomEngine::random_engine_(time(nullptr));
 // Generate a uniform distribution
 uniform_real_distribution<double>
   RandomEngine::uniform_distribution_(0.0, 1.0);
@@ -46,6 +43,60 @@ uniform_real_distribution<double>
 double RandomEngine::getDouble() {
   return uniform_distribution_(random_engine_);
 }
+
+int64_t nowNs() {
+  struct timespec ts;
+  int r = clock_gettime(CLOCK_MONOTONIC, &ts);
+  PCHECK(r == 0);
+  return (ts.tv_nsec + ts.tv_sec * k_ns_per_s);
+}
+
+bool writeStringToFile(std::string txt, std::string filename) {
+  std::ofstream os(filename);
+  try {
+    os.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+    os << txt;
+    os.close();
+  } catch (std::exception const& e) {
+    LOG(ERROR) << "Failed to write file " << e.what();
+    return false;
+  }
+
+  return true;
+}
+
+bool readFileToString(std::string filename, std::string& txt) {
+  std::ifstream is(filename.c_str());
+  try {
+    is.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+    std::stringstream buffer;
+    buffer << is.rdbuf();
+    is.close();
+    txt = buffer.str();
+  } catch (std::exception const& e) {
+    LOG(ERROR) << "Failed to read file " << e.what();
+    return false;
+  }
+
+  return true;
+}
+
+void writeDynamicToFile(std::string filename, folly::dynamic object) {
+  std::string json = folly::toJson(object).toStdString();
+  if (!writeStringToFile(json, filename)) {
+    LOG(FATAL) << "Open to read failed: " << filename;
+  }
+}
+
+folly::dynamic readDynamicFromFile(std::string filename) {
+  std::string s;
+  if (!readFileToString(filename, s)) {
+    LOG(FATAL) << "Open to read failed: " << filename;
+  }
+  return folly::parseJson(s);
+}
+
 
 /**
  * Read a line from the file descriptor
@@ -118,6 +169,37 @@ void writeBlock(int fd,
     }
     total_bytes_written += bytes_written;
   }
+}
+
+double time_s() {
+  struct timeval time_stamp = {0, 0};
+  gettimeofday(&time_stamp, nullptr);
+  return time_stamp.tv_sec + time_stamp.tv_usec * 1e-6;
+}
+
+/**
+ * Loop up the IP address given hostname
+ *
+ * @param hostname Hostname for the server in string
+ * @return IP address under the hostname in string
+ */
+std::string nsLookUp(const string& hostname) {
+  struct hostent* host_info = 0;
+  for (int attempt = 0;
+       (host_info == 0) && (attempt < kNumberOfAttempts);
+       attempt++) {
+    host_info = gethostbyname(hostname.c_str());
+  }
+
+  char* ip_address;
+  if (host_info) {
+    struct in_addr* address = (struct in_addr*)host_info->h_addr;
+    ip_address = inet_ntoa(*address);
+  } else {
+    LOG(FATAL) << "DNS error";
+  }
+
+  return string(ip_address);
 }
 
 }  // namespace treadmill

@@ -1,31 +1,18 @@
 /*
-* Copyright (c) 2013, Facebook, Inc.
-* All rights reserved.
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-*   * Redistributions of source code must retain the above copyright notice,
-*     this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above copyright notice,
-*     this list of conditions and the following disclaimer in the documentation
-*     and/or other materials provided with the distribution.
-*   * Neither the name Facebook nor the names of its contributors may be used to
-*     endorse or promote products derived from this software without specific
-*     prior written permission.
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ *  Copyright (c) 2014, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
+#include "Histogram.h"
 
 #include <glog/logging.h>
 
-#include "Histogram.h"
+using std::vector;
 
 namespace facebook {
 namespace windtunnel {
@@ -45,7 +32,7 @@ Histogram::Histogram(const int number_of_bins, const double min_value,
     cdf_values_(vector<double>(number_of_bins)) {
   double delta_x = (max_value - min_value) / number_of_bins;
   for (int i = 0; i < number_of_bins; i++) {
-    x_values_[i] = (i + 1) * delta_x;
+    x_values_[i] = (i + 1) * delta_x + min_value;
     y_values_[i] = 0.0;
     cdf_values_[i] = 0.0;
   }
@@ -60,7 +47,7 @@ void Histogram::addSample(const double sample_value) {
   int bin_index = Histogram::findClosestBin(x_values_, sample_value);
   bin_index = (bin_index > y_values_.size() - 1) ? (y_values_.size() - 1)
                                                  : bin_index;
-  y_values_[bin_index] += 1;
+  y_values_[bin_index]++;
 }
 
 /**
@@ -73,6 +60,10 @@ double Histogram::getQuantile(const double quantile) {
   this->updateCdf();
 
   int bin_index = Histogram::findClosestBin(cdf_values_, quantile);
+  int i = 0;
+  for (auto val: cdf_values_) {
+    i++;
+  }
   double bottom_x = 0.0;
   double bottom_y = 0.0;
   double top_x = cdf_values_[bin_index];
@@ -93,11 +84,18 @@ double Histogram::getQuantile(const double quantile) {
 void Histogram::printHistogram() {
   double sample_count = accumulate(y_values_.begin(), y_values_.end(), 0.0);
 
-  LOG(INFO) << "\tTotal Count: " << sample_count;
-  LOG(INFO) << "\t50\% Percentile Latency: " << this->getQuantile(0.50);
-  LOG(INFO) << "\t90\% Percentile Latency: " << this->getQuantile(0.90);
-  LOG(INFO) << "\t95\% Percentile Latency: " << this->getQuantile(0.95);
-  LOG(INFO) << "\t99\% Percentile Latency: " << this->getQuantile(0.99);
+  LOG(INFO) << "50\% Percentile: " << this->getQuantile(0.50);
+  LOG(INFO) << "90\% Percentile: " << this->getQuantile(0.90);
+  LOG(INFO) << "95\% Percentile: " << this->getQuantile(0.95);
+  LOG(INFO) << "99\% Percentile: " << this->getQuantile(0.99);
+}
+
+void Histogram::insertSmallerHistogramSamples(
+                  std::unique_ptr<Histogram>& histogram) {
+  for (int i = 0; i < histogram->x_values_.size(); i++) {
+    int idx = this->findClosestBin(x_values_, histogram->x_values_[i]);
+    y_values_[idx] += histogram->y_values_[i];
+  }
 }
 
 /**
@@ -141,6 +139,21 @@ void Histogram::updateCdf() {
     current_cdf += pdf;
     cdf_values_[i] = current_cdf;
   }
+}
+
+void Histogram::combine(const Histogram& hist) {
+  for (int i = 0; i < y_values_.size(); i++) {
+    this->y_values_[i] += hist.y_values_[i];
+  }
+  this->updateCdf();
+}
+
+folly::dynamic Histogram::toDynamic() {
+  folly::dynamic hist = folly::dynamic::object;
+  for (int i = 0; i < y_values_.size(); i++) {
+    hist[folly::to<std::string>(x_values_[i])] = y_values_[i];
+  }
+  return hist;
 }
 
 }  // namespace treadmill
