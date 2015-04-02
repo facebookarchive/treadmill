@@ -12,8 +12,8 @@
 
 #include <folly/io/async/EventBase.h>
 #include <folly/futures/Future.h>
-#include <mcrouter/lib/fibers/FiberManager.h>
-#include <mcrouter/lib/fibers/EventBaseLoopController.h>
+#include <folly/experimental/fibers/FiberManager.h>
+#include <folly/experimental/fibers/EventBaseLoopController.h>
 #include <mcrouter/lib/network/AsyncMcClient.h>
 
 #include "services/memcached/MemcachedService.h"
@@ -27,11 +27,11 @@ DECLARE_int32(port);
 
 using facebook::memcache::AsyncMcClient;
 using facebook::memcache::ConnectionOptions;
-using facebook::memcache::FiberManager;
 using facebook::memcache::McRequest;
 using facebook::memcache::McReply;
-using facebook::memcache::mcrouter::EventBaseLoopController;
 using facebook::memcache::McOperation;
+using folly::fibers::EventBaseLoopController;
+using folly::fibers::FiberManager;
 
 namespace facebook {
 namespace windtunnel {
