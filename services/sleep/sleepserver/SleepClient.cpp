@@ -12,6 +12,7 @@
 #include <gflags/gflags.h>
 
 #include "services/sleep/gen-cpp2/Sleep.h"
+#include "thrift/lib/cpp2/async/HeaderClientChannel.h"
 
 using namespace folly;
 using namespace apache::thrift;
