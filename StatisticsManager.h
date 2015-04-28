@@ -10,8 +10,11 @@
 
 #pragma once
 
+#include <memory>
 #include <unordered_map>
 
+#include "ContinuousStatistic.h"
+#include "CounterStatistic.h"
 #include "Statistic.h"
 
 namespace facebook {
@@ -22,6 +25,8 @@ namespace treadmill {
 const std::string REQUEST_LATENCY = "request_latency";
 const std::string THROUGHPUT = "throughput";
 const std::string OUTSTANDING_REQUESTS = "outstanding_requests";
+const std::string EXCEPTIONS = "exceptions";
+const std::string UNCAUGHT_EXCEPTIONS = "uncaught_exceptions";
 
 class StatisticsManager {
  public:
@@ -39,18 +44,15 @@ class StatisticsManager {
 
   static StatisticsManager& get();
 
-  Statistic& getStat(const std::string& name);
-
-  std::unordered_map<std::string, Statistic>& getStats() {
-    return stat_map_;
-  }
+  ContinuousStatistic& getContinuousStat(const std::string& name);
+  CounterStatistic& getCounterStat(const std::string& name);
 
  private:
   StatisticsManager(StatisticsManager const&);
   void operator=(StatisticsManager const&);
   StatisticsManager getCombined() const;
 
-  std::unordered_map<std::string, Statistic> stat_map_;
+  std::unordered_map<std::string, std::unique_ptr<Statistic>> stat_map_;
 };
 
 }  // namespace treadmill

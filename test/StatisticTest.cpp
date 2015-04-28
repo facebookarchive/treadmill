@@ -10,7 +10,7 @@
 
 #include <gtest/gtest.h>
 
-#include "Statistic.h"
+#include "ContinuousStatistic.h"
 
 namespace facebook {
 namespace windtunnel {
@@ -19,7 +19,7 @@ namespace treadmill {
 namespace {
 
 TEST(StatisticTest, SimpleAverage) {
-  Statistic s("test", 0, 0);
+  ContinuousStatistic s("test", 0, 0);
   for (int i = 0; i < 100; i++) {
     s.addSample(i + 1);
   }
@@ -27,8 +27,8 @@ TEST(StatisticTest, SimpleAverage) {
 }
 
 TEST(StatisticTest, RebinTest) {
-  Statistic s_0("stat_0", 0, 0);
-  Statistic s_1("stat_1", 0, 0);
+  ContinuousStatistic s_0("stat_0", 0, 0);
+  ContinuousStatistic s_1("stat_1", 0, 0);
   for (int i = 0; i < 100; i++) {
     s_0.addSample(i + 1);
     s_1.addSample(i + 1);

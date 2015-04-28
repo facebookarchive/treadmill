@@ -37,8 +37,9 @@ class Workload<MemcachedService> {
     : state_(State::WARMUP),
       index_(0) { }
 
-  std::pair<std::unique_ptr<MemcachedService::Request>,
-            Promise<MemcachedService::Reply>>
+  std::tuple<std::unique_ptr<MemcachedService::Request>,
+             Promise<MemcachedService::Reply>,
+             Future<MemcachedService::Reply>>
   getNextRequest() {
     if (index_ == FLAGS_number_of_keys) {
       index_ = 0;
@@ -60,8 +61,9 @@ class Workload<MemcachedService> {
                                                      std::move(key));
     }
     Promise<MemcachedService::Reply> p;
+    auto f = p.getFuture();
     ++index_;
-    return std::make_pair(std::move(request), std::move(p));
+    return std::make_tuple(std::move(request), std::move(p), std::move(f));
   }
 
   folly::dynamic makeConfigOutputs(

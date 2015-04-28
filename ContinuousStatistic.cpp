@@ -8,7 +8,8 @@
  *
  */
 
-#include "Statistic.h"
+#include "ContinuousStatistic.h"
+
 #include "Util.h"
 
 #include <cmath>
@@ -48,7 +49,7 @@ HistogramInput synchronizeGlobalHistogramRange(
   return accepted;
 }
 
-void Statistic::rebinHistogram(double target_max_value) {
+void ContinuousStatistic::rebinHistogram(double target_max_value) {
   double min_value = this->histogram_->getMinBin();
   double max_value = this->histogram_->getMaxBin();
 
@@ -77,7 +78,7 @@ void Statistic::rebinHistogram(double target_max_value) {
   this->histogram_.swap(new_histogram);
 }
 
-void Statistic::setHistogramBins() {
+void ContinuousStatistic::setHistogramBins() {
   double min_value = 0.0;
   double max_value = 1.0;
   if (!calibrationSamples_.empty()) {
@@ -101,7 +102,7 @@ void Statistic::setHistogramBins() {
  *
  * @param value
  */
-void Statistic::addSample(double value) {
+void ContinuousStatistic::addSample(double value) {
   if (histogram_ == nullptr) {
     if (warmupSamples_ < nWarmupSamples_) {
       warmupSamples_++;
@@ -154,21 +155,21 @@ void Statistic::addSample(double value) {
   }
 }
 
-double Statistic::getAverage() const {
+double ContinuousStatistic::getAverage() const {
   if (s0_ == 0) {
     return 0;
   }
   return s1_ / (double) s0_;
 }
 
-double Statistic::getStdDev() const {
+double ContinuousStatistic::getStdDev() const {
   if (s0_ == 0) {
     return 0;
   }
   return sqrt(q_ / (s0_ - 1.0));
 }
 
-double Statistic::getCV() const {
+double ContinuousStatistic::getCV() const {
   return this->getStdDev() / this->getAverage();
 }
 
@@ -177,21 +178,21 @@ double Statistic::getCV() const {
  *
  * @param quantile
  */
-double Statistic::getQuantile(double quantile) {
+double ContinuousStatistic::getQuantile(double quantile) {
   return histogram_->getQuantile(quantile);
 }
 
-double Statistic::meanConfidence() const {
+double ContinuousStatistic::meanConfidence() const {
   double z = 1.96;
   double e = z * this->getStdDev() / sqrt(this->s0_);
   return e;
 }
 
-double Statistic::quantileConfidence(double quantile) const {
+double ContinuousStatistic::quantileConfidence(double quantile) const {
   int nResamples = 100;
-  Statistic estimateStatistic;
+  ContinuousStatistic estimateStatistic("");
   for (int i = 0; i < nResamples; i++) {
-    Statistic resampled;
+    ContinuousStatistic resampled("");
     for (int j = 0; j < this->s0_; j++) {
       double randQuantile = RandomEngine::getDouble();
       double sample = this->histogram_->getQuantile(randQuantile);
@@ -205,7 +206,7 @@ double Statistic::quantileConfidence(double quantile) const {
 /**
  * Print out all the statistic
  */
-void Statistic::printStatistic() const {
+void ContinuousStatistic::printStatistic() const {
   if (!histogram_) {
     LOG(INFO) << "Did not collect enough samples";
     return;
@@ -228,7 +229,7 @@ void Statistic::printStatistic() const {
 
 }
 
-folly::dynamic Statistic::toDynamic() const {
+folly::dynamic ContinuousStatistic::toDynamic() const {
   folly::dynamic map = folly::dynamic::object;
   map["n_samples"] = this->s0_;
   map["average"] = this->getAverage();
@@ -242,7 +243,10 @@ folly::dynamic Statistic::toDynamic() const {
   return map;
 }
 
-void Statistic::combine(const Statistic& stat) {
+void ContinuousStatistic::combine(const Statistic& stat0) {
+  const ContinuousStatistic& stat =
+    dynamic_cast<const ContinuousStatistic&>(stat0);
+
   // Leveraging this:
   // http://en.wikipedia.org/wiki/
   // Algorithms_for_calculating_variance#Parallel_algorithm
@@ -273,7 +277,8 @@ void Statistic::combine(const Statistic& stat) {
   }
 
   // Rebin hitogram to make sure all the exceptional values are in the hitogram
-  std::unique_ptr<Statistic> stat_to_combine(new Statistic(stat));
+  std::unique_ptr<ContinuousStatistic> stat_to_combine(
+      new ContinuousStatistic(stat));
   if (stat_to_combine->exceptional_index_ != 0) {
     stat_to_combine->rebinHistogram();
   }

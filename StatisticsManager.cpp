@@ -12,6 +12,7 @@
 
 #include <glog/logging.h>
 
+#include <folly/Memory.h>
 #include <folly/dynamic.h>
 #include <folly/json.h>
 #include <folly/ThreadLocal.h>
@@ -36,30 +37,48 @@ void StatisticsManager::print() const {
   LOG(INFO) << "Statistics:";
   LOG(INFO) << "";
   for (auto& stat: stat_map_) {
-    LOG(INFO) << stat.second.getName();
-    stat.second.printStatistic();
+    LOG(INFO) << stat.second->getName();
+    stat.second->printStatistic();
   }
 }
 
 void StatisticsManager::combine(StatisticsManager& other) {
-  for (auto& pair: other.getStats()) {
-    auto key = pair.first;
-    Statistic& stat = pair.second;
-    Statistic& thisStat = this->getStat(key);
-    thisStat.combine(stat);
+  for (auto& pair: other.stat_map_) {
+    const auto& key = pair.first;
+    Statistic& stat = *pair.second;
+    auto it = stat_map_.find(key);
+    if (it == stat_map_.end()) {
+      stat_map_[key] = stat.clone();
+    } else {
+      it->second->combine(stat);
+    }
   }
 }
 
-Statistic& StatisticsManager::getStat(const std::string& name) {
-  if (stat_map_.find(name) == stat_map_.end()) {
+ContinuousStatistic& StatisticsManager::getContinuousStat(
+    const std::string& name) {
+  auto it = stat_map_.find(name);
+  if (it == stat_map_.end()) {
     if (name == REQUEST_LATENCY) {
       // More warmup and calibration samples for request latency
-      stat_map_.emplace(name, Statistic(name, 1000, 1000));
+      it = stat_map_.emplace(name, folly::make_unique<ContinuousStatistic>(
+        name, 1000, 1000)).first;
     } else {
-      stat_map_.emplace(name, Statistic(name));
+      it = stat_map_.emplace(name, folly::make_unique<ContinuousStatistic>(
+        name)).first;
     }
   }
-  return stat_map_[name];
+  return dynamic_cast<ContinuousStatistic&>(*it->second);
+}
+
+CounterStatistic& StatisticsManager::getCounterStat(
+    const std::string& name) {
+  auto it = stat_map_.find(name);
+  if (it == stat_map_.end()) {
+    it = stat_map_.emplace(name, folly::make_unique<CounterStatistic>(
+      name)).first;
+  }
+  return dynamic_cast<CounterStatistic&>(*it->second);
 }
 
 StatisticsManager StatisticsManager::getCombined() const {
@@ -74,8 +93,8 @@ StatisticsManager StatisticsManager::getCombined() const {
 std::string StatisticsManager::toJson() const {
   StatisticsManager combined = this->getCombined();
   folly::dynamic map = folly::dynamic::object;
-  for (auto& pair: combined.getStats()) {
-    map[pair.first] = pair.second.toDynamic();
+  for (auto& pair: combined.stat_map_) {
+    map[pair.first] = pair.second->toDynamic();
   }
   folly::json::serialization_opts opts;
   opts.allow_nan_inf = true;

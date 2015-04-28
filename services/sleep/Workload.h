@@ -27,14 +27,16 @@ class Workload<SleepService> {
  public:
   Workload<SleepService>(folly::dynamic config) {}
 
-  std::pair<std::unique_ptr<SleepService::Request>,
-            folly::Promise<SleepService::Reply>>
+  std::tuple<std::unique_ptr<SleepService::Request>,
+             folly::Promise<SleepService::Reply>,
+             folly::Future<SleepService::Reply>>
   getNextRequest() {
     std::unique_ptr<SleepService::Request> request
       = folly::make_unique<SleepRequest>(SleepRequest::SLEEP,
                                          FLAGS_sleep_time);
     folly::Promise<SleepService::Reply> p;
-    return std::make_pair(std::move(request), std::move(p));
+    auto f = p.getFuture();
+    return std::make_tuple(std::move(request), std::move(p), std::move(f));
   }
 
   folly::dynamic makeConfigOutputs(

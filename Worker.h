@@ -21,6 +21,7 @@
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/NotificationQueue.h>
 #include <folly/futures/Future.h>
+#include <folly/String.h>
 #include <folly/ThreadName.h>
 
 #include "Connection.h"
@@ -93,10 +94,16 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
         LOG(ERROR) << "Failed to set CPU affinity";
       }
     }
-    throughput_statistic_ = &StatisticsManager::get().getStat(THROUGHPUT);
-    outstanding_statistic_
-        = &StatisticsManager::get().getStat(OUTSTANDING_REQUESTS);
-    latency_statistic_ = &StatisticsManager::get().getStat(REQUEST_LATENCY);
+    throughput_statistic_ = &StatisticsManager::get()
+      .getContinuousStat(THROUGHPUT);
+    outstanding_statistic_ = &StatisticsManager::get()
+      .getContinuousStat(OUTSTANDING_REQUESTS);
+    latency_statistic_ = &StatisticsManager::get()
+      .getContinuousStat(REQUEST_LATENCY);
+    exceptions_statistic_ = &StatisticsManager::get()
+      .getCounterStat(EXCEPTIONS);
+    uncaught_exceptions_statistic_ = &StatisticsManager::get()
+      .getCounterStat(UNCAUGHT_EXCEPTIONS);
     last_throughput_time_ = nowNs();
 
     startConsuming(&event_base_, &queue_);
@@ -124,8 +131,8 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
            outstanding_requests_ < max_outstanding_requests_ &&
            running_) {
 
-      auto request_pair = workload_.getNextRequest();
-      auto pw = folly::makeMoveWrapper(std::move(request_pair.second));
+      auto request_tuple = workload_.getNextRequest();
+      auto pw = folly::makeMoveWrapper(std::move(std::get<1>(request_tuple)));
       ++outstanding_requests_;
       --to_send_;
       auto conn_idx = conn_idx_;
@@ -133,15 +140,20 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
       auto send_time = nowNs();
 
       auto reply = connections_[conn_idx]->sendRequest(
-        std::move(request_pair.first)).then(
+        std::move(std::get<0>(request_tuple))).then(
           [send_time, this, pw] (
             folly::Try<typename Service::Reply>&& t) mutable {
 
             auto recv_time = nowNs();
             latency_statistic_->addSample((recv_time - send_time)/1000.0);
             n_throughput_requests_++;
-            auto& p = *pw;
-            p.setValue(t.value());
+            if (t.hasException()) {
+              n_exceptions_by_type_[t.exception().class_name().toStdString()]++;
+              pw->setException(t.exception());
+            }
+            if (t.hasValue()) {
+              pw->setValue(t.value());
+            }
 
             --outstanding_requests_;
 
@@ -152,6 +164,12 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
             }
           }
         );
+        typedef typename std::remove_reference<decltype(
+            std::get<2>(request_tuple))>::type::value_type F;
+        std::get<2>(request_tuple).onError([this](folly::exception_wrapper ew) {
+          n_uncaught_exceptions_by_type_[ew.class_name().toStdString()]++;
+          return folly::makeFuture<F>(ew);
+        });
     }
 
     // Estimate throughput and outstanding requests
@@ -166,6 +184,16 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
       double outstanding = outstanding_requests_ * number_of_workers_;
       outstanding_statistic_->addSample(outstanding);
     }
+
+    for (auto p : n_exceptions_by_type_) {
+      exceptions_statistic_->increase(p.second, p.first);
+    }
+    n_exceptions_by_type_.clear();
+
+    for (auto p : n_uncaught_exceptions_by_type_) {
+      uncaught_exceptions_statistic_->increase(p.second, p.first);
+    }
+    n_uncaught_exceptions_by_type_.clear();
   }
 
   std::vector<std::unique_ptr<Connection<Service>>> connections_;
@@ -178,15 +206,19 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
   int cpu_affinity_;
   int64_t last_throughput_time_{0};
   size_t n_throughput_requests_{0};
+  std::unordered_map<std::string, size_t> n_exceptions_by_type_;
+  std::unordered_map<std::string, size_t> n_uncaught_exceptions_by_type_;
 
   folly::NotificationQueue<int>& queue_;
   std::unique_ptr<std::thread> sender_thread_;
   size_t conn_idx_{0};
   size_t outstanding_requests_{0};
   size_t to_send_{0};
-  Statistic* latency_statistic_{nullptr};
-  Statistic* throughput_statistic_{nullptr};
-  Statistic* outstanding_statistic_{nullptr};
+  ContinuousStatistic* latency_statistic_{nullptr};
+  ContinuousStatistic* throughput_statistic_{nullptr};
+  ContinuousStatistic* outstanding_statistic_{nullptr};
+  CounterStatistic* exceptions_statistic_{nullptr};
+  CounterStatistic* uncaught_exceptions_statistic_{nullptr};
 };
 
 }  // namespace treadmill
