@@ -10,6 +10,9 @@
 
 #pragma once
 
+#include "mcrouter/lib/cycles/Cycles.h"
+
+#include "StatisticsManager.h"
 #include "Workload.h"
 #include "services/libmcrouter/LibmcrouterService.h"
 
@@ -30,7 +33,17 @@ class Workload<LibmcrouterService> {
 
   explicit Workload(folly::dynamic config)
     : state_(State::WARMUP),
-      index_(0) {}
+      index_(0) {
+    cycles_statistic_ = &StatisticsManager::get()
+      .getContinuousStat("cpu_cycles");
+    facebook::memcache::cycles::startExtracting(
+        [this](facebook::memcache::cycles::CycleStats stats) {
+          if (stats.numSamples > 0) {
+            cycles_statistic_->addSample(stats.avg);
+          }
+        }
+    );
+  }
 
   std::tuple<std::unique_ptr<LibmcrouterService::Request>,
              folly::Promise<LibmcrouterService::Reply>,
@@ -75,6 +88,7 @@ class Workload<LibmcrouterService> {
   State state_;
   int index_;
   char buffer[250];
+  ContinuousStatistic* cycles_statistic_{nullptr};
 };
 
 }  // namespace treadmill
