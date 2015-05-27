@@ -17,8 +17,10 @@ namespace treadmill {
 /**
  * Specializations of this template should implement:
  *
+ * bool isReady();
+ *
  * folly::Future<Service::Reply>
- * sendRequest(std::unique_ptr<typename Service::Request>&& request) {
+ * sendRequest(std::unique_ptr<typename Service::Request>&& request);
  *
  * */
 template <class Service>

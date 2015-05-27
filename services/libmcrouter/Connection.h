@@ -38,6 +38,8 @@ class Connection<LibmcrouterService> {
       std::move(connection), eventBase);
   }
 
+  bool isReady() const { return true; }
+
   folly::Future<LibmcrouterService::Reply>
   sendRequest(std::unique_ptr<LibmcrouterService::Request> request) {
     return std::move(*boost::apply_visitor(RequestTypeVisitor(*cc_), *request));

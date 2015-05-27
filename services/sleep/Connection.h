@@ -45,6 +45,8 @@ class Connection<SleepService> {
                 std::move(channel));
   }
 
+  bool isReady() const { return true; }
+
   folly::Future<SleepService::Reply>
   sendRequest(std::unique_ptr<typename SleepService::Request> request) {
     auto f = client_->future_goSleep(request->sleep_time()).then(

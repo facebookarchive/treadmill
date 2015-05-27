@@ -49,6 +49,8 @@ class Connection<MemcachedService> {
     fm_ = folly::make_unique<FiberManager>(std::move(loopController));
   }
 
+  bool isReady() const { return true; }
+
   folly::Future<MemcachedService::Reply>
   sendRequest(std::unique_ptr<typename MemcachedService::Request> request) {
     folly::MoveWrapper<folly::Promise<MemcachedService::Reply> > p;

@@ -29,6 +29,9 @@
 #include "Workload.h"
 #include "Util.h"
 
+DEFINE_bool(wait_for_target_ready, false,
+    "If true, wait until the target is ready");
+
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
@@ -57,6 +60,15 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
   ~Worker() {}
 
   void run() {
+    if (FLAGS_wait_for_target_ready) {
+      for (auto& conn : connections_) {
+        if (!conn->isReady()) {
+          LOG(INFO) << "Target not yet ready";
+          /* sleep override */ sleep(1);
+        }
+      }
+    }
+
     running_.store(true, std::memory_order_relaxed);
     sender_thread_ = folly::make_unique<std::thread>(
       [this] { this->senderLoop(); });
