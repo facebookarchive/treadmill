@@ -178,28 +178,60 @@ double time_s() {
 }
 
 /**
- * Loop up the IP address given hostname
+ * Loop up the IP address given hostname; return the first ip address
+ * returned by getaddrinfo; if error occurs, return non-zero error code.
  *
- * @param hostname Hostname for the server in string
+ * @param hostname Hostname for the server in string, support ipv4 & ipv6
  * @return IP address under the hostname in string
  */
 std::string nsLookUp(const string& hostname) {
-  struct hostent* host_info = 0;
+  string ret;
+  struct addrinfo hints;
+  struct addrinfo *res;
+  memset(&hints, 0, sizeof(hints));
+
+  // By default hints flag will handle both IPv4 and IPv6
+  int error = -1;
   for (int attempt = 0;
-       (host_info == 0) && (attempt < kNumberOfAttempts);
-       attempt++) {
-    host_info = gethostbyname(hostname.c_str());
+       (error != 0) && (attempt < kNumberOfAttempts);
+       attempt++
+  ) {
+    error = getaddrinfo(hostname.c_str(), nullptr, &hints, &res);
   }
 
-  char* ip_address;
-  if (host_info) {
-    struct in_addr* address = (struct in_addr*)host_info->h_addr;
-    ip_address = inet_ntoa(*address);
+  if (error == 0 ) {
+    int len = res->ai_addrlen;
+
+    if (res->ai_addr->sa_family == AF_INET) {
+      // IPv4
+      char ip_address[INET_ADDRSTRLEN];
+      struct sockaddr_in* addr = (struct sockaddr_in*) res->ai_addr;
+      inet_ntop(
+        AF_INET,
+        &(addr->sin_addr.s_addr),
+        ip_address,
+        INET_ADDRSTRLEN
+      );
+      ret = string(ip_address);
+    } else {
+      // IPv6
+      char ip_address[INET6_ADDRSTRLEN];
+      struct sockaddr_in6* addr = (struct sockaddr_in6*) res->ai_addr;
+      inet_ntop(
+        AF_INET6,
+        &(addr->sin6_addr.s6_addr),
+        ip_address,
+        INET6_ADDRSTRLEN
+      );
+      ret = string(ip_address);
+    }
+    freeaddrinfo(res);
   } else {
-    LOG(FATAL) << "DNS error";
+    LOG(FATAL) << "DNS error: " << gai_strerror(error);
+    exit(error);
   }
 
-  return string(ip_address);
+  return ret;
 }
 
 }  // namespace treadmill
