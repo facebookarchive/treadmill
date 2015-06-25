@@ -18,23 +18,6 @@ namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
-// Struct for Mersene Twister 19937 generator (64 bit)
-struct RandomEngine {
- public:
-  /**
-   * Return a random number ranging in [0.0, 1.0] in double
-   *
-   * @return A random number ranging in [0.0, 1.0] in double
-   */
-  static double getDouble();
-
- private:
-  // The Mersene Twister 19937 random engine (64 bit)
-  static std::mt19937_64 random_engine_;
-  // A uniform distribution for real numbers
-  static std::uniform_real_distribution<double> uniform_distribution_;
-};
-
 // Number of nanoseconds in one second.
 constexpr int64_t k_ns_per_s = 1000000000;
 

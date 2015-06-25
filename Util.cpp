@@ -18,9 +18,7 @@
 
 #include <folly/json.h>
 
-using std::mt19937_64;
 using std::string;
-using std::uniform_real_distribution;
 
 namespace facebook {
 namespace windtunnel {
@@ -28,21 +26,6 @@ namespace treadmill {
 
 // The number of attempts to get host information
 const int kNumberOfAttempts = 3;
-
-// Seed the random engine
-mt19937_64 RandomEngine::random_engine_(time(nullptr));
-// Generate a uniform distribution
-uniform_real_distribution<double>
-  RandomEngine::uniform_distribution_(0.0, 1.0);
-
-/**
- * Return a random number ranging in [0.0, 1.0] in double
- *
- * @return A random number ranging in [0.0, 1.0] in double
- */
-double RandomEngine::getDouble() {
-  return uniform_distribution_(random_engine_);
-}
 
 int64_t nowNs() {
   struct timespec ts;

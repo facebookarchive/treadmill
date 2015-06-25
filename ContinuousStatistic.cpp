@@ -11,6 +11,7 @@
 #include "ContinuousStatistic.h"
 
 #include "Util.h"
+#include "RandomEngine.h"
 
 #include <cmath>
 #include <mutex>

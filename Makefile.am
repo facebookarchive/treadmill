@@ -6,6 +6,7 @@ libtreadmill_a_SOURCES = \
   Connection.h \
   Histogram.h \
   Request.h \
+  RandomEngine.h \
   Scheduler.h \
   Statistic.h \
   StatisticsManager.h \
@@ -14,6 +15,7 @@ libtreadmill_a_SOURCES = \
   Worker.h \
   Workload.h \
   Histogram.cpp \
+  RandomEngine.cpp \
   Scheduler.cpp \
   Statistic.cpp \
   StatisticsManager.cpp \
