@@ -62,7 +62,7 @@ class Workload<LibmcrouterService> {
               FLAGS_libmcrouter_keys_prefix.c_str());
       std::string value = buffer;
       request = folly::make_unique<LibmcrouterService::Request>(
-        facebook::memcache::CacheClientString::UpdateRequests(
+        facebook::memcache::MemcacheClientString::UpdateRequests(
           {{std::move(key), std::move(value)}}));
 
       if (index_ == FLAGS_number_of_keys - 1) {
@@ -71,7 +71,8 @@ class Workload<LibmcrouterService> {
       }
     } else if (state_ == State::GETS) {
       request = folly::make_unique<LibmcrouterService::Request>(
-        facebook::memcache::CacheClientString::GetRequests({{std::move(key)}}));
+          facebook::memcache::MemcacheClientString::GetRequests(
+              {{std::move(key)}}));
     }
     folly::Promise<LibmcrouterService::Reply> p;
     auto f = p.getFuture();

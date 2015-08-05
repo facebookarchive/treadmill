@@ -34,7 +34,7 @@ class Connection<LibmcrouterService> {
     }
     auto connection = facebook::memcache::MC::getInstance(determineFlavor())
       .createInternalConnection(extraOptions);
-    cc_ = folly::make_unique<facebook::memcache::CacheClientString>(
+    cc_ = folly::make_unique<facebook::memcache::MemcacheClientString>(
       std::move(connection), eventBase);
   }
 
@@ -46,7 +46,7 @@ class Connection<LibmcrouterService> {
   }
 
  private:
-  std::unique_ptr<facebook::memcache::CacheClientString> cc_;
+  std::unique_ptr<facebook::memcache::MemcacheClientString> cc_;
 
   facebook::memcache::constants::McrouterFlavors determineFlavor() {
     if (FLAGS_libmcrouter_flavor == "web") {
@@ -63,29 +63,27 @@ class Connection<LibmcrouterService> {
   class RequestTypeVisitor : public boost::static_visitor<
       folly::MoveWrapper<folly::Future<LibmcrouterService::Reply>>> {
    public:
-    explicit RequestTypeVisitor(facebook::memcache::CacheClientString& cc)
+    explicit RequestTypeVisitor(facebook::memcache::MemcacheClientString& cc)
       : cc_(cc) {
     }
 
-    result_type operator() (
-        facebook::memcache::CacheClientString::UpdateRequests& requests) const {
-      return folly::makeMoveWrapper(cc_.multiSetFuture(requests)
-        .then([](folly::Try<
-                  facebook::memcache::CacheClientString::UpdateResults>&& t) {
-                return LibmcrouterService::Reply(std::move(t.value()));
-              }));
+    result_type operator()(
+        facebook::memcache::MemcacheClientString::UpdateRequests& requests)
+        const {
+      return folly::makeMoveWrapper(cc_.multiSetFuture(requests).then([](
+          folly::Try<facebook::memcache::MemcacheClientString::UpdateResults>&&
+              t) { return LibmcrouterService::Reply(std::move(t.value())); }));
     }
 
-    result_type operator() (
-        facebook::memcache::CacheClientString::GetRequests& requests) const {
-      return folly::makeMoveWrapper(cc_.multiGetFuture(requests)
-        .then([](folly::Try<
-                  facebook::memcache::CacheClientString::GetResults>&& t) {
-                return LibmcrouterService::Reply(std::move(t.value()));
-              }));
+    result_type operator()(
+        facebook::memcache::MemcacheClientString::GetRequests& requests) const {
+      return folly::makeMoveWrapper(cc_.multiGetFuture(requests).then([](
+          folly::Try<facebook::memcache::MemcacheClientString::GetResults>&&
+              t) { return LibmcrouterService::Reply(std::move(t.value())); }));
     }
+
    private:
-    const facebook::memcache::CacheClientString& cc_;
+    const facebook::memcache::MemcacheClientString& cc_;
   };
 };
 

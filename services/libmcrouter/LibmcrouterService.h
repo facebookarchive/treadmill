@@ -11,7 +11,7 @@
 #pragma once
 
 #include "boost/variant.hpp"
-#include "memcache/client/CacheClientString.h"
+#include "memcache/client/MemcacheClientString.h"
 
 DEFINE_string(libmcrouter_flavor,
               "perf",
@@ -27,13 +27,13 @@ namespace treadmill {
 
 class LibmcrouterService {
  public:
-  typedef boost::variant<facebook::memcache::CacheClientString::UpdateRequests,
-                         facebook::memcache::CacheClientString::GetRequests>
-  Request;
+  typedef boost::variant<
+      facebook::memcache::MemcacheClientString::UpdateRequests,
+      facebook::memcache::MemcacheClientString::GetRequests> Request;
 
-  typedef boost::variant<facebook::memcache::CacheClientString::UpdateResults,
-                         facebook::memcache::CacheClientString::GetResults>
-  Reply;
+  typedef boost::variant<
+      facebook::memcache::MemcacheClientString::UpdateResults,
+      facebook::memcache::MemcacheClientString::GetResults> Reply;
 };
 
 }  // namespace treadmill
