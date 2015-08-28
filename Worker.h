@@ -161,6 +161,7 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
             n_throughput_requests_++;
             if (t.hasException()) {
               n_exceptions_by_type_[t.exception().class_name().toStdString()]++;
+              LOG(INFO) << t.exception().what();
               pw->setException(t.exception());
             }
             if (t.hasValue()) {
