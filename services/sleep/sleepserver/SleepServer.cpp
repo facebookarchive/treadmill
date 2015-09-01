@@ -11,7 +11,7 @@
 #include <memory>
 #include <gflags/gflags.h>
 
-#include "thrift/lib/cpp2/server/ThriftServer.h"
+#include <thrift/lib/cpp2/server/ThriftServer.h>
 
 #include "services/sleep/sleepserver/SleepHandler.h"
 

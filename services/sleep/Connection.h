@@ -18,7 +18,7 @@
 #include "StatisticsManager.h"
 
 #include "services/sleep/gen-cpp2/Sleep.h"
-#include "thrift/lib/cpp2/async/HeaderClientChannel.h"
+#include <thrift/lib/cpp2/async/HeaderClientChannel.h>
 
 DECLARE_string(hostname);
 DECLARE_int32(port);
