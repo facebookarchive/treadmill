@@ -31,6 +31,14 @@ DEFINE_string(hostname,
               "localhost",
               "The host to load test.");
 
+DEFINE_string(counter_name,
+              "",
+              "Counter to read & compare against threshold,e.g: foo.bar.count");
+
+DEFINE_int32(counter_threshold,
+             -1,
+             "counter_name value > counter_threshold before sending requests.");
+
 // The number of connections each worker thread handles
 DEFINE_int32(number_of_connections,
              4,

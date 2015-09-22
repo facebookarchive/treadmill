@@ -32,6 +32,9 @@
 DEFINE_bool(wait_for_target_ready, false,
     "If true, wait until the target is ready");
 
+DECLARE_string(counter_name);
+DECLARE_int32(counter_threshold);
+
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
@@ -60,13 +63,22 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
   ~Worker() {}
 
   void run() {
+    //If countername is specified then make sure wait_for_target was also true
+    if (!FLAGS_counter_name.empty() && (!FLAGS_wait_for_target_ready ||
+        FLAGS_counter_threshold<0)) {
+      LOG(FATAL) << "--counter_name " << FLAGS_counter_name
+        << " specified without --wait_for_target_ready"
+        << " or valid --counter_threshold value";
+    }
+
     if (FLAGS_wait_for_target_ready) {
       for (auto& conn : connections_) {
-        if (!conn->isReady()) {
-          LOG(INFO) << "Target not yet ready";
+        while (!conn->isReady()) {
+          LOG(INFO) << "Target not ready";
           /* sleep override */ sleep(1);
         }
       }
+      LOG(INFO) << "Target is ready";
     }
 
     running_.store(true, std::memory_order_relaxed);
