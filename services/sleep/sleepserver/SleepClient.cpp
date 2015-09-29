@@ -35,13 +35,13 @@ int main(int argc, char* argv[]) {
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, true);
 
-  TEventBase event_base;
+  EventBase event_base;
 
   std::shared_ptr<TAsyncSocket> socket(
       TAsyncSocket::newSocket(&event_base, FLAGS_hostname, FLAGS_port));
 
   SleepAsyncClient client(
-      std::unique_ptr<HeaderClientChannel, TDelayedDestruction::Destructor>(
+      std::unique_ptr<HeaderClientChannel, DelayedDestruction::Destructor>(
         new HeaderClientChannel(socket)));
 
   auto sleep_time = client.future_goSleep(FLAGS_sleep_time).getVia(&event_base);
