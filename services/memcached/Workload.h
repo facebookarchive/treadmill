@@ -51,7 +51,7 @@ class Workload<MemcachedService> {
     if (state_ == State::WARMUP) {
       request = folly::make_unique<MemcachedRequest>(MemcachedRequest::SET,
                                                      std::move(key));
-      request->setValue(std::move(std::to_string(index_)));
+      request->setValue(std::to_string(index_));
       if (index_ == FLAGS_number_of_keys - 1) {
         LOG(INFO) << "WARMUP complete";
         state_ = State::GET;
