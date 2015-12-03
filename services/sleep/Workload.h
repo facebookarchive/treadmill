@@ -12,7 +12,7 @@
 
 #include <vector>
 
-#include "services/sleep/SleepService.h"
+#include "SleepService.h"
 
 #include "Workload.h"
 

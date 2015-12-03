@@ -10,12 +10,12 @@
 
 #pragma once
 
+#include "LibmcrouterService.h"
+
 #include "memcache/client/Constants.h"
 #include "memcache/client/MC.h"
 
 #include "Connection.h"
-
-#include "services/libmcrouter/LibmcrouterService.h"
 
 DECLARE_string(libmcrouter_flavor);
 

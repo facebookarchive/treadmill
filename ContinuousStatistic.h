@@ -80,7 +80,7 @@ class ContinuousStatistic : public Statistic {
   explicit ContinuousStatistic(const std::string& name) :
     ContinuousStatistic(name, kWarmupSamples, kCalibrationSamples) {}
 
-  std::unique_ptr<Statistic> clone() {
+  std::unique_ptr<Statistic> clone() override {
     return std::unique_ptr<Statistic>(new ContinuousStatistic(*this));
   }
 

@@ -10,9 +10,8 @@
 
 #include <gflags/gflags.h>
 
-#include "services/sleep/Connection.h"
-#include "services/sleep/SleepService.h"
-#include "services/sleep/Workload.h"
+#include "Connection.h"
+#include "Workload.h"
 
 #include "Treadmill.h"
 

@@ -10,9 +10,8 @@
 
 #include <gflags/gflags.h>
 
-#include "services/libmcrouter/Connection.h"
-#include "services/libmcrouter/LibmcrouterService.h"
-#include "services/libmcrouter/Workload.h"
+#include "Connection.h"
+#include "Workload.h"
 
 #include "Treadmill.h"
 

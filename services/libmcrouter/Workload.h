@@ -10,11 +10,12 @@
 
 #pragma once
 
+#include "LibmcrouterService.h"
+
 #include "mcrouter/lib/cycles/Cycles.h"
 
 #include "StatisticsManager.h"
 #include "Workload.h"
-#include "services/libmcrouter/LibmcrouterService.h"
 
 DECLARE_int64(number_of_keys);
 DECLARE_string(libmcrouter_keys_prefix);

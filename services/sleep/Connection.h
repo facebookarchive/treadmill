@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "services/sleep/Request.h"
-#include "services/sleep/SleepService.h"
+#include "Request.h"
+#include "SleepService.h"
 
 #include "Connection.h"
 #include "Util.h"
