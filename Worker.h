@@ -189,12 +189,12 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
             }
           }
         );
-        typedef typename std::remove_reference<decltype(
-            std::get<2>(request_tuple))>::type::value_type F;
-        std::get<2>(request_tuple).onError([this](folly::exception_wrapper ew) {
-          n_uncaught_exceptions_by_type_[ew.class_name().toStdString()]++;
-          return folly::makeFuture<F>(ew);
-        });
+      auto& f = std::get<2>(request_tuple);
+      f.onError([this](folly::exception_wrapper ew) {
+        n_uncaught_exceptions_by_type_[ew.class_name().toStdString()]++;
+        return folly::makeFuture<
+            typename std::remove_reference<decltype(f)>::type::value_type>(ew);
+      });
     }
 
     // Estimate throughput and outstanding requests
