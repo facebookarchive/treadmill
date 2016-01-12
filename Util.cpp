@@ -172,8 +172,8 @@ std::string nsLookUp(const string& hostname) {
   struct addrinfo hints;
   struct addrinfo *res;
   memset(&hints, 0, sizeof(hints));
+  hints.ai_family = AF_UNSPEC;  /* Allow IPv4 or IPv6 */
 
-  // By default hints flag will handle both IPv4 and IPv6
   int error = -1;
   for (int attempt = 0;
        (error != 0) && (attempt < kNumberOfAttempts);
