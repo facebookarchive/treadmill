@@ -14,6 +14,7 @@
 #include <folly/futures/Future.h>
 #include <folly/experimental/fibers/FiberManager.h>
 #include <folly/experimental/fibers/EventBaseLoopController.h>
+#include <mcrouter/lib/McRequest.h>
 #include <mcrouter/lib/network/AsyncMcClient.h>
 
 #include "MemcachedService.h"
@@ -27,8 +28,8 @@ DECLARE_int32(port);
 
 using facebook::memcache::AsyncMcClient;
 using facebook::memcache::ConnectionOptions;
-using facebook::memcache::McRequest;
 using facebook::memcache::McReply;
+using facebook::memcache::McRequestWithMcOp;
 using facebook::memcache::McOperation;
 using folly::fibers::EventBaseLoopController;
 using folly::fibers::FiberManager;
@@ -59,29 +60,27 @@ class Connection<MemcachedService> {
     if (request->which() == MemcachedRequest::GET) {
       auto msg = facebook::memcache::createMcMsgRef(request->key());
       msg->op = mc_op_get;
-      auto req = std::make_shared<McRequest>(std::move(msg));
+      auto req = std::make_shared<McRequestWithMcOp<mc_op_get>>(std::move(msg));
       fm_->addTask([this, req, p] () mutable {
-        client_->sendSync(*req, McOperation<mc_op_get>(),
-                          std::chrono::milliseconds::zero());
+        client_->sendSync(*req, std::chrono::milliseconds::zero());
         p->setValue(MemcachedService::Reply());
       });
     } else if (request->which() == MemcachedRequest::SET) {
       auto msg = facebook::memcache::createMcMsgRef(request->key(),
                                                     request->value());
       msg->op = mc_op_set;
-      auto req = std::make_shared<McRequest>(std::move(msg));
+      auto req = std::make_shared<McRequestWithMcOp<mc_op_set>>(std::move(msg));
       fm_->addTask([this, req, p] () mutable {
-        client_->sendSync(*req, McOperation<mc_op_set>(),
-                          std::chrono::milliseconds::zero());
+        client_->sendSync(*req, std::chrono::milliseconds::zero());
         p->setValue(MemcachedService::Reply());
       });
     } else {
       auto msg = facebook::memcache::createMcMsgRef(request->key());
       msg->op = mc_op_delete;
-      auto req = std::make_shared<McRequest>(std::move(msg));
+      auto req = std::make_shared<McRequestWithMcOp<mc_op_delete>>(
+          std::move(msg));
       fm_->addTask([this, req, p] () mutable {
-        client_->sendSync(*req, McOperation<mc_op_delete>(),
-                          std::chrono::milliseconds::zero());
+        client_->sendSync(*req, std::chrono::milliseconds::zero());
         p->setValue(MemcachedService::Reply());
       });
     }
