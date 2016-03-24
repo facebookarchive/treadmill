@@ -9,6 +9,8 @@ libtreadmill_a_SOURCES = \
   RandomEngine.h \
   Scheduler.h \
   Statistic.h \
+  ContinuousStatistic.h \
+  CounterStatistic.h \
   StatisticsManager.h \
   Treadmill.h \
   Util.h \
@@ -17,7 +19,8 @@ libtreadmill_a_SOURCES = \
   Histogram.cpp \
   RandomEngine.cpp \
   Scheduler.cpp \
-  Statistic.cpp \
+  ContinuousStatistic.cpp \
+  CounterStatistic.cpp \
   StatisticsManager.cpp \
   Util.cpp
 

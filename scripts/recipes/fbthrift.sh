@@ -2,9 +2,9 @@
 
 source common.sh
 
-[ -d fbthrift ] || git clone https://github.com/facebook/fbthrfit
+[ -d fbthrift ] || git clone https://github.com/facebook/fbthrift
 
-cd "$PKG_DIR/fbthrift/"
+cd "$PKG_DIR/fbthrift/thrift/"
 autoreconf --install
 LD_LIBRARY_PATH="$INSTALL_DIR/lib:$LD_LIBRARY_PATH" \
   LD_RUN_PATH="$PKG_DIR/folly/folly/test/.libs:$INSTALL_DIR/lib" \
