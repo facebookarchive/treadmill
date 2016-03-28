@@ -10,9 +10,8 @@
 
 #pragma once
 
+#include <folly/futures/Future.h>
 #include <vector>
-
-#include "SleepService.h"
 
 #include "Workload.h"
 

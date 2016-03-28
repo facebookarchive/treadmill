@@ -12,8 +12,6 @@
 
 #include <string>
 
-#include <folly/futures/Future.h>
-
 #include "Request.h"
 
 namespace facebook {

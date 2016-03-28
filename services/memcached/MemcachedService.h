@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "Request.h"
+#include "services/memcached/Request.h"
 
 namespace facebook {
 namespace windtunnel {

@@ -10,8 +10,6 @@
 
 #pragma once
 
-#include "LibmcrouterService.h"
-
 #include "memcache/client/Constants.h"
 #include "memcache/client/MC.h"
 

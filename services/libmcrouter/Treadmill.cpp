@@ -10,10 +10,11 @@
 
 #include <gflags/gflags.h>
 
-#include "Connection.h"
-#include "Workload.h"
-
 #include "Treadmill.h"
+
+#include "services/libmcrouter/LibmcrouterService.h"
+#include "services/libmcrouter/Connection.h"
+#include "services/libmcrouter/Workload.h"
 
 int main(int argc, char* argv[]) {
   // Init treadmill

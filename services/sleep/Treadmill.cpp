@@ -10,10 +10,12 @@
 
 #include <gflags/gflags.h>
 
-#include "Connection.h"
-#include "Workload.h"
-
 #include "Treadmill.h"
+
+#include "services/sleep/SleepService.h"
+#include "services/sleep/Connection.h"
+#include "services/sleep/Request.h"
+#include "services/sleep/Workload.h"
 
 int main(int argc, char* argv[]) {
   // Init treadmill

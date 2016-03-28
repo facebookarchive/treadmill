@@ -17,8 +17,6 @@
 #include <mcrouter/lib/McRequest.h>
 #include <mcrouter/lib/network/AsyncMcClient.h>
 
-#include "MemcachedService.h"
-
 #include "Connection.h"
 #include "StatisticsManager.h"
 #include "Util.h"

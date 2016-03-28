@@ -1,4 +1,4 @@
-# Copyright (c) 2016, Facebook, Inc.
+# Copyright (c) 2013, Facebook, Inc.
 # All rights reserved.
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -28,7 +28,7 @@ AC_INIT([treadmill], [0.1.0], [https://github.com/facebook/treadmill])
 
 AC_CONFIG_AUX_DIR([build-aux])
 
-AM_INIT_AUTOMAKE([foreign dist-bzip2 nostdinc])
+AM_INIT_AUTOMAKE([foreign dist-bzip2 nostdinc subdir-objects])
 
 # Checks for programs.
 AC_PROG_CXX
@@ -40,15 +40,55 @@ AC_PROG_RANLIB
 # Checks for C++11
 AX_CXX_COMPILE_STDCXX_11([],[mandatory])
 
+# Thrift compiler
+AC_ARG_VAR([THRIFT2_COMP_DIR],
+           [Full path to directory containing fbthrift main.py (cpp2 compiler)])
+AS_IF([test x"$THRIFT2_COMP_DIR" = x],
+      [AC_MSG_ERROR([Path to fbthrift cpp2 compiler must be specified])],
+      [THRIFT="python$PYTHON_VERSION $THRIFT2_COMP_DIR/main.py"])
+
+AC_SUBST([THRIFT])
+
+# Disable FBTrace
+CXXFLAGS="-DLIBMC_FBTRACE_DISABLE $CXXFLAGS"
+
 # Checks for libraries.
-AC_CHECK_LIB([glog], [openlog], [], [AC_MSG_ERROR(
-             [Please install google-glog library])])
-AC_CHECK_LIB([gflags], [getenv], [], [AC_MSG_ERROR(
-             [Please install google-gflags library])])
+AC_CHECK_LIB([crypto], [MD5_Init], [], [AC_MSG_ERROR(
+             [Please install libcrypto])])
+AC_CHECK_LIB([double-conversion],[getenv],[],[AC_MSG_ERROR(
+             [Please install double-conversion library])])
 AC_CHECK_LIB([folly], [getenv], [], [AC_MSG_ERROR(
              [Please install folly library])])
 AC_CHECK_LIB([event], [event_set], [], [AC_MSG_ERROR(
              [Please install libevent])])
+AC_CHECK_LIB([gflags], [getenv], [], [AC_MSG_ERROR(
+             [Please install google-gflags library])])
+AC_CHECK_LIB([glog], [openlog], [], [AC_MSG_ERROR(
+             [Please install google-glog library])])
+AC_CHECK_LIB([pthread], [pthread_mutex_init], [], [AC_MSG_ERROR(
+             [Please install pthread library])])
+AC_CHECK_LIB([ssl], [SSL_library_init], [], [AC_MSG_ERROR(
+             [Please install openSSL])])
+AC_CHECK_LIB([thrift], [main], [], [AC_MSG_ERROR(
+             [Please install fbthrift])])
+AC_CHECK_LIB([thriftcpp2], [main], [], [AC_MSG_ERROR(
+             [Please install fbthrift cpp2])])
+AC_CHECK_LIB([thriftprotocol], [main], [], [AC_MSG_ERROR(
+             [Please install fbthrift protocol])])
+AC_CHECK_LIB([mcrouter], [getenv], [], [AC_MSG_ERROR(
+             [Please install mcrouter library])])
+
+# check for boost libs
+AX_BOOST_BASE([1.51.0], [], [AC_MSG_ERROR(
+              [Please install boost >= 1.51.0])])
+AC_CHECK_LIB([boost_context], [main], [], [AC_MSG_ERROR(
+             [Please install libboost_context])])
+AC_CHECK_LIB([boost_thread], [main], [], [AC_MSG_ERROR(
+             [Please install libboost_thread])])
+AC_CHECK_LIB([boost_system], [main], [], [AC_MSG_ERROR(
+             [Please install libboost_system])])
+AC_CHECK_LIB([boost_filesystem], [main], [], [AC_MSG_ERROR(
+             [Please install libboost_filesystem])])
 
 # Checks for header files.
 AC_CHECK_HEADERS([arpa/inet.h])
@@ -89,9 +129,6 @@ AC_TYPE_UINT32_T
 AC_TYPE_UINT64_T
 AC_TYPE_UINT8_T
 
-AC_CONFIG_FILES([Makefile
-                 services/memcached/Makefile
-                 services/libmcrouter/Makefile
-                 services/sleep/Makefile])
+AC_CONFIG_FILES([Makefile])
 
 AC_OUTPUT

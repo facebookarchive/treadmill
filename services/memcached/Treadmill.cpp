@@ -10,10 +10,12 @@
 
 #include <gflags/gflags.h>
 
-#include "Connection.h"
-#include "Workload.h"
-
 #include "Treadmill.h"
+
+#include "services/memcached/MemcachedService.h"
+#include "services/memcached/Connection.h"
+#include "services/memcached/Request.h"
+#include "services/memcached/Workload.h"
 
 int main(int argc, char* argv[]) {
   // Init treadmill

@@ -10,9 +10,6 @@
 
 #pragma once
 
-#include "Request.h"
-#include "SleepService.h"
-
 #include "Connection.h"
 #include "Util.h"
 #include "StatisticsManager.h"

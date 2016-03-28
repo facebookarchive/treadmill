@@ -24,6 +24,7 @@
 #include <folly/String.h>
 #include <folly/ThreadName.h>
 
+#include "Request.h"
 #include "Connection.h"
 #include "StatisticsManager.h"
 #include "Workload.h"
