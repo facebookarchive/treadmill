@@ -99,7 +99,7 @@ std::string StatisticsManager::toJson() const {
   folly::json::serialization_opts opts;
   opts.allow_nan_inf = true;
   opts.allow_non_string_keys = true;
-  return folly::json::serialize(map, opts).toStdString();
+  return folly::json::serialize(map, opts);
 }
 
 }  // namespace treadmill

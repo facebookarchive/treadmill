@@ -25,7 +25,6 @@ sudo apt-get install -y \
   libiberty-dev \
   libjemalloc-dev \
   libkrb5-dev \
-  liblz4-dev \
   liblzma-dev \
   libnuma-dev \
   libsnappy-dev \

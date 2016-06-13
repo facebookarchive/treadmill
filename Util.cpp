@@ -66,7 +66,7 @@ bool readFileToString(std::string filename, std::string& txt) {
 }
 
 void writeDynamicToFile(std::string filename, folly::dynamic object) {
-  std::string json = folly::toJson(object).toStdString();
+  std::string json = folly::toJson(object);
   if (!writeStringToFile(json, filename)) {
     LOG(FATAL) << "Open to read failed: " << filename;
   }
