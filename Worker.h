@@ -18,6 +18,7 @@
 #include <glog/logging.h>
 
 #include <folly/Memory.h>
+#include <folly/MoveWrapper.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/NotificationQueue.h>
 #include <folly/futures/Future.h>

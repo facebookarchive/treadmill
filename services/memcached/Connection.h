@@ -10,12 +10,14 @@
 
 #pragma once
 
-#include <folly/io/async/EventBase.h>
+#include <folly/fibers/FiberManager.h>
+#include <folly/fibers/EventBaseLoopController.h>
 #include <folly/futures/Future.h>
-#include <folly/experimental/fibers/FiberManager.h>
-#include <folly/experimental/fibers/EventBaseLoopController.h>
-#include <mcrouter/lib/McRequest.h>
+#include <folly/MoveWrapper.h>
+#include <folly/io/async/EventBase.h>
 #include <mcrouter/lib/network/AsyncMcClient.h>
+#include <mcrouter/lib/network/gen-cpp2/mc_caret_protocol_types.h>
+#include <mcrouter/lib/network/TypedThriftMessage.h>
 
 #include "Connection.h"
 #include "StatisticsManager.h"
@@ -26,9 +28,10 @@ DECLARE_int32(port);
 
 using facebook::memcache::AsyncMcClient;
 using facebook::memcache::ConnectionOptions;
-using facebook::memcache::McReply;
-using facebook::memcache::McRequestWithMcOp;
-using facebook::memcache::McOperation;
+using facebook::memcache::TypedThriftRequest;
+using facebook::memcache::cpp2::McGetRequest;
+using facebook::memcache::cpp2::McSetRequest;
+using facebook::memcache::cpp2::McDeleteRequest;
 using folly::fibers::EventBaseLoopController;
 using folly::fibers::FiberManager;
 
@@ -56,27 +59,23 @@ class Connection<MemcachedService> {
     auto f = p->getFuture();
 
     if (request->which() == MemcachedRequest::GET) {
-      auto msg = facebook::memcache::createMcMsgRef(request->key());
-      msg->op = mc_op_get;
-      auto req = std::make_shared<McRequestWithMcOp<mc_op_get>>(std::move(msg));
+      auto req = std::make_shared<
+          TypedThriftRequest<McGetRequest> >(request->key());
       fm_->addTask([this, req, p] () mutable {
         client_->sendSync(*req, std::chrono::milliseconds::zero());
         p->setValue(MemcachedService::Reply());
       });
     } else if (request->which() == MemcachedRequest::SET) {
-      auto msg = facebook::memcache::createMcMsgRef(request->key(),
-                                                    request->value());
-      msg->op = mc_op_set;
-      auto req = std::make_shared<McRequestWithMcOp<mc_op_set>>(std::move(msg));
+      auto req = std::make_shared<
+          TypedThriftRequest<McSetRequest> >(request->key());
+      req->setValue(request->value());
       fm_->addTask([this, req, p] () mutable {
         client_->sendSync(*req, std::chrono::milliseconds::zero());
         p->setValue(MemcachedService::Reply());
       });
     } else {
-      auto msg = facebook::memcache::createMcMsgRef(request->key());
-      msg->op = mc_op_delete;
-      auto req = std::make_shared<McRequestWithMcOp<mc_op_delete>>(
-          std::move(msg));
+      auto req = std::make_shared<
+          TypedThriftRequest<McDeleteRequest> >(request->key());
       fm_->addTask([this, req, p] () mutable {
         client_->sendSync(*req, std::chrono::milliseconds::zero());
         p->setValue(MemcachedService::Reply());
