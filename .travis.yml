@@ -1,15 +1,12 @@
+sudo: required
+dist: trusty
+
 language: cpp
 
 compiler:
   - gcc
-  - clang
 
-os:
-  - linux
-
-branches:
-  only:
-    - master
+script: ./scripts/install_ubuntu_14.04.sh "$(pwd)"/treadmill-install -j2
 
 notifications:
   email: false

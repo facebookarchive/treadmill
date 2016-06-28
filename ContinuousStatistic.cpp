@@ -10,8 +10,8 @@
 
 #include "treadmill/ContinuousStatistic.h"
 
-#include "treadmill/Util.h"
 #include "treadmill/RandomEngine.h"
+#include "treadmill/Util.h"
 
 #include <cmath>
 #include <mutex>

@@ -14,8 +14,6 @@
 
 #include <folly/dynamic.h>
 
-#include "treadmill/Histogram.h"
-
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {

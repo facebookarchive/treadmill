@@ -30,8 +30,9 @@
 #include "treadmill/Util.h"
 #include "treadmill/Workload.h"
 
-DEFINE_bool(wait_for_target_ready, false,
-    "If true, wait until the target is ready");
+DEFINE_bool(wait_for_target_ready,
+            false,
+            "If true, wait until the target is ready.");
 
 DECLARE_string(counter_name);
 DECLARE_int32(counter_threshold);

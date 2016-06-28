@@ -2,13 +2,15 @@
 
 source common.sh
 
-[ -d fbthrift ] || git clone https://github.com/facebook/fbthrfit
+[ -d fbthrift ] || git clone https://github.com/facebook/fbthrift
 
-cd "$PKG_DIR/fbthrift/"
+cd "$PKG_DIR/fbthrift/thrift" || die "cd fbthrift failed"
+
 autoreconf --install
 LD_LIBRARY_PATH="$INSTALL_DIR/lib:$LD_LIBRARY_PATH" \
-  LD_RUN_PATH="$PKG_DIR/folly/folly/test/.libs:$INSTALL_DIR/lib" \
-  LDFLAGS="-L$PKG_DIR/folly/folly/test/.libs: -L$INSTALL_DIR/lib" \
-  CPPFLAGS="-I$PKG_DIR/folly/folly/test/gtest-1.6.0/include -I$INSTALL_DIR/include -I$PKG_DIR/folly -I$PKG_DIR/double-conversion" \
-  ./configure --prefix="$INSTALL_DIR"
-make $MAKE_ARGS && make install $MAKE_ARGS
+  LD_RUN_PATH="$INSTALL_DIR/lib:$LD_RUN_PATH" \
+  ./configure --prefix="$INSTALL_DIR" --bindir="$INSTALL_AUX_DIR/bin" \
+              PY_PREFIX="$INSTALL_AUX_DIR" \
+              PY_INSTALL_HOME="$INSTALL_AUX_DIR" \
+              --with-folly="$INSTALL_DIR" && \
+  make $MAKE_ARGS && make install $MAKE_ARGS
