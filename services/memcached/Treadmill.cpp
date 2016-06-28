@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2016, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -10,8 +10,8 @@
 
 #include <gflags/gflags.h>
 
-#include "Connection.h"
-#include "Workload.h"
+#include "treadmill/services/memcached/Connection.h"
+#include "treadmill/services/memcached/Workload.h"
 
 #include "treadmill/Treadmill.h"
 
