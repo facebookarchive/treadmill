@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2016, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "LibmcrouterService.h"
+#include <folly/futures/Future.h>
 
-#include "mcrouter/lib/cycles/Cycles.h"
+#include <mcrouter/lib/cycles/Cycles.h>
 
 #include "treadmill/StatisticsManager.h"
 #include "treadmill/Workload.h"

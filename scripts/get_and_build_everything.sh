@@ -2,28 +2,21 @@
 
 set -ex
 
-ORDER=$1
+ORDER="$1"
+PKG_DIR="${2%/}"/pkgs
+INSTALL_DIR="${2%/}"/install
+INSTALL_AUX_DIR="${2%/}"/install/aux
+shift 2
 
-PKG_DIR=$2/pkgs
-INSTALL_DIR=$2/install
+mkdir -p "$PKG_DIR" "$INSTALL_DIR" "$INSTALL_AUX_DIR"
 
-SERVICE=$3
+cd "$(dirname "$0")" || ( echo "cd fail"; exit 1 )
 
-mkdir -p "$PKG_DIR" "$INSTALL_DIR"
-
-cd $(dirname $0)
+REPO_BASE_DIR="$(cd ../../ && pwd)" || die "Couldn't determine repo top dir"
+export REPO_BASE_DIR
 
 for script in $(ls "order_$ORDER/" | egrep '^[0-9]+_.*[^~]$' | sort -n); do
-  script_order=${script:0:2}
-  if [[ "$script_order" == "20"  && "$SERVICE" != "all" ]]; then
-    if [[ "$SERVICE" == "memcached" && "$script" == "20_mcrouter" ]] ||
-       [[ "$SERVICE" == "libmcrouter" && "$script" == "20_mcrouter" ]] ||
-       [[ "$SERVICE" == "sleep" && "$script" == "20_fbthrift" ]]; then
-      "./order_$ORDER/$script" "$PKG_DIR" "$INSTALL_DIR" "$SERVICE" "$MAKE_ARGS"
-    fi
-  else
-    "./order_$ORDER/$script" "$PKG_DIR" "$INSTALL_DIR" "$SERVICE" "$MAKE_ARGS"
-  fi
+  "./order_$ORDER/$script" "$PKG_DIR" "$INSTALL_DIR" "$INSTALL_AUX_DIR" "$@"
 done
 
 printf "%s\n" "Treadmill installed in $INSTALL_DIR/"
