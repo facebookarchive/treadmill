@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2016, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -10,8 +10,8 @@
 
 #include "treadmill/ContinuousStatistic.h"
 
-#include "treadmill/Util.h"
 #include "treadmill/RandomEngine.h"
+#include "treadmill/Util.h"
 
 #include <cmath>
 #include <mutex>

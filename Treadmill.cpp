@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2016, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -16,7 +16,7 @@
 // The path to the workload configuration file
 DEFINE_string(config_file,
               "./examples/flat.json",
-              "The path to the workload configuration file");
+              "The path to the workload configuration file.");
 
 // The hostname of the server
 DEFINE_string(hostname,
@@ -25,7 +25,7 @@ DEFINE_string(hostname,
 
 DEFINE_string(counter_name,
               "",
-              "Counter to read & compare against threshold,e.g: foo.bar.count");
+              "Counter to compare against threshold (e.g, foo.bar.count).");
 
 DEFINE_int32(counter_threshold,
              -1,
@@ -34,17 +34,17 @@ DEFINE_int32(counter_threshold,
 // The number of connections each worker thread handles
 DEFINE_int32(number_of_connections,
              4,
-             "The number of connections for each thread worker");
+             "The number of connections for each thread worker.");
 
 // The total number of workers
 DEFINE_int32(number_of_workers,
              1,
-             "The number of workers");
+             "The number of workers.");
 
 // The number of keys in the workload
 DEFINE_int64(number_of_keys,
              1024,
-             "The number of keys in the workload");
+             "The number of keys in the workload.");
 
 // The port number to connect
 DEFINE_int32(port,
@@ -67,19 +67,19 @@ DEFINE_string(output_file,
 
 DEFINE_int32(max_outstanding_requests,
              1000,
-             "The max number of requests to have outstanding on a worker");
+             "The max number of requests to have outstanding per worker.");
 
 DEFINE_string(config_in_file,
               "",
-              "Config filename to pass into the workload in JSON format");
+              "Config filename to pass into the workload in JSON format.");
 
 DEFINE_string(config_out_file,
               "",
-              "Config filename to export from the workload in JSON format");
+              "Config filename to export from the workload in JSON format.");
 
 DEFINE_string(cpu_affinity,
               "",
-              "Comma-separated list of CPU IDs to pin the workers");
+              "Comma-separated list of CPU IDs to pin the workers.");
 
 namespace facebook {
 namespace windtunnel {
@@ -90,8 +90,6 @@ void init(int argc, char* argv[]) {
   // Set the usage information
   std::string usage("Treadmill loadtester");
   google::SetUsageMessage(usage);
-  // Set the version information
-  google::SetVersionString("0.1");
   // Parse all the command line flags
   google::ParseCommandLineFlags(&argc, &argv, true);
 }
