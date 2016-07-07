@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, Facebook, Inc.
+ *  Copyright (c) 2016, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -22,11 +22,11 @@ using namespace facebook::windtunnel::treadmill::services::sleep;
 
 DEFINE_int32(port,
              12345,
-             "Port for sleep service (default: 12345)");
+             "Port for sleep service (default: 12345).");
 
 DEFINE_int32(num_workers,
              4,
-             "Number of workers (default: 4)");
+             "Number of workers (default: 4).");
 
 int main(int argc, char* argv[]) {
   google::InitGoogleLogging(argv[0]);
