@@ -14,6 +14,7 @@
 
 DECLARE_string(counter_name);
 DECLARE_int32(counter_threshold);
+
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {

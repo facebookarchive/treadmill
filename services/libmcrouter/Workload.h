@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "LibmcrouterService.h"
+#include <folly/futures/Future.h>
 
-#include "mcrouter/lib/cycles/Cycles.h"
+#include <mcrouter/lib/cycles/Cycles.h>
 
 #include "treadmill/StatisticsManager.h"
 #include "treadmill/Workload.h"

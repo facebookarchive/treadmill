@@ -8,7 +8,7 @@
  *
  */
 
-#include "SleepHandler.h"
+#include "treadmill/services/sleep/sleepserver/SleepHandler.h"
 
 #include <unistd.h>
 

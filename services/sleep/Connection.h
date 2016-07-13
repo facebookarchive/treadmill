@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "Request.h"
-#include "SleepService.h"
+#include "treadmill/services/sleep/Request.h"
+#include "treadmill/services/sleep/SleepService.h"
 
 #include "treadmill/Connection.h"
 #include "treadmill/Util.h"

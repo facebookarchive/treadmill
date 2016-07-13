@@ -2,28 +2,32 @@
 
 source common.sh
 
-[ -d folly ] || git clone https://github.com/facebook/folly
-
-if [ ! -d /usr/include/double-conversion ]; then
-  git clone https://github.com/floitsch/double-conversion
-  cd "$PKG_DIR/double-conversion/"
-  scons prefix="$INSTALL_DIR" install
-
-  # Folly looks for double-conversion/double-conversion.h
-  ln -sf src double-conversion
-
-  export LDFLAGS="-L$INSTALL_DIR/lib -L$PKG_DIR/double-conversion -ldl"
-  export CPPFLAGS="-I$INSTALL_DIR/include -I$PKG_DIR/double-conversion"
+if [[ ! -d folly ]]; then
+  git clone https://github.com/facebook/folly
+  cd "$PKG_DIR/folly" || die "cd fail"
 fi
 
-cd "$PKG_DIR/folly/folly/test/"
-grab http://googletest.googlecode.com/files/gtest-1.6.0.zip
-unzip -o gtest-1.6.0.zip
+if [ ! -d /usr/include/double-conversion ]; then
+  if [ ! -d "$PKG_DIR/double-conversion" ]; then
+      cd "$PKG_DIR" || die "cd fail"
+      git clone https://github.com/google/double-conversion.git
+  fi
+  cd "$PKG_DIR/double-conversion" || die "cd fail"
 
-cd "$PKG_DIR/folly/folly/"
+  # Workaround double-conversion CMakeLists.txt changes that
+  # are incompatible with cmake-2.8
+  git checkout ea970f69edacf66bd3cba2892be284b76e9599b0
+  cmake . -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR"
+  make $MAKE_ARGS && make install $MAKE_ARGS
+
+  export LDFLAGS="-L$INSTALL_DIR/lib -ldl $LDFLAGS"
+  export CPPFLAGS="-I$INSTALL_DIR/include $CPPFLAGS"
+fi
+
+cd "$PKG_DIR/folly/folly/" || die "cd fail"
 
 autoreconf --install
 LD_LIBRARY_PATH="$INSTALL_DIR/lib:$LD_LIBRARY_PATH" \
-  LD_RUN_PATH="$INSTALL_DIR/lib" \
-  ./configure --prefix="$INSTALL_DIR" && make $MAKE_ARGS \
-  && make install $MAKE_ARGS
+  LD_RUN_PATH="$INSTALL_DIR/lib:$LD_RUN_PATH" \
+  ./configure --prefix="$INSTALL_DIR" && \
+  make $MAKE_ARGS && make install $MAKE_ARGS
