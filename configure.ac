@@ -77,6 +77,8 @@ AC_CHECK_LIB([thriftprotocol], [main], [], [AC_MSG_ERROR(
              [Please install fbthrift protocol])])
 AC_CHECK_LIB([mcrouter], [getenv], [], [AC_MSG_ERROR(
              [Please install mcrouter library])])
+AC_CHECK_LIB([numa], [numa_available], [], [AC_MSG_ERROR(
+             [Please install numa library])])
 
 # check for boost libs
 AX_BOOST_BASE([1.51.0], [], [AC_MSG_ERROR(
