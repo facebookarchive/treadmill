@@ -45,7 +45,7 @@ double Scheduler::randomExponentialInterval(double mean) {
   static std::mt19937* rng = new std::mt19937();
   std::uniform_real_distribution<double> dist(0, 1.0);
   /* Cap the lower end so that we don't return infinity */
-  return - log(std::max(1 - dist(*rng), 1e-9)) * mean;
+  return - log(std::max(dist(*rng), 1e-9)) * mean;
 }
 
 void Scheduler::waitNs(int64_t ns) {
