@@ -36,5 +36,5 @@ outlined on that page and do not file a public issue.
 
 ### License
 
-By contributing to MyProject, you agree that your contributions will be licensed
+By contributing to Treadmill, you agree that your contributions will be licensed
 under its BSD license.
