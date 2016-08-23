@@ -15,9 +15,9 @@
 #include <folly/fibers/FiberManager.h>
 #include <folly/futures/Future.h>
 #include <folly/io/async/EventBase.h>
+#include <folly/io/IOBuf.h>
 #include <mcrouter/lib/network/AsyncMcClient.h>
-#include <mcrouter/lib/network/gen-cpp2/mc_caret_protocol_types.h>
-#include <mcrouter/lib/network/TypedThriftMessage.h>
+#include <mcrouter/lib/network/gen/MemcacheCarbon.h>
 
 #include "treadmill/Connection.h"
 #include "treadmill/StatisticsManager.h"
@@ -29,11 +29,10 @@ DECLARE_int32(port);
 
 using facebook::memcache::AsyncMcClient;
 using facebook::memcache::ConnectionOptions;
-using facebook::memcache::cpp2::McDeleteRequest;
-using facebook::memcache::cpp2::McGetRequest;
-using facebook::memcache::cpp2::McSetRequest;
+using facebook::memcache::McDeleteRequest;
+using facebook::memcache::McGetRequest;
+using facebook::memcache::McSetRequest;
 using facebook::memcache::McOperation;
-using facebook::memcache::TypedThriftRequest;
 using folly::fibers::EventBaseLoopController;
 using folly::fibers::FiberManager;
 
@@ -61,23 +60,20 @@ class Connection<MemcachedService> {
     auto f = p->getFuture();
 
     if (request->which() == MemcachedRequest::GET) {
-      auto req =
-        std::make_shared<TypedThriftRequest<McGetRequest>>(request->key());
+      auto req = std::make_shared<McGetRequest>(request->key());
       fm_->addTask([this, req, p] () mutable {
         client_->sendSync(*req, std::chrono::milliseconds::zero());
         p->setValue(MemcachedService::Reply());
       });
     } else if (request->which() == MemcachedRequest::SET) {
-      auto req =
-        std::make_shared<TypedThriftRequest<McSetRequest>>(request->key());
-      req->setValue(request->value());
+      auto req = std::make_shared<McSetRequest>(request->key());
+      req->value() = folly::IOBuf(folly::IOBuf::COPY_BUFFER, request->value());
       fm_->addTask([this, req, p] () mutable {
         client_->sendSync(*req, std::chrono::milliseconds::zero());
         p->setValue(MemcachedService::Reply());
       });
     } else {
-      auto req =
-        std::make_shared<TypedThriftRequest<McDeleteRequest>>(request->key());
+      auto req = std::make_shared<McDeleteRequest>(request->key());
       fm_->addTask([this, req, p] () mutable {
         client_->sendSync(*req, std::chrono::milliseconds::zero());
         p->setValue(MemcachedService::Reply());
