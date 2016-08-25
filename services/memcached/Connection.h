@@ -17,7 +17,7 @@
 #include <folly/io/async/EventBase.h>
 #include <folly/io/IOBuf.h>
 #include <mcrouter/lib/network/AsyncMcClient.h>
-#include <mcrouter/lib/network/gen/MemcacheCarbon.h>
+#include <mcrouter/lib/network/gen/Memcache.h>
 
 #include "treadmill/Connection.h"
 #include "treadmill/StatisticsManager.h"
