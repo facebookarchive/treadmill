@@ -61,25 +61,50 @@ DEFINE_int32(runtime,
              120,
              "The total runtime in seconds.");
 
+// The file to store the JSON output statistics
 DEFINE_string(output_file,
               "",
               "Where to print the json output of statistics.");
 
+// The max number of requests to have outstanding per worker
 DEFINE_int32(max_outstanding_requests,
              1000,
              "The max number of requests to have outstanding per worker.");
 
+// Config filename to pass into the workload in JSON format
 DEFINE_string(config_in_file,
               "",
               "Config filename to pass into the workload in JSON format.");
 
+// Config filename to export from the workload in JSON format
 DEFINE_string(config_out_file,
               "",
               "Config filename to export from the workload in JSON format.");
 
+// Comma-separated list of CPU IDs to pin the workers
 DEFINE_string(cpu_affinity,
               "",
               "Comma-separated list of CPU IDs to pin the workers.");
+
+// Default number of calibration samples for continuous statistics
+DEFINE_int32(default_calibration_samples,
+             10,
+             "Default number of calibration samples for continuous statistics.");
+
+// Default number of warm-up samples for continuous statistics
+DEFINE_int32(default_warmup_samples,
+             10,
+             "Default number of warm-up samples for continuous statistics.");
+
+// Number of calibration samples for latency statistics
+DEFINE_int32(latency_calibration_samples,
+             1000,
+             "Number of calibration samples for latency statistics.");
+
+// Number of warm-up samples for latency statistics
+DEFINE_int32(latency_warmup_samples,
+             1000,
+             "Number of warm-up samples for latency statistics.");
 
 namespace facebook {
 namespace windtunnel {

@@ -62,7 +62,8 @@ ContinuousStatistic& StatisticsManager::getContinuousStat(
     if (name == REQUEST_LATENCY) {
       // More warmup and calibration samples for request latency
       it = stat_map_.emplace(name, folly::make_unique<ContinuousStatistic>(
-        name, 1000, 1000)).first;
+        name, FLAGS_latency_warmup_samples, FLAGS_latency_calibration_samples)
+      ).first;
     } else {
       it = stat_map_.emplace(name, folly::make_unique<ContinuousStatistic>(
         name)).first;

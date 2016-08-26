@@ -17,6 +17,9 @@
 #include "treadmill/CounterStatistic.h"
 #include "treadmill/Statistic.h"
 
+DECLARE_int32(latency_calibration_samples);
+DECLARE_int32(latency_warmup_samples);
+
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
