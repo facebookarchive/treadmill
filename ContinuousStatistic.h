@@ -17,15 +17,14 @@
 #include "treadmill/Histogram.h"
 #include "treadmill/Statistic.h"
 
+DECLARE_int32(default_calibration_samples);
+DECLARE_int32(default_warmup_samples);
+
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
 const int kNumberOfBins = 1024;
-
-const int kCalibrationSamples = 10;
-
-const int kWarmupSamples = 10;
 
 const int kExceptionalValues = 1000;
 
@@ -78,7 +77,9 @@ class ContinuousStatistic : public Statistic {
   }
 
   explicit ContinuousStatistic(const std::string& name) :
-    ContinuousStatistic(name, kWarmupSamples, kCalibrationSamples) {}
+    ContinuousStatistic(name,
+                        FLAGS_default_warmup_samples,
+                        FLAGS_default_calibration_samples) {}
 
   std::unique_ptr<Statistic> clone() const override {
     return std::unique_ptr<Statistic>(new ContinuousStatistic(*this));

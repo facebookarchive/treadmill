@@ -49,15 +49,32 @@ DECLARE_int32(request_per_second);
 // The total testing time in second
 DECLARE_int32(runtime);
 
+// The file to store the JSON output statistics
 DECLARE_string(output_file);
 
+// The max number of requests to have outstanding per worker
 DECLARE_int32(max_outstanding_requests);
 
+// Config filename to pass into the workload in JSON format
 DECLARE_string(config_in_file);
 
+// Config filename to export from the workload in JSON format
 DECLARE_string(config_out_file);
 
+// Comma-separated list of CPU IDs to pin the workers
 DECLARE_string(cpu_affinity);
+
+// Default number of calibration samples for continuous statistics
+DECLARE_int32(default_calibration_samples);
+
+// Default number of warm-up samples for continuous statistics
+DECLARE_int32(default_warmup_samples);
+
+// Number of calibration samples for latency statistics
+DECLARE_int32(latency_calibration_samples);
+
+// Number of warm-up samples for latency statistics
+DECLARE_int32(latency_warmup_samples);
 
 namespace facebook {
 namespace windtunnel {
