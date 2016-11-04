@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
   auto handler = std::make_shared<SleepHandler>();
   auto server = folly::make_unique<ThriftServer>();
   server->setPort(FLAGS_port);
-  server->setNWorkerThreads(FLAGS_num_workers);
+  server->setNumIOWorkerThreads(FLAGS_num_workers);
   server->setInterface(std::move(handler));
 
   server->serve();
