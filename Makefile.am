@@ -53,6 +53,7 @@ treadmill_memcached_LDADD = \
 treadmill_sleep_SOURCES = \
 	services/sleep/Treadmill.cpp \
 	services/sleep/gen-cpp2/sleep_constants.cpp \
+	services/sleep/gen-cpp2/sleep_data.cpp \
 	services/sleep/gen-cpp2/sleep_types.cpp \
 	services/sleep/gen-cpp2/Sleep.cpp \
 	services/sleep/gen-cpp2/Sleep_client.cpp \
