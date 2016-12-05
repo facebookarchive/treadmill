@@ -179,7 +179,7 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
               pw->setException(t.exception());
             }
             if (t.hasValue()) {
-              pw->setValue(t.value());
+              pw->setValue(std::move(t.value()));
             }
 
             --outstanding_requests_;
