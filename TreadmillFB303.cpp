@@ -10,11 +10,21 @@
 
 #include "TreadmillFB303.h"
 
+#include <memory>
+
+#include <folly/Singleton.h>
+
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
-folly::Singleton<TreadmillFB303> g_treadmill_fb303;
+namespace {
+folly::Singleton<TreadmillFB303> instance;
+}
+
+std::shared_ptr<TreadmillFB303> getGlobalTreadmillFB303() {
+  return instance.try_get();
+}
 
 }
 }

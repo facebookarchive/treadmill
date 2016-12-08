@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include <folly/SharedMutex.h>
 #include <folly/Singleton.h>
 
@@ -60,7 +62,7 @@ class TreadmillFB303 : public facebook::fb303::cpp2::FacebookServiceSvIf {
   folly::SharedMutex mutex_;
 };
 
-extern folly::Singleton<TreadmillFB303> g_treadmill_fb303;
+extern std::shared_ptr<TreadmillFB303> getGlobalTreadmillFB303();
 
 }
 }
