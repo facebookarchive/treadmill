@@ -14,6 +14,7 @@
 #include <thread>
 #include <vector>
 
+#include <folly/futures/helpers.h>
 #include <folly/String.h>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
@@ -129,6 +130,11 @@ int run(int argc, char* argv[]) {
   Scheduler scheduler(FLAGS_request_per_second,
                       FLAGS_number_of_workers,
                       max_outstanding_requests_per_worker);
+
+  auto terminate_early_fn = [&scheduler]() {
+    scheduler.stop();
+  };
+
   for (int i = 0; i < FLAGS_number_of_workers; i++) {
     workers.push_back(folly::make_unique<Worker<Service>>(
                         scheduler.getWorkerQueue(i),
@@ -136,7 +142,8 @@ int run(int argc, char* argv[]) {
                         FLAGS_number_of_connections,
                         max_outstanding_requests_per_worker,
                         config,
-                        cpu_affinity_list[i]
+                        cpu_affinity_list[i],
+                        terminate_early_fn
                       )
     );
   }
@@ -146,10 +153,15 @@ int run(int argc, char* argv[]) {
     workers[i]->run();
   }
 
-  scheduler.run();
+  // Start the test and wait for it to finish.
+  std::vector<folly::Future<folly::Unit>> futs;
+  futs.push_back(scheduler.run());
+  futs.push_back(folly::futures::sleep(std::chrono::seconds(FLAGS_runtime)));
+  folly::collectAny(futs).wait();
 
-  // Wait the test to finish
-  sleep(FLAGS_runtime);
+  LOG(INFO) << "Stopping and joining scheduler thread";
+  scheduler.stop();
+  scheduler.join();
 
   StatisticsManager::printAll();
   if (FLAGS_output_file != "") {
@@ -163,10 +175,6 @@ int run(int argc, char* argv[]) {
     writeBlock(fd, json.c_str(), json.size());
     close(fd);
   }
-
-  LOG(INFO) << "Stopping and joining scheduler thread";
-
-  scheduler.stopAndJoin();
 
   LOG(INFO) << "Stopping workers";
 

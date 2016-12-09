@@ -10,6 +10,8 @@
 
 #include "treadmill/Scheduler.h"
 
+#include <folly/futures/Future.h>
+#include <folly/futures/Promise.h>
 #include <folly/Memory.h>
 
 #include "treadmill/Util.h"
@@ -27,13 +29,18 @@ Scheduler::Scheduler(uint32_t rps, uint32_t number_of_workers,
 Scheduler::~Scheduler() {
 }
 
-void Scheduler::run() {
+folly::Future<folly::Unit> Scheduler::run() {
   running_.store(true, std::memory_order_relaxed);
   thread_ = folly::make_unique<std::thread>([this] { this->loop(); });
+  return promise_.getFuture();
 }
 
-void Scheduler::stopAndJoin() {
+void Scheduler::stop() {
   running_.store(false);
+}
+
+void Scheduler::join() {
+  CHECK(!running_);
   thread_->join();
 }
 
@@ -96,6 +103,7 @@ void Scheduler::loop() {
   for (int i = 0; i < queues_.size(); ++i) {
     queues_[i].putMessage(-1);
   }
+  promise_.setValue(folly::Unit());
 }
 
 }  // namespace treadmill

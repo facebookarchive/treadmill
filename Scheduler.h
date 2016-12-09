@@ -13,6 +13,8 @@
 #include <memory>
 #include <thread>
 
+#include <folly/futures/Future.h>
+#include <folly/futures/Promise.h>
 #include <folly/io/async/NotificationQueue.h>
 
 namespace facebook {
@@ -25,8 +27,13 @@ class Scheduler {
             uint32_t logging_threshold);
   ~Scheduler();
 
-  void run();
-  void stopAndJoin();
+  folly::Future<folly::Unit> run();
+
+  // It is safe to call stop() multiple times.
+  void stop();
+
+  // The scheduler _must_ be stopped first.
+  void join();
 
   folly::NotificationQueue<int>& getWorkerQueue(uint32_t id);
  private:
@@ -51,6 +58,7 @@ class Scheduler {
   std::vector<folly::NotificationQueue<int>> queues_;
   std::atomic<bool> running_;
   std::unique_ptr<std::thread> thread_;
+  folly::Promise<folly::Unit> promise_;
 };
 
 }  // namespace treadmill

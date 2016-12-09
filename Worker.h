@@ -49,13 +49,15 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
          int number_of_connections,
          int max_outstanding_requests,
          const folly::dynamic& config,
-         int cpu_affinity) :
+         int cpu_affinity,
+         std::function<void()> terminate_early_fn) :
       number_of_workers_(number_of_workers),
       number_of_connections_(number_of_connections),
       max_outstanding_requests_(max_outstanding_requests),
       workload_(config),
       cpu_affinity_(cpu_affinity),
-      queue_(queue) {
+      queue_(queue),
+      terminate_early_fn_(terminate_early_fn) {
     for (int i = 0; i < number_of_connections_; i++) {
       connections_.push_back(
                     folly::make_unique<Connection<Service>>(event_base_));
@@ -158,6 +160,12 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
            running_) {
 
       auto request_tuple = workload_.getNextRequest();
+      if (std::get<0>(request_tuple) == nullptr) {
+        LOG(INFO) << "terminating";
+        running_.store(false);
+        terminate_early_fn_();
+        return;
+      }
       auto pw = folly::makeMoveWrapper(std::move(std::get<1>(request_tuple)));
       ++outstanding_requests_;
       --to_send_;
@@ -246,6 +254,7 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
   ContinuousStatistic* outstanding_statistic_{nullptr};
   CounterStatistic* exceptions_statistic_{nullptr};
   CounterStatistic* uncaught_exceptions_statistic_{nullptr};
+  std::function<void()> terminate_early_fn_;
 };
 
 }  // namespace treadmill
