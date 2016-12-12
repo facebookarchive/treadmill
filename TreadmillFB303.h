@@ -56,6 +56,10 @@ class TreadmillFB303 : public facebook::fb303::cpp2::FacebookServiceSvIf {
     _return = StatisticsManager::exportAllCounters();
   }
 
+  static void make_fb303(
+      std::shared_ptr<std::thread>& server_thread,
+      int server_port);
+
  private:
   fb_status status_;
   const int64_t aliveSince_;
