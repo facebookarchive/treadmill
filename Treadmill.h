@@ -15,6 +15,7 @@
 #include <vector>
 
 #include <folly/futures/helpers.h>
+#include <folly/json.h>
 #include <folly/String.h>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
@@ -59,6 +60,9 @@ DECLARE_int32(max_outstanding_requests);
 // Config filename to pass into the workload in JSON format
 DECLARE_string(config_in_file);
 
+// Config string to pass into the workload in JSON format
+DECLARE_string(config_in_json);
+
 // Config filename to export from the workload in JSON format
 DECLARE_string(config_out_file);
 
@@ -102,6 +106,10 @@ int run(int argc, char* argv[]) {
   folly::dynamic config = folly::dynamic::object;
   if (FLAGS_config_in_file != "") {
     config = readDynamicFromFile(FLAGS_config_in_file);
+  }
+  if (FLAGS_config_in_json != "") {
+    folly::dynamic config2 = folly::parseJson(FLAGS_config_in_json);
+    config.update(config2);
   }
   int cpu_affinity_list[FLAGS_number_of_workers];
   std::fill_n(cpu_affinity_list, FLAGS_number_of_workers, -1);

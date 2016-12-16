@@ -76,6 +76,12 @@ DEFINE_string(config_in_file,
               "",
               "Config filename to pass into the workload in JSON format.");
 
+DEFINE_string(config_in_json,
+              "",
+              "Configuration string to be parsed as JSON for the workload. "
+              "If --config_in_file is also specified, "
+              "the configs are merged.");
+
 // Config filename to export from the workload in JSON format
 DEFINE_string(config_out_file,
               "",
