@@ -8,8 +8,6 @@
  *
  */
 
-#include <gflags/gflags.h>
-
 #include "treadmill/services/memcached/Connection.h"
 #include "treadmill/services/memcached/Workload.h"
 

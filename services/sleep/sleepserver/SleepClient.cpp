@@ -8,7 +8,6 @@
  *
  */
 
-#include <unistd.h>
 #include <gflags/gflags.h>
 
 #include "treadmill/services/sleep/gen-cpp2/Sleep.h"

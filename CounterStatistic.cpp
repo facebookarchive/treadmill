@@ -12,7 +12,6 @@
 
 #include "treadmill/Util.h"
 
-#include <cmath>
 #include <mutex>
 #include <unordered_map>
 
