@@ -46,10 +46,10 @@ class Connection<MemcachedService> {
   explicit Connection<MemcachedService>(folly::EventBase& event_base) {
     std::string host = nsLookUp(FLAGS_hostname);
     ConnectionOptions opts(host, FLAGS_port, mc_ascii_protocol);
-    client_ = folly::make_unique<AsyncMcClient>(event_base, opts);
-    auto loopController = folly::make_unique<EventBaseLoopController>();
+    client_ = std::make_unique<AsyncMcClient>(event_base, opts);
+    auto loopController = std::make_unique<EventBaseLoopController>();
     loopController->attachEventBase(event_base);
-    fm_ = folly::make_unique<FiberManager>(std::move(loopController));
+    fm_ = std::make_unique<FiberManager>(std::move(loopController));
   }
 
   bool isReady() const { return true; }

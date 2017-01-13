@@ -34,7 +34,7 @@ class Connection<LibmcrouterService> {
     }
     auto connection = facebook::memcache::MC::getInstance(determineFlavor())
       .createInternalConnection(extraOptions);
-    cc_ = folly::make_unique<facebook::memcache::MemcacheClientString>(
+    cc_ = std::make_unique<facebook::memcache::MemcacheClientString>(
       std::move(connection), eventBase);
   }
 

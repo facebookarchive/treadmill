@@ -32,7 +32,7 @@ class Workload<SleepService> {
              folly::Future<SleepService::Reply>>
   getNextRequest() {
     std::unique_ptr<SleepService::Request> request
-      = folly::make_unique<SleepRequest>(SleepRequest::SLEEP,
+      = std::make_unique<SleepRequest>(SleepRequest::SLEEP,
                                          FLAGS_sleep_time);
     folly::Promise<SleepService::Reply> p;
     auto f = p.getFuture();

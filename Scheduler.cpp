@@ -31,7 +31,7 @@ Scheduler::~Scheduler() {
 
 folly::Future<folly::Unit> Scheduler::run() {
   running_.store(true, std::memory_order_relaxed);
-  thread_ = folly::make_unique<std::thread>([this] { this->loop(); });
+  thread_ = std::make_unique<std::thread>([this] { this->loop(); });
   return promise_.getFuture();
 }
 

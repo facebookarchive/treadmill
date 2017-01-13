@@ -144,7 +144,7 @@ int run(int argc, char* argv[]) {
   };
 
   for (int i = 0; i < FLAGS_number_of_workers; i++) {
-    workers.push_back(folly::make_unique<Worker<Service>>(
+    workers.push_back(std::make_unique<Worker<Service>>(
                         scheduler.getWorkerQueue(i),
                         FLAGS_number_of_workers,
                         FLAGS_number_of_connections,

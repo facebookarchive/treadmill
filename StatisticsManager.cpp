@@ -61,11 +61,11 @@ ContinuousStatistic& StatisticsManager::getContinuousStat(
   if (it == stat_map_.end()) {
     if (name == REQUEST_LATENCY) {
       // More warmup and calibration samples for request latency
-      it = stat_map_.emplace(name, folly::make_unique<ContinuousStatistic>(
+      it = stat_map_.emplace(name, std::make_unique<ContinuousStatistic>(
         name, FLAGS_latency_warmup_samples, FLAGS_latency_calibration_samples)
       ).first;
     } else {
-      it = stat_map_.emplace(name, folly::make_unique<ContinuousStatistic>(
+      it = stat_map_.emplace(name, std::make_unique<ContinuousStatistic>(
         name)).first;
     }
   }
@@ -76,7 +76,7 @@ CounterStatistic& StatisticsManager::getCounterStat(
     const std::string& name) {
   auto it = stat_map_.find(name);
   if (it == stat_map_.end()) {
-    it = stat_map_.emplace(name, folly::make_unique<CounterStatistic>(
+    it = stat_map_.emplace(name, std::make_unique<CounterStatistic>(
       name)).first;
   }
   return dynamic_cast<CounterStatistic&>(*it->second);

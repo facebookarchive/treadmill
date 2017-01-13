@@ -60,7 +60,7 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
       terminate_early_fn_(terminate_early_fn) {
     for (int i = 0; i < number_of_connections_; i++) {
       connections_.push_back(
-                    folly::make_unique<Connection<Service>>(event_base_));
+                    std::make_unique<Connection<Service>>(event_base_));
     }
   }
 
@@ -86,7 +86,7 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
     }
 
     running_.store(true, std::memory_order_relaxed);
-    sender_thread_ = folly::make_unique<std::thread>(
+    sender_thread_ = std::make_unique<std::thread>(
       [this] { this->senderLoop(); });
   }
 

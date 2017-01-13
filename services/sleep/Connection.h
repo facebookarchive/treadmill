@@ -41,7 +41,7 @@ class Connection<SleepService> {
       folly::DelayedDestruction::Destructor> channel(
           new apache::thrift::HeaderClientChannel(socket));
 
-    client_ = folly::make_unique<services::sleep::SleepAsyncClient>(
+    client_ = std::make_unique<services::sleep::SleepAsyncClient>(
                 std::move(channel));
   }
 

@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
   google::ParseCommandLineFlags(&argc, &argv, true);
 
   auto handler = std::make_shared<SleepHandler>();
-  auto server = folly::make_unique<ThriftServer>();
+  auto server = std::make_unique<ThriftServer>();
   server->setPort(FLAGS_port);
   server->setNumIOWorkerThreads(FLAGS_num_workers);
   server->setInterface(std::move(handler));

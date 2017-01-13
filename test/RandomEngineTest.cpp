@@ -41,7 +41,7 @@ void checkCorrelation (std::function<double(double,double)> prng) {
 
   // generate numbers
   for (int i = 0; i < kNumThreads; i++) {
-    threads[i] = folly::make_unique<std::thread>(
+    threads[i] = std::make_unique<std::thread>(
         [&numbers, &prng, i, kNumSamples, kRange] {
           for (int j = 0; j < kNumSamples; j++) {
             double x = prng(0, kRange);

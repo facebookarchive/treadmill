@@ -49,7 +49,7 @@ class Workload<MemcachedService> {
 
     std::unique_ptr<MemcachedService::Request> request;
     if (state_ == State::WARMUP) {
-      request = folly::make_unique<MemcachedRequest>(MemcachedRequest::SET,
+      request = std::make_unique<MemcachedRequest>(MemcachedRequest::SET,
                                                      std::move(key));
       request->setValue(std::to_string(index_));
       if (index_ == FLAGS_number_of_keys - 1) {
@@ -57,7 +57,7 @@ class Workload<MemcachedService> {
         state_ = State::GET;
       }
     } else if (state_ == State::GET) {
-      request = folly::make_unique<MemcachedRequest>(MemcachedRequest::GET,
+      request = std::make_unique<MemcachedRequest>(MemcachedRequest::GET,
                                                      std::move(key));
     }
     Promise<MemcachedService::Reply> p;
