@@ -11,6 +11,7 @@
 #include "treadmill/Histogram.h"
 
 #include <glog/logging.h>
+#include <numeric>
 
 using std::vector;
 
@@ -82,8 +83,6 @@ double Histogram::getQuantile(const double quantile) {
  * Print out the statistic of the histogram
  */
 void Histogram::printHistogram() {
-  double sample_count = accumulate(y_values_.begin(), y_values_.end(), 0.0);
-
   LOG(INFO) << "50\% Percentile: " << this->getQuantile(0.50);
   LOG(INFO) << "90\% Percentile: " << this->getQuantile(0.90);
   LOG(INFO) << "95\% Percentile: " << this->getQuantile(0.95);
@@ -132,7 +131,8 @@ double Histogram::linearInterpolate(const double bottom_x, const double top_x,
  * Update the CDF of the sample histogram
  */
 void Histogram::updateCdf() {
-  double sample_count = accumulate(y_values_.begin(), y_values_.end(), 0.0);
+  double sample_count =
+      std::accumulate(y_values_.begin(), y_values_.end(), 0.0);
   double current_cdf = 0.0;
   for (int i = 0; i < y_values_.size(); i++) {
     double pdf = y_values_[i] / sample_count;
