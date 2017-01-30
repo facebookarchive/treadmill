@@ -37,8 +37,8 @@ AC_PROG_CPP
 AC_PROG_CPP
 AC_PROG_RANLIB
 
-# Checks for C++11
-AX_CXX_COMPILE_STDCXX_11([],[mandatory])
+# Checks for C++14
+AX_CXX_COMPILE_STDCXX_14([],[mandatory])
 
 # Thrift compiler
 AC_ARG_VAR([THRIFT2_COMP_DIR],
@@ -59,6 +59,8 @@ AC_CHECK_LIB([double-conversion],[getenv],[],[AC_MSG_ERROR(
              [Please install double-conversion library])])
 AC_CHECK_LIB([folly], [getenv], [], [AC_MSG_ERROR(
              [Please install folly library])])
+AC_CHECK_LIB([zstd], [getenv], [], [AC_MSG_ERROR(
+             [Please install zstd library])])
 AC_CHECK_LIB([event], [event_set], [], [AC_MSG_ERROR(
              [Please install libevent])])
 AC_CHECK_LIB([gflags], [getenv], [], [AC_MSG_ERROR(

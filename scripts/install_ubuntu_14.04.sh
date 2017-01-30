@@ -38,6 +38,9 @@ sudo apt-get install -y \
   zlib1g-dev \
   zip
 
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 50
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 50
+
 cd "$(dirname "$0")" || ( echo "cd fail"; exit 1 )
 
 ./get_and_build_everything.sh ubuntu-14.04 "$@"
