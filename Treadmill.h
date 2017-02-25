@@ -20,6 +20,7 @@
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 
+#include "common/stats/ServiceData.h"
 #include "treadmill/Scheduler.h"
 #include "treadmill/Worker.h"
 
@@ -205,6 +206,10 @@ int run(int argc, char* argv[]) {
     }
     auto config_output = workers[0]->makeConfigOutputs(workerRefs);
     writeDynamicToFile(FLAGS_config_out_file, config_output);
+  }
+  auto counters = stats::ServiceData::get()->getCounters();
+  for (auto& pair: counters) {
+    LOG(INFO) << pair.first << ": " << pair.second;
   }
 
   LOG(INFO) << "Complete";

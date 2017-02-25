@@ -15,6 +15,7 @@
 #include <folly/SharedMutex.h>
 #include <folly/Singleton.h>
 
+#include "common/fb303/cpp/FacebookBase2.h"
 #include "common/fb303/if/gen-cpp2/FacebookService.h"
 #include "treadmill/StatisticsManager.h"
 
@@ -23,12 +24,13 @@ namespace windtunnel {
 namespace treadmill {
 
 // TODO(14039001): commonize this so other treadmills can use it
-class TreadmillFB303 : public facebook::fb303::cpp2::FacebookServiceSvIf {
+class TreadmillFB303 : public facebook::fb303::FacebookBase2 {
  public:
   using fb_status = facebook::fb303::cpp2::fb_status;
 
   explicit TreadmillFB303()
-    : status_(fb_status::STARTING),
+    : FacebookBase2("Treadmill"),
+      status_(fb_status::STARTING),
       aliveSince_(time(nullptr)) {}
 
   ~TreadmillFB303() override {}
@@ -53,7 +55,7 @@ class TreadmillFB303 : public facebook::fb303::cpp2::FacebookServiceSvIf {
   }
 
   void getCounters(std::map<std::string, int64_t>& _return) override {
-    _return = StatisticsManager::exportAllCounters();
+    fb303::FacebookBase2::getCounters(_return);
   }
 
   static void make_fb303(

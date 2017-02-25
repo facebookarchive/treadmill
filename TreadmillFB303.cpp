@@ -32,6 +32,7 @@ void TreadmillFB303::make_fb303(
     int server_port) {
   using facebook::windtunnel::treadmill::getGlobalTreadmillFB303;
   auto server = std::make_shared<apache::thrift::ThriftServer>();
+  LOG(INFO) << "FB303 running on port " << server_port;
   server->setPort(server_port);
   server->setInterface(getGlobalTreadmillFB303());
   server_thread.reset(
