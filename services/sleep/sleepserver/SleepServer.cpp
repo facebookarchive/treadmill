@@ -30,7 +30,7 @@ DEFINE_int32(num_workers,
 
 int main(int argc, char* argv[]) {
   google::InitGoogleLogging(argv[0]);
-  google::ParseCommandLineFlags(&argc, &argv, true);
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
 
   auto handler = std::make_shared<SleepHandler>();
   auto server = std::make_unique<ThriftServer>();

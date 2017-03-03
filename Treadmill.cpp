@@ -122,7 +122,7 @@ void init(int argc, char* argv[]) {
   std::string usage("Treadmill loadtester");
   google::SetUsageMessage(usage);
   // Parse all the command line flags
-  google::ParseCommandLineFlags(&argc, &argv, true);
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
 }
 
 } // namespace treadmill
