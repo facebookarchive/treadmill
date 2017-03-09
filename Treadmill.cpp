@@ -120,7 +120,7 @@ void init(int argc, char* argv[]) {
   google::InitGoogleLogging(argv[0]);
   // Set the usage information
   std::string usage("Treadmill loadtester");
-  google::SetUsageMessage(usage);
+  gflags::SetUsageMessage(usage);
   // Parse all the command line flags
   gflags::ParseCommandLineFlags(&argc, &argv, true);
 }
