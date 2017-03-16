@@ -37,6 +37,10 @@ class Workload<MemcachedService> {
     : state_(State::WARMUP),
       index_(0) { }
 
+  void reset() {
+    index_ = 0;
+  }
+
   std::tuple<std::unique_ptr<MemcachedService::Request>,
              Promise<MemcachedService::Reply>,
              Future<MemcachedService::Reply>>

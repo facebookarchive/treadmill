@@ -27,6 +27,8 @@ class Workload<SleepService> {
  public:
   Workload<SleepService>(folly::dynamic config) {}
 
+  void reset() {}
+
   std::tuple<std::unique_ptr<SleepService::Request>,
              folly::Promise<SleepService::Reply>,
              folly::Future<SleepService::Reply>>

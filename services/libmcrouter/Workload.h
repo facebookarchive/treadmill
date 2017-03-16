@@ -46,6 +46,10 @@ class Workload<LibmcrouterService> {
     );
   }
 
+  void reset() {
+    index_ = 0;
+  }
+
   std::tuple<std::unique_ptr<LibmcrouterService::Request>,
              folly::Promise<LibmcrouterService::Reply>,
              folly::Future<LibmcrouterService::Reply>>
@@ -54,12 +58,13 @@ class Workload<LibmcrouterService> {
       index_ = 0;
     }
 
-    sprintf(buffer, "%s%d", FLAGS_libmcrouter_keys_prefix.c_str(), index_);
+    snprintf(buffer, sizeof(buffer), "%s%d",
+             FLAGS_libmcrouter_keys_prefix.c_str(), index_);
     std::string key = buffer;
 
     std::unique_ptr<LibmcrouterService::Request> request;
     if (state_ == State::WARMUP) {
-      sprintf(buffer, "Value:%d.%s", index_,
+      snprintf(buffer, sizeof(buffer), "Value:%d.%s", index_,
               FLAGS_libmcrouter_keys_prefix.c_str());
       std::string value = buffer;
       request = std::make_unique<LibmcrouterService::Request>(

@@ -51,6 +51,10 @@ DEFINE_int32(port,
              11211,
              "The port on the host to connect to.");
 
+DEFINE_int32(control_port,
+             23456,
+             "Port for TreadmillService remote control.");
+
 // The request per second trying to send
 DEFINE_int32(request_per_second,
              1024,

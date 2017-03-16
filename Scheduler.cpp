@@ -30,17 +30,27 @@ Scheduler::~Scheduler() {
 }
 
 folly::Future<folly::Unit> Scheduler::run() {
-  running_.store(true, std::memory_order_relaxed);
+  state_.store(RUNNING, std::memory_order_relaxed);
   thread_ = std::make_unique<std::thread>([this] { this->loop(); });
   return promise_.getFuture();
 }
 
+void Scheduler::pause() {
+  RunState expected = RUNNING;
+  state_.compare_exchange_strong(expected, PAUSED);
+}
+
+void Scheduler::resume() {
+  RunState expected = PAUSED;
+  state_.compare_exchange_strong(expected, RUNNING);
+}
+
 void Scheduler::stop() {
-  running_.store(false);
+  state_.store(STOPPING);
 }
 
 void Scheduler::join() {
-  CHECK(!running_);
+  CHECK(state_ == STOPPING);
   thread_->join();
 }
 
@@ -67,6 +77,12 @@ void Scheduler::waitNs(int64_t ns) {
   }
 }
 
+void Scheduler::messageAllWorkers(int message) {
+  for (int i = 0; i < queues_.size(); ++i) {
+    queues_[i].putMessage(message);
+  }
+}
+
 /**
  * Responsible for generating requests events.
  * Requests are randomly spaced (intervals are drawn from an
@@ -75,34 +91,36 @@ void Scheduler::waitNs(int64_t ns) {
  * round-robin fashion.
  */
 void Scheduler::loop() {
-  int64_t interval_ns = 1.0/rps_ * k_ns_per_s;
-  int64_t a = 0, b = 0, budget = randomExponentialInterval(interval_ns);
-  while (running_) {
-    b = nowNs();
-    if (a) {
-      /* Account for time spent sending the message */
-      budget -= (b - a);
+  do {
+    messageAllWorkers(1);  // 1 = reset. TODO: Add enum.
+    next_ = 0;
+    int64_t interval_ns = 1.0/rps_ * k_ns_per_s;
+    int64_t a = 0, b = 0, budget = randomExponentialInterval(interval_ns);
+    while (state_ == RUNNING) {
+      b = nowNs();
+      if (a) {
+        /* Account for time spent sending the message */
+        budget -= (b - a);
+      }
+      waitNs(std::max(budget, 0L));
+      a = nowNs();
+      /* Decrease the sleep budget by the exact time slept (could have been
+         more than the budget value), increase by the next interval */
+      budget += randomExponentialInterval(interval_ns) - (a - b);
+      queues_[next_].putMessage(0);
+      if (queues_[next_].size() > logging_threshold_ * logged_[next_]) {
+        LOG(INFO) << "Notification queue for worker " << next_
+                  << " is overloaded by factor of " << logged_[next_];
+        logged_[next_] *= 2;
+      }
+      ++next_;
+      if (next_ == queues_.size()) {
+        next_ = 0;
+      }
     }
-    waitNs(std::max(budget, 0L));
-    a = nowNs();
-    /* Decrease the sleep budget by the exact time slept (could have been
-       more than the budget value), increase by the next interval */
-    budget += randomExponentialInterval(interval_ns) - (a - b);
-    queues_[next_].putMessage(0);
-    if (queues_[next_].size() > logging_threshold_ * logged_[next_]) {
-      LOG(INFO) << "Notification queue for worker " << next_
-                << " is overloaded by factor of " << logged_[next_];
-      logged_[next_] *= 2;
-    }
-    ++next_;
-    if (next_ == queues_.size()) {
-      next_ = 0;
-    }
-  }
-  /* Shut down all workers */
-  for (int i = 0; i < queues_.size(); ++i) {
-    queues_[i].putMessage(-1);
-  }
+    while (state_ == PAUSED) waitNs(1000);
+  } while (state_ != STOPPING);
+  messageAllWorkers(-1);  // -1 = stop. TODO: Add enum.
   promise_.setValue(folly::Unit());
 }
 

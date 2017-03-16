@@ -148,10 +148,12 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
         running_.store(false);
       }
       return;
+    } else if (message == 1) {
+      workload_.reset();
+    } else {
+      ++to_send_;
+      pumpRequests();
     }
-
-    ++to_send_;
-    pumpRequests();
   }
 
   void pumpRequests() {

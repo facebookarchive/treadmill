@@ -24,6 +24,11 @@
 #include "treadmill/Scheduler.h"
 #include "treadmill/Worker.h"
 
+#include "treadmill/if/gen-cpp2/TreadmillService.h"
+#include "common/fb303/cpp/FacebookBase2.h"
+#include "common/services/cpp/ServiceFramework.h"
+#include "thrift/lib/cpp2/server/ThriftServer.h"
+
 // The path to the workload configuration file
 DECLARE_string(config_file);
 
@@ -45,6 +50,8 @@ DECLARE_int64(number_of_keys);
 
 // The port number to connect
 DECLARE_int32(port);
+
+DECLARE_int32(control_port);
 
 // The request per second trying to send
 DECLARE_int32(request_per_second);
@@ -81,6 +88,40 @@ DECLARE_int32(latency_calibration_samples);
 
 // Number of warm-up samples for latency statistics
 DECLARE_int32(latency_warmup_samples);
+
+// TODO: Move handler/server to own file.
+// TODO: Unify namespaces.
+namespace treadmill {
+
+class TreadmillHandler : public treadmill::TreadmillServiceSvIf,
+                         public facebook::fb303::FacebookBase2 {
+ public:
+  explicit TreadmillHandler(
+    facebook::windtunnel::treadmill::Scheduler& scheduler)
+      : facebook::fb303::FacebookBase2("Treadmill Service"),
+        scheduler_(scheduler) {}
+  facebook::fb303::cpp2::fb_status getStatus();
+  virtual bool pause();
+  virtual bool resume();
+
+  facebook::windtunnel::treadmill::Scheduler& scheduler_;
+};
+
+facebook::fb303::cpp2::fb_status TreadmillHandler::getStatus() {
+  return facebook::fb303::cpp2::fb_status::ALIVE;
+}
+
+bool TreadmillHandler::pause() {
+  LOG(INFO) << "TreadmillHandler::pause";
+  scheduler_.pause();
+  return true;
+}
+bool TreadmillHandler::resume() {
+  LOG(INFO) << "TreadmillHandler::resume";
+  scheduler_.resume();
+  return true;
+}
+} //treadmill
 
 namespace facebook {
 namespace windtunnel {
@@ -140,6 +181,18 @@ int run(int argc, char* argv[]) {
                       FLAGS_number_of_workers,
                       max_outstanding_requests_per_worker);
 
+  auto remote_control_thread = std::make_unique<std::thread>(
+    [&scheduler] {
+      facebook::services::ServiceFramework service("Treadmill Service");
+      auto server = std::make_shared<apache::thrift::ThriftServer>();
+      auto handler = std::make_shared<::treadmill::TreadmillHandler>(scheduler);
+      server->setInterface(handler);
+      server->setPort(FLAGS_control_port);
+      service.addThriftService(server, handler.get(), FLAGS_control_port);
+      service.go();
+    }
+  );
+
   auto terminate_early_fn = [&scheduler]() {
     scheduler.stop();
   };
@@ -171,6 +224,7 @@ int run(int argc, char* argv[]) {
   LOG(INFO) << "Stopping and joining scheduler thread";
   scheduler.stop();
   scheduler.join();
+  remote_control_thread->detach(); // TODO: Stop service and thread gracefully.
 
   StatisticsManager::printAll();
   if (FLAGS_output_file != "") {

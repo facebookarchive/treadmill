@@ -16,6 +16,14 @@ namespace treadmill {
 
 template <class Service>
 class Workload {
+  /**
+   * Workloads are implemented as template specializations that implement:
+   *
+   * Workload(folly::dynamic config)
+   * reset() - to reset their internal state. (Used via Scheduler::resume to
+   *           re-synchronize A/B sides after pausing.)
+   * getNextRequest() - to get one request from the workload.
+   */
 };
 
 }  // namespace treadmill

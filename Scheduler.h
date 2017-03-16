@@ -29,6 +29,12 @@ class Scheduler {
 
   folly::Future<folly::Unit> run();
 
+  // Transition from running to paused (no-op if not running).
+  void pause();
+
+  // Transition from paused to running (no-op if not paused).
+  void resume();
+
   // It is safe to call stop() multiple times.
   void stop();
 
@@ -37,6 +43,8 @@ class Scheduler {
 
   folly::NotificationQueue<int>& getWorkerQueue(uint32_t id);
  private:
+  enum RunState { RUNNING, PAUSED, STOPPING };
+
   /**
    * Draws from an exponential distribution with the given mean.
    */
@@ -48,6 +56,11 @@ class Scheduler {
    */
   static void waitNs(int64_t ns);
 
+  /**
+   * Puts given message on each worker's queue.
+   */
+  void messageAllWorkers(int message);
+
   void loop();
 
   uint32_t logging_threshold_;
@@ -56,7 +69,7 @@ class Scheduler {
 
   std::vector<uint64_t> logged_;
   std::vector<folly::NotificationQueue<int>> queues_;
-  std::atomic<bool> running_;
+  std::atomic<RunState> state_;
   std::unique_ptr<std::thread> thread_;
   folly::Promise<folly::Unit> promise_;
 };
