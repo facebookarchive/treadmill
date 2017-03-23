@@ -10,6 +10,8 @@
 
 #include <string>
 
+#include <folly/init/Init.h>
+
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 
@@ -121,12 +123,11 @@ namespace windtunnel {
 namespace treadmill {
 
 void init(int argc, char* argv[]) {
-  google::InitGoogleLogging(argv[0]);
   // Set the usage information
   std::string usage("Treadmill loadtester");
   gflags::SetUsageMessage(usage);
-  // Parse all the command line flags
-  gflags::ParseCommandLineFlags(&argc, &argv, true);
+
+  folly::init(&argc, &argv);
 }
 
 } // namespace treadmill
