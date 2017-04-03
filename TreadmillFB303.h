@@ -36,12 +36,12 @@ class TreadmillFB303 : public facebook::fb303::FacebookBase2 {
   ~TreadmillFB303() override {}
 
   void setStatus(fb_status status) {
-    folly::SharedMutex::WriteHolder(mutex_);
+    folly::SharedMutex::WriteHolder guard(mutex_);
     status_ = status;
   }
 
   fb_status getStatus() override {
-    folly::SharedMutex::ReadHolder(mutex_);
+    folly::SharedMutex::ReadHolder guard(mutex_);
     return status_;
   }
 
@@ -50,7 +50,7 @@ class TreadmillFB303 : public facebook::fb303::FacebookBase2 {
   }
 
   int64_t aliveSince() override {
-    folly::SharedMutex::ReadHolder(mutex_);
+    folly::SharedMutex::ReadHolder guard(mutex_);
     return aliveSince_;
   }
 
