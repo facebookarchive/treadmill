@@ -138,7 +138,7 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
     event_base_.loopForever();
   }
 
-  void messageAvailable(int&& message) override {
+  void messageAvailable(int&& message) noexcept override {
     if (message == -1 || !running_) {
       stopConsuming();
       if (to_send_ == 0 && outstanding_requests_ == 0) {
