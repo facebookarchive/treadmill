@@ -17,6 +17,8 @@
 #include <folly/futures/Promise.h>
 #include <folly/io/async/NotificationQueue.h>
 
+DECLARE_bool(wait_for_runner_ready);
+
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {

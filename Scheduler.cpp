@@ -16,6 +16,10 @@
 
 #include "treadmill/Util.h"
 
+DEFINE_bool(wait_for_runner_ready,
+            false,
+            "If true, wait for a 'resume' message before sending requests.");
+
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
@@ -30,7 +34,8 @@ Scheduler::~Scheduler() {
 }
 
 folly::Future<folly::Unit> Scheduler::run() {
-  state_.store(RUNNING, std::memory_order_relaxed);
+  state_.store(FLAGS_wait_for_runner_ready ? PAUSED : RUNNING,
+               std::memory_order_relaxed);
   thread_ = std::make_unique<std::thread>([this] { this->loop(); });
   return promise_.getFuture();
 }
