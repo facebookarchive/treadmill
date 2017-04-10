@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "boost/variant.hpp"
+#include <boost/variant.hpp>
 #include "memcache/client/MemcacheClientString.h"
 
 DEFINE_string(libmcrouter_flavor,
