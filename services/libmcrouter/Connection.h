@@ -27,15 +27,10 @@ template <>
 class Connection<LibmcrouterService> {
  public:
   explicit Connection(folly::EventBase& eventBase) {
-    facebook::memcache::MC::Options extraOptions;
-    if (FLAGS_libmcrouter_flavor == "no-network") {
-      extraOptions["no_network"] = "1";
-      extraOptions["num_proxies"] = "1";
-    }
     auto connection = facebook::memcache::MC::getInstance(determineFlavor())
-      .createInternalConnection(extraOptions);
+                          .createInternalConnection();
     cc_ = std::make_unique<facebook::memcache::MemcacheClientString>(
-      std::move(connection), eventBase);
+        std::move(connection), eventBase);
   }
 
   bool isReady() const { return true; }
