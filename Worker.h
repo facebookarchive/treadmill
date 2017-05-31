@@ -41,16 +41,21 @@ namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
+constexpr folly::StringPiece kOutstandingRequestsCounter =
+  "outstanding_requests";
+
 template <class Service>
 class Worker : private folly::NotificationQueue<int>::Consumer {
  public:
-  Worker(folly::NotificationQueue<int>& queue,
+  Worker(int worker_id,
+         folly::NotificationQueue<int>& queue,
          int number_of_workers,
          int number_of_connections,
          int max_outstanding_requests,
          const folly::dynamic& config,
          int cpu_affinity,
          std::function<void()> terminate_early_fn) :
+      worker_id_(worker_id),
       number_of_workers_(number_of_workers),
       number_of_connections_(number_of_connections),
       max_outstanding_requests_(max_outstanding_requests),
@@ -62,6 +67,8 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
       connections_.push_back(
                     std::make_unique<Connection<Service>>(event_base_));
     }
+
+    setWorkerCounter(kOutstandingRequestsCounter, 0);
   }
 
   ~Worker() {}
@@ -107,6 +114,16 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
   }
 
  private:
+  void setWorkerCounter(folly::StringPiece key, int64_t value) {
+    std::string fullKey = folly::sformat(
+      "worker.{}.{}",
+      worker_id_,
+      key
+    );
+
+    auto sd = facebook::stats::ServiceData::get();
+    sd->setCounter(fullKey, value);
+  }
 
   /**
    * Sender loop listens to the request queue and network events.
@@ -231,8 +248,11 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
       uncaught_exceptions_statistic_->increase(p.second, p.first);
     }
     n_uncaught_exceptions_by_type_.clear();
+
+    setWorkerCounter(kOutstandingRequestsCounter, outstanding_requests_);
   }
 
+  const int worker_id_;
   std::vector<std::unique_ptr<Connection<Service>>> connections_;
   folly::EventBase event_base_;
   std::atomic<bool> running_;
