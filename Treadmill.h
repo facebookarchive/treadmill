@@ -100,9 +100,9 @@ class TreadmillHandler : public treadmill::TreadmillServiceSvIf,
     facebook::windtunnel::treadmill::Scheduler& scheduler)
       : facebook::fb303::FacebookBase2("Treadmill Service"),
         scheduler_(scheduler) {}
-  facebook::fb303::cpp2::fb_status getStatus();
-  virtual bool pause();
-  virtual bool resume();
+  facebook::fb303::cpp2::fb_status getStatus() override;
+  bool pause() override;
+  bool resume() override;
 
   facebook::windtunnel::treadmill::Scheduler& scheduler_;
 };
