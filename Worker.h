@@ -71,7 +71,7 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
     setWorkerCounter(kOutstandingRequestsCounter, 0);
   }
 
-  ~Worker() {}
+  ~Worker() override {}
 
   void run() {
     //If countername is specified then make sure wait_for_target was also true
