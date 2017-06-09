@@ -31,7 +31,7 @@ class SleepHandler : public SleepSvIf {
    * @param time The time to sleep in microseconds
    * @return Future to the actual time spent in sleep in microseconds
    */
-  folly::Future<int64_t> future_goSleep(int64_t time);
+  folly::Future<int64_t> future_goSleep(int64_t time) override;
 };
 
 } // namespace sleep

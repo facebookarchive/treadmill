@@ -33,17 +33,17 @@ class CounterStatistic : public Statistic {
     subkey_count_ = other.subkey_count_;
   }
 
-  virtual std::unique_ptr<Statistic> clone() const override {
+  std::unique_ptr<Statistic> clone() const override {
     return std::unique_ptr<Statistic>(new CounterStatistic(*this));
   }
 
-  virtual void printStatistic() const override;
+  void printStatistic() const override;
 
-  virtual folly::dynamic toDynamic() const override;
+  folly::dynamic toDynamic() const override;
 
-  virtual std::unordered_map<std::string, int64_t> getCounters() const override;
+  std::unordered_map<std::string, int64_t> getCounters() const override;
 
-  virtual void combine(const Statistic& stat) override;
+  void combine(const Statistic& stat) override;
 
   void increase(size_t n = 1, const std::string& subkey = "") {
     count_ += n;
