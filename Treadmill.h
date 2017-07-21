@@ -134,7 +134,7 @@ namespace treadmill {
  * @param argv Argument vector
  */
 template <typename Service>
-int run(int argc, char* argv[]) {
+int run(int /*argc*/, char* /*argv*/ []) {
   std::vector<std::unique_ptr<Worker<Service>>> workers;
   double rps = FLAGS_request_per_second / (double) FLAGS_number_of_workers;
   int max_outstanding_requests_per_worker =

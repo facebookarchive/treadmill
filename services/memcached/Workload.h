@@ -33,9 +33,8 @@ class Workload<MemcachedService> {
     GET
   };
 
-  Workload<MemcachedService>(folly::dynamic config)
-    : state_(State::WARMUP),
-      index_(0) { }
+  Workload<MemcachedService>(folly::dynamic /*config*/)
+      : state_(State::WARMUP), index_(0) {}
 
   void reset() {
     index_ = 0;
@@ -71,7 +70,7 @@ class Workload<MemcachedService> {
   }
 
   folly::dynamic makeConfigOutputs(
-                  std::vector<Workload<MemcachedService>*> workloads) {
+      std::vector<Workload<MemcachedService>*> /*workloads*/) {
     return folly::dynamic::object;
   }
 

@@ -25,7 +25,7 @@ namespace treadmill {
 template<>
 class Workload<SleepService> {
  public:
-  Workload<SleepService>(folly::dynamic config) {}
+  Workload<SleepService>(folly::dynamic /*config*/) {}
 
   void reset() {}
 
@@ -42,7 +42,7 @@ class Workload<SleepService> {
   }
 
   folly::dynamic makeConfigOutputs(
-                        std::vector<Workload<SleepService>*> workloads) {
+      std::vector<Workload<SleepService>*> /*workloads*/) {
     return folly::dynamic::object;
   }
 };

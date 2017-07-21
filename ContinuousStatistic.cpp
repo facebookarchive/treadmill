@@ -203,7 +203,7 @@ double ContinuousStatistic::meanConfidence() const {
   return e;
 }
 
-double ContinuousStatistic::quantileConfidence(double quantile) const {
+double ContinuousStatistic::quantileConfidence(double /*quantile*/) const {
   int nResamples = 100;
   ContinuousStatistic estimateStatistic("");
   for (int i = 0; i < nResamples; i++) {
