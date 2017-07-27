@@ -10,53 +10,28 @@
 
 #pragma once
 
-#include <memory>
-
 #include <folly/SharedMutex.h>
-#include <folly/Singleton.h>
 
 #include "common/fb303/cpp/FacebookBase2.h"
-#include "common/fb303/if/gen-cpp2/FacebookService.h"
-#include "treadmill/StatisticsManager.h"
 
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
-// TODO(14039001): commonize this so other treadmills can use it
 class TreadmillFB303 : public facebook::fb303::FacebookBase2 {
  public:
   using fb_status = facebook::fb303::cpp2::fb_status;
 
-  explicit TreadmillFB303()
-    : FacebookBase2("Treadmill"),
-      status_(fb_status::STARTING),
-      aliveSince_(time(nullptr)) {}
+  explicit TreadmillFB303();
 
-  ~TreadmillFB303() override {}
+  ~TreadmillFB303() override;
 
-  void setStatus(fb_status status) {
-    folly::SharedMutex::WriteHolder guard(mutex_);
-    status_ = status;
-  }
+  void setStatus(fb_status status);
+  fb_status getStatus() override;
 
-  fb_status getStatus() override {
-    folly::SharedMutex::ReadHolder guard(mutex_);
-    return status_;
-  }
-
-  void getStatusDetails(std::string& _return) override {
-    _return = fb303::cpp2::_fb_status_VALUES_TO_NAMES.at(getStatus());
-  }
-
-  int64_t aliveSince() override {
-    folly::SharedMutex::ReadHolder guard(mutex_);
-    return aliveSince_;
-  }
-
-  void getCounters(std::map<std::string, int64_t>& _return) override {
-    fb303::FacebookBase2::getCounters(_return);
-  }
+  void getStatusDetails(std::string& _return) override;
+  int64_t aliveSince() override;
+  void getCounters(std::map<std::string, int64_t>& _return) override;
 
   static void make_fb303(
       std::shared_ptr<std::thread>& server_thread,

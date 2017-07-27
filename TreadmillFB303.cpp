@@ -15,9 +15,41 @@
 #include <folly/Singleton.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 
+using fb_status = facebook::fb303::cpp2::fb_status;
+
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
+
+TreadmillFB303::TreadmillFB303()
+    : FacebookBase2("Treadmill"),
+      status_(fb_status::STARTING),
+      aliveSince_(time(nullptr)) {}
+
+TreadmillFB303::~TreadmillFB303() {}
+
+void TreadmillFB303::setStatus(fb_status status) {
+  folly::SharedMutex::WriteHolder guard(mutex_);
+  status_ = status;
+}
+
+fb_status TreadmillFB303::getStatus() {
+  folly::SharedMutex::ReadHolder guard(mutex_);
+  return status_;
+}
+
+void TreadmillFB303::getStatusDetails(std::string& _return) {
+  _return = fb303::cpp2::_fb_status_VALUES_TO_NAMES.at(getStatus());
+}
+
+int64_t TreadmillFB303::aliveSince() {
+  folly::SharedMutex::ReadHolder guard(mutex_);
+  return aliveSince_;
+}
+
+void TreadmillFB303::getCounters(std::map<std::string, int64_t>& _return) {
+  fb303::FacebookBase2::getCounters(_return);
+}
 
 namespace {
 folly::Singleton<TreadmillFB303> instance;
