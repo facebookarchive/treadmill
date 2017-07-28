@@ -22,6 +22,7 @@
 
 #include "common/stats/ServiceData.h"
 #include "treadmill/Scheduler.h"
+#include "treadmill/TreadmillFB303.h"
 #include "treadmill/Worker.h"
 
 #include "treadmill/if/gen-cpp2/TreadmillService.h"
@@ -88,6 +89,9 @@ DECLARE_int32(latency_calibration_samples);
 
 // Number of warm-up samples for latency statistics
 DECLARE_int32(latency_warmup_samples);
+
+// Port for fb303 server
+DECLARE_int32(server_port);
 
 // TODO: Move handler/server to own file.
 // TODO: Unify namespaces.
@@ -192,6 +196,15 @@ int run(int /*argc*/, char* /*argv*/ []) {
       service.go();
     }
   );
+
+  // Init fb303
+  std::shared_ptr<std::thread> server_thread;
+  if (FLAGS_server_port > 0) {
+    TreadmillFB303::make_fb303(
+      server_thread,
+      FLAGS_server_port
+    );
+  }
 
   auto terminate_early_fn = [&scheduler]() {
     scheduler.stop();

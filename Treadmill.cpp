@@ -118,6 +118,8 @@ DEFINE_int32(latency_warmup_samples,
              1000,
              "Number of warm-up samples for latency statistics.");
 
+DEFINE_int32(server_port, -1, "Port for fb303 server");
+
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
