@@ -202,7 +202,8 @@ int run(int /*argc*/, char* /*argv*/ []) {
   if (FLAGS_server_port > 0) {
     TreadmillFB303::make_fb303(
       server_thread,
-      FLAGS_server_port
+      FLAGS_server_port,
+      scheduler
     );
   }
 

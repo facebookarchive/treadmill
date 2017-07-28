@@ -13,16 +13,20 @@
 #include <folly/SharedMutex.h>
 
 #include "common/fb303/cpp/FacebookBase2.h"
+#include "treadmill/if/gen-cpp2/TreadmillService.h"
 
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
-class TreadmillFB303 : public facebook::fb303::FacebookBase2 {
+class Scheduler;
+
+class TreadmillFB303 : public facebook::fb303::FacebookBase2,
+                       public ::treadmill::TreadmillServiceSvIf {
  public:
   using fb_status = facebook::fb303::cpp2::fb_status;
 
-  explicit TreadmillFB303();
+  explicit TreadmillFB303(Scheduler& scheduler);
 
   ~TreadmillFB303() override;
 
@@ -33,14 +37,20 @@ class TreadmillFB303 : public facebook::fb303::FacebookBase2 {
   int64_t aliveSince() override;
   void getCounters(std::map<std::string, int64_t>& _return) override;
 
+  bool pause() override;
+  bool resume() override;
+
   static void make_fb303(
-      std::shared_ptr<std::thread>& server_thread,
-      int server_port);
+    std::shared_ptr<std::thread>& server_thread,
+    int server_port,
+    Scheduler& scheduler
+  );
 
  private:
   fb_status status_;
   const int64_t aliveSince_;
   folly::SharedMutex mutex_;
+  Scheduler& scheduler_;
 };
 
 extern std::shared_ptr<TreadmillFB303> getGlobalTreadmillFB303();
