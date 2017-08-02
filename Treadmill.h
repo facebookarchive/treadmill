@@ -93,40 +93,6 @@ DECLARE_int32(latency_warmup_samples);
 // Port for fb303 server
 DECLARE_int32(server_port);
 
-// TODO: Move handler/server to own file.
-// TODO: Unify namespaces.
-namespace treadmill {
-
-class TreadmillHandler : public treadmill::TreadmillServiceSvIf,
-                         public facebook::fb303::FacebookBase2 {
- public:
-  explicit TreadmillHandler(
-    facebook::windtunnel::treadmill::Scheduler& scheduler)
-      : facebook::fb303::FacebookBase2("Treadmill Service"),
-        scheduler_(scheduler) {}
-  facebook::fb303::cpp2::fb_status getStatus() override;
-  bool pause() override;
-  bool resume() override;
-
-  facebook::windtunnel::treadmill::Scheduler& scheduler_;
-};
-
-facebook::fb303::cpp2::fb_status TreadmillHandler::getStatus() {
-  return facebook::fb303::cpp2::fb_status::ALIVE;
-}
-
-bool TreadmillHandler::pause() {
-  LOG(INFO) << "TreadmillHandler::pause";
-  scheduler_.pause();
-  return true;
-}
-bool TreadmillHandler::resume() {
-  LOG(INFO) << "TreadmillHandler::resume";
-  scheduler_.resume();
-  return true;
-}
-} //treadmill
-
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
@@ -185,18 +151,6 @@ int run(int /*argc*/, char* /*argv*/ []) {
                       FLAGS_number_of_workers,
                       max_outstanding_requests_per_worker);
 
-  auto remote_control_thread = std::make_unique<std::thread>(
-    [&scheduler] {
-      facebook::services::ServiceFramework service("Treadmill Service");
-      auto server = std::make_shared<apache::thrift::ThriftServer>();
-      auto handler = std::make_shared<::treadmill::TreadmillHandler>(scheduler);
-      server->setInterface(handler);
-      server->setPort(FLAGS_control_port);
-      service.addThriftService(server, handler.get(), FLAGS_control_port);
-      service.go();
-    }
-  );
-
   // Init fb303
   std::shared_ptr<std::thread> server_thread;
   if (FLAGS_server_port > 0) {
@@ -239,7 +193,6 @@ int run(int /*argc*/, char* /*argv*/ []) {
   LOG(INFO) << "Stopping and joining scheduler thread";
   scheduler.stop();
   scheduler.join();
-  remote_control_thread->detach(); // TODO: Stop service and thread gracefully.
 
   StatisticsManager::printAll();
   if (FLAGS_output_file != "") {
