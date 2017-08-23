@@ -158,7 +158,7 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
   void messageAvailable(int&& message) noexcept override {
     if (message == -1 || !running_) {
       stopConsuming();
-      if (to_send_ == 0 && outstanding_requests_ == 0) {
+      if (outstanding_requests_ == 0) {
         event_base_.terminateLoopSoon();
       } else {
         // To avoid potential race condition
@@ -168,13 +168,12 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
     } else if (message == 1) {
       workload_.reset();
     } else {
-      ++to_send_;
-      pumpRequests();
+      sendRequest();
     }
   }
 
-  void pumpRequests() {
-    while (to_send_ &&
+  void sendRequest() {
+    if (
            outstanding_requests_ < max_outstanding_requests_ &&
            running_) {
 
@@ -187,7 +186,6 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
       }
       auto pw = folly::makeMoveWrapper(std::move(std::get<1>(request_tuple)));
       ++outstanding_requests_;
-      --to_send_;
       auto conn_idx = conn_idx_;
       conn_idx_ = (conn_idx_ + 1) % number_of_connections_;
       auto send_time = nowNs();
@@ -213,8 +211,6 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
 
             if (!running_ && outstanding_requests_ == 0) {
               event_base_.terminateLoopSoon();
-            } else {
-              pumpRequests();
             }
           }
         );
@@ -270,7 +266,6 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
   std::unique_ptr<std::thread> sender_thread_;
   size_t conn_idx_{0};
   size_t outstanding_requests_{0};
-  size_t to_send_{0};
   ContinuousStatistic* latency_statistic_{nullptr};
   ContinuousStatistic* throughput_statistic_{nullptr};
   ContinuousStatistic* outstanding_statistic_{nullptr};
