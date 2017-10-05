@@ -190,6 +190,7 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
       conn_idx_ = (conn_idx_ + 1) % number_of_connections_;
       auto send_time = nowNs();
 
+      LOG(INFO) << "Going to send request to connection " << conn_idx;
       auto reply = connections_[conn_idx]->sendRequest(
         std::move(std::get<0>(request_tuple))).then(
           [send_time, this, pw] (
