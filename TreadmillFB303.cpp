@@ -16,8 +16,11 @@
 
 #include <folly/Singleton.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
+#include "common/services/cpp/TLSConfig.h"
 
 using fb_status = facebook::fb303::cpp2::fb_status;
+
+using namespace facebook::services;
 
 namespace facebook {
 namespace windtunnel {
@@ -97,6 +100,7 @@ void TreadmillFB303::make_fb303(
   LOG(INFO) << "FB303 running on port " << server_port;
   server->setPort(server_port);
   server->setInterface(getGlobalTreadmillFB303());
+  TLSConfig::applyDefaultsToThriftServer(*server);
   server_thread.reset(
     new std::thread(
       [server]() {
