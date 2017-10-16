@@ -208,6 +208,10 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
             }
 
             --outstanding_requests_;
+            this->setWorkerCounter(
+              kOutstandingRequestsCounter,
+              outstanding_requests_
+            );
 
             if (!running_ && outstanding_requests_ == 0) {
               event_base_.terminateLoopSoon();
