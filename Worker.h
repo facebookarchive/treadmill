@@ -20,7 +20,7 @@
 #include <folly/Memory.h>
 #include <folly/MoveWrapper.h>
 #include <folly/String.h>
-#include <folly/ThreadName.h>
+#include <folly/system/ThreadName.h>
 #include <folly/futures/Future.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/NotificationQueue.h>
