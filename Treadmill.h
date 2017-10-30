@@ -93,6 +93,9 @@ DECLARE_int32(latency_warmup_samples);
 // Port for fb303 server
 DECLARE_int32(server_port);
 
+// How many seconds to give workers to finish requests
+DECLARE_int32(worker_shutdown_delay);
+
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
@@ -193,6 +196,17 @@ int run(int /*argc*/, char* /*argv*/ []) {
   LOG(INFO) << "Stopping and joining scheduler thread";
   scheduler.stop();
   scheduler.join();
+
+  if (FLAGS_worker_shutdown_delay > 0) {
+    // Wait for workers to finish requests
+    size_t secondsToWait = FLAGS_worker_shutdown_delay;
+    for (auto& it : workers) {
+      while (secondsToWait > 0 && it->hasMoreWork()) {
+        sleep(1);
+        --secondsToWait;
+      }
+    }
+  }
 
   StatisticsManager::printAll();
   if (FLAGS_output_file != "") {

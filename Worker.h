@@ -99,10 +99,19 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
 
   void stop() {
     running_.store(false);
+    auto stopper = [this] () {
+      event_base_.terminateLoopSoon();
+    };
+    event_base_.runInEventBaseThread(stopper);
+    LOG(INFO) << "Worker " << worker_id_ << " terminating";
   }
 
   void join() {
     sender_thread_->join();
+  }
+
+  bool hasMoreWork() {
+    return running_ || outstanding_requests_ > 0;
   }
 
   folly::dynamic makeConfigOutputs(std::vector<Worker*> worker_refs) {
@@ -158,12 +167,8 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
   void messageAvailable(int&& message) noexcept override {
     if (message == -1 || !running_) {
       stopConsuming();
-      if (outstanding_requests_ == 0) {
-        event_base_.terminateLoopSoon();
-      } else {
-        // To avoid potential race condition
-        running_.store(false);
-      }
+      // To avoid potential race condition
+      running_.store(false);
       return;
     } else if (message == 1) {
       workload_.reset();
@@ -212,10 +217,6 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
               kOutstandingRequestsCounter,
               outstanding_requests_
             );
-
-            if (!running_ && outstanding_requests_ == 0) {
-              event_base_.terminateLoopSoon();
-            }
           }
         );
       auto& f = std::get<2>(request_tuple);
