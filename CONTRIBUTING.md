@@ -3,7 +3,7 @@
 We want to make contributing to this project as easy and transparent as
 possible.
 
-## Code of Conduct
+### Code of Conduct
 
 The code of conduct is described in [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)
 
