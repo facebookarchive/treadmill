@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "common/fb303/cpp/FacebookBase2.h"
 #include "treadmill/services/sleep/gen-cpp2/Sleep.h"
 
 namespace facebook {
@@ -22,9 +23,14 @@ namespace sleep {
  * A simple thrift server which has only one method that tells the server to
  * sleep for the amount of time embedded in the received request
  */
-class SleepHandler : public SleepSvIf {
+class SleepHandler : public SleepSvIf, virtual public fb303::FacebookBase2 {
  public:
-  SleepHandler() { }
+  SleepHandler() : fb303::FacebookBase2("Sleep") {}
+
+  fb303::cpp2::fb_status getStatus() override {
+    return fb303::cpp2::fb_status::ALIVE;
+  }
+
   /**
    * Asynchronous function to handle goSleep request
    *
