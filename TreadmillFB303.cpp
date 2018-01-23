@@ -69,6 +69,11 @@ bool TreadmillFB303::resume() {
   return true;
 }
 
+void TreadmillFB303::setRps(int32_t rps) {
+  LOG(INFO) << "TreadmillHandler::setRps to " << rps;
+  scheduler_.setRps(rps);
+}
+
 namespace {
 folly::SharedMutex instance_mutex;
 std::shared_ptr<TreadmillFB303> instance;

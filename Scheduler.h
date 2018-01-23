@@ -44,6 +44,8 @@ class Scheduler {
   void join();
 
   folly::NotificationQueue<int>& getWorkerQueue(uint32_t id);
+
+  void setRps(int32_t rps);
  private:
   enum RunState { RUNNING, PAUSED, STOPPING };
 

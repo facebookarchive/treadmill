@@ -6,4 +6,7 @@ namespace py treadmill
 service TreadmillService extends fb303.FacebookService {
   bool pause();
   bool resume();
+  void setRps(
+    1: i32 rps
+  );
 }

@@ -63,6 +63,10 @@ folly::NotificationQueue<int>& Scheduler::getWorkerQueue(uint32_t id) {
   return queues_[id];
 }
 
+void Scheduler::setRps(int32_t rps) {
+  rps_ = rps;
+}
+
 double Scheduler::randomExponentialInterval(double mean) {
   static std::mt19937* rng = new std::mt19937();
   std::uniform_real_distribution<double> dist(0, 1.0);

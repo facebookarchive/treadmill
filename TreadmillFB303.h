@@ -39,6 +39,7 @@ class TreadmillFB303 : public facebook::fb303::FacebookBase2,
 
   bool pause() override;
   bool resume() override;
+  void setRps(int32_t rps) override;
 
   static void make_fb303(
     std::shared_ptr<std::thread>& server_thread,
