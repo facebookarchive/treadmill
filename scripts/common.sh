@@ -1,3 +1,4 @@
+# shellcheck disable=SC2148
 set -ex
 
 function die { printf "%s: %s\n" "$0" "$@"; exit 1; }
