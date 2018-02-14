@@ -19,6 +19,8 @@
 #include "common/services/cpp/TLSConfig.h"
 
 using fb_status = facebook::fb303::cpp2::fb_status;
+using ::treadmill::ResumeRequest;
+using ::treadmill::ResumeResponse;
 
 using namespace facebook::services;
 
@@ -69,6 +71,15 @@ bool TreadmillFB303::resume() {
   return true;
 }
 
+folly::Future<std::unique_ptr<ResumeResponse>> TreadmillFB303::future_resume2(
+    std::unique_ptr<ResumeRequest> req) {
+  LOG(INFO) << "TreadmillHandler::resume2 with phase " << req->get_phaseName();
+  scheduler_.resume();
+  auto resp = std::make_unique<ResumeResponse>();
+  resp->set_success(true);
+  return folly::makeFuture(std::move(resp));
+}
+
 void TreadmillFB303::setRps(int32_t rps) {
   LOG(INFO) << "TreadmillHandler::setRps to " << rps;
   scheduler_.setRps(rps);
@@ -77,7 +88,7 @@ void TreadmillFB303::setRps(int32_t rps) {
 namespace {
 folly::SharedMutex instance_mutex;
 std::shared_ptr<TreadmillFB303> instance;
-}
+} // namespace
 
 std::shared_ptr<TreadmillFB303> getGlobalTreadmillFB303() {
   folly::SharedMutex::ReadHolder guard(instance_mutex);
@@ -91,8 +102,7 @@ std::shared_ptr<TreadmillFB303> getGlobalTreadmillFB303() {
 void TreadmillFB303::make_fb303(
     std::shared_ptr<std::thread>& server_thread,
     int server_port,
-    Scheduler& scheduler
-) {
+    Scheduler& scheduler) {
   {
     folly::SharedMutex::WriteHolder guard(instance_mutex);
     if (instance) {
@@ -107,18 +117,14 @@ void TreadmillFB303::make_fb303(
   server->setInterface(getGlobalTreadmillFB303());
   TLSConfig::applyDefaultsToThriftServer(*server);
   server_thread.reset(
-    new std::thread(
-      [server]() {
-        server->serve();
-      }),
-    [server](std::thread* t) {
-      server->stop();
-      t->join();
-      delete t;
-    }
-  );
+      new std::thread([server]() { server->serve(); }),
+      [server](std::thread* t) {
+        server->stop();
+        t->join();
+        delete t;
+      });
 }
 
-}
-}
-}
+} // namespace treadmill
+} // namespace windtunnel
+} // namespace facebook

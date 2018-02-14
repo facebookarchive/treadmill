@@ -39,13 +39,14 @@ class TreadmillFB303 : public facebook::fb303::FacebookBase2,
 
   bool pause() override;
   bool resume() override;
+  folly::Future<std::unique_ptr<::treadmill::ResumeResponse>> future_resume2(
+      std::unique_ptr<::treadmill::ResumeRequest> req) override;
   void setRps(int32_t rps) override;
 
   static void make_fb303(
-    std::shared_ptr<std::thread>& server_thread,
-    int server_port,
-    Scheduler& scheduler
-  );
+      std::shared_ptr<std::thread>& server_thread,
+      int server_port,
+      Scheduler& scheduler);
 
  private:
   fb_status status_;
@@ -56,6 +57,6 @@ class TreadmillFB303 : public facebook::fb303::FacebookBase2,
 
 extern std::shared_ptr<TreadmillFB303> getGlobalTreadmillFB303();
 
-}
-}
-}
+} // namespace treadmill
+} // namespace windtunnel
+} // namespace facebook
