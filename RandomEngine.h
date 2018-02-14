@@ -13,7 +13,7 @@
 
 #include <folly/ThreadLocal.h>
 
-DECLARE_uint64(random_seed);
+DECLARE_uint64(treadmill_random_seed);
 
 namespace facebook {
 namespace windtunnel {

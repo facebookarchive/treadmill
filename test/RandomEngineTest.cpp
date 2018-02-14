@@ -97,6 +97,6 @@ TEST(StatisticTest, CrossThreadCorrelation) {
 
 int main(int argc, char *argv[]) {
   testing::InitGoogleTest(&argc, argv);
-  FLAGS_random_seed = 0;
+  FLAGS_treadmill_random_seed = 0;
   return RUN_ALL_TESTS();
 }

@@ -14,7 +14,7 @@
 
 #include <folly/Likely.h>
 
-DEFINE_uint64(random_seed, ULLONG_MAX, "seed for random engines");
+DEFINE_uint64(treadmill_random_seed, ULLONG_MAX, "seed for random engines");
 
 using std::mt19937_64;
 using std::uniform_real_distribution;
@@ -26,7 +26,7 @@ namespace treadmill {
 
 // Seed the random engine
 mt19937_64 RandomEngine::random_engine_(
-    FLAGS_random_seed == ULLONG_MAX ? time(nullptr) : FLAGS_random_seed);
+    FLAGS_treadmill_random_seed == ULLONG_MAX ? time(nullptr) : FLAGS_treadmill_random_seed);
 // Generate a uniform distribution
 uniform_real_distribution<double>
   RandomEngine::uniform_real_distribution_(0.0, 1.0);
@@ -59,9 +59,9 @@ mt19937_64& ThreadSafeRandomEngine::get() {
   if (UNLIKELY(engine == nullptr)) {
     std::hash<std::thread::id> hasher;
     uint64_t seed = hasher(std::this_thread::get_id()) +
-                    (FLAGS_random_seed == ULLONG_MAX
+                    (FLAGS_treadmill_random_seed == ULLONG_MAX
                          ? time(nullptr)
-                         : FLAGS_random_seed);
+                         : FLAGS_treadmill_random_seed);
     engine = new mt19937_64(seed);
     random_engine_.reset(engine);
   }
