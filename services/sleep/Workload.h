@@ -23,7 +23,7 @@ namespace windtunnel {
 namespace treadmill {
 
 template<>
-class Workload<SleepService> {
+class Workload<SleepService> : public WorkloadBase<Workload<SleepService>> {
  public:
   Workload<SleepService>(folly::dynamic /*config*/) {}
 

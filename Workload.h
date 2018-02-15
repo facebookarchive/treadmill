@@ -14,10 +14,15 @@ namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
+template <class Workload>
+class WorkloadBase {
+};
+
 template <class Service>
 class Workload {
   /**
-   * Workloads are implemented as template specializations that implement:
+   * Workloads are implemented as template specializations that derive from
+   * WorkloadBase using themselves as template parameter and also implement:
    *
    * Workload(folly::dynamic config)
    * reset() - to reset their internal state. (Used via Scheduler::resume to

@@ -26,7 +26,8 @@ namespace windtunnel {
 namespace treadmill {
 
 template <>
-class Workload<MemcachedService> {
+class Workload<MemcachedService>
+    : public WorkloadBase<Workload<MemcachedService>> {
  public:
   enum State {
     WARMUP,
