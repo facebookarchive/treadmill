@@ -74,6 +74,7 @@ bool TreadmillFB303::resume() {
 folly::Future<std::unique_ptr<ResumeResponse>> TreadmillFB303::future_resume2(
     std::unique_ptr<ResumeRequest> req) {
   LOG(INFO) << "TreadmillHandler::resume2 with phase " << req->get_phaseName();
+  scheduler_.setPhase(req->get_phaseName());
   scheduler_.resume();
   auto resp = std::make_unique<ResumeResponse>();
   resp->set_success(true);

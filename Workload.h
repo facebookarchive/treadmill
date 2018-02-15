@@ -16,6 +16,16 @@ namespace treadmill {
 
 template <class Workload>
 class WorkloadBase {
+public:
+  void setPhase(const std::string& phase) {
+    phase_ = phase;
+  }
+  const std::string getPhase() const {
+    return phase_;
+  }
+
+protected:
+  std::string phase_;
 };
 
 template <class Service>

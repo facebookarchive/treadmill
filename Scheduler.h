@@ -39,6 +39,9 @@ class Scheduler {
   // Transition from paused to running (no-op if not paused).
   void resume();
 
+  // Set the phase of the test
+  void setPhase(const std::string& phase_name);
+
   // It is safe to call stop() multiple times.
   void stop();
 

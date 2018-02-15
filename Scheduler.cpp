@@ -50,6 +50,11 @@ void Scheduler::resume() {
   state_.compare_exchange_strong(expected, RUNNING);
 }
 
+void Scheduler::setPhase(const std::string& phase_name) {
+  CHECK_EQ(state_, PAUSED);
+  messageAllWorkers(Event(EventType::SET_PHASE, phase_name));
+}
+
 void Scheduler::stop() {
   state_.store(STOPPING);
 }

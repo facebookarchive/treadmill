@@ -20,6 +20,8 @@ enum class EventType {
   STOP,
   RESET,
   SEND_REQUEST,
+  // Sets the phase of the test, which is stored as string in extraData
+  SET_PHASE,
 };
 
 class Event {

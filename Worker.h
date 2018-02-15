@@ -175,6 +175,13 @@ class Worker : private folly::NotificationQueue<Event>::Consumer {
       workload_.reset();
     } else if (event.getEventType() == EventType::SEND_REQUEST) {
       sendRequest();
+    } else if (event.getEventType() == EventType::SET_PHASE) {
+      auto extraData = event.getExtraData();
+      if (!extraData.isString()) {
+        LOG(ERROR) << "SET_PHASE event got invalid extra data: " << extraData;
+      } else {
+        workload_.setPhase(extraData.asString());
+      }
     } else {
         LOG(ERROR) << "Got unhandled event: " << int(event.getEventType());
     }
