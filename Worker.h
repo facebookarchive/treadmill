@@ -29,6 +29,7 @@
 #include "treadmill/StatisticsManager.h"
 #include "treadmill/Util.h"
 #include "treadmill/Workload.h"
+#include "treadmill/Event.h"
 
 DEFINE_bool(wait_for_target_ready,
             false,
@@ -45,10 +46,10 @@ constexpr folly::StringPiece kOutstandingRequestsCounter =
   "outstanding_requests";
 
 template <class Service>
-class Worker : private folly::NotificationQueue<int>::Consumer {
+class Worker : private folly::NotificationQueue<Event>::Consumer {
  public:
   Worker(int worker_id,
-         folly::NotificationQueue<int>& queue,
+         folly::NotificationQueue<Event>& queue,
          int number_of_workers,
          int number_of_connections,
          int max_outstanding_requests,
@@ -164,16 +165,18 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
     event_base_.loopForever();
   }
 
-  void messageAvailable(int&& message) noexcept override {
-    if (message == -1 || !running_) {
+  void messageAvailable(Event&& event) noexcept override {
+    if (event.getEventType() == EventType::STOP || !running_) {
       stopConsuming();
       // To avoid potential race condition
       running_.store(false);
       return;
-    } else if (message == 1) {
+    } else if (event.getEventType() == EventType::RESET) {
       workload_.reset();
-    } else {
+    } else if (event.getEventType() == EventType::SEND_REQUEST) {
       sendRequest();
+    } else {
+        LOG(ERROR) << "Got unhandled event: " << int(event.getEventType());
     }
   }
 
@@ -267,7 +270,7 @@ class Worker : private folly::NotificationQueue<int>::Consumer {
   std::unordered_map<std::string, size_t> n_exceptions_by_type_;
   std::unordered_map<std::string, size_t> n_uncaught_exceptions_by_type_;
 
-  folly::NotificationQueue<int>& queue_;
+  folly::NotificationQueue<Event>& queue_;
   std::unique_ptr<std::thread> sender_thread_;
   size_t conn_idx_{0};
   size_t outstanding_requests_{0};

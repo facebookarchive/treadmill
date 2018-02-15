@@ -59,7 +59,7 @@ void Scheduler::join() {
   thread_->join();
 }
 
-folly::NotificationQueue<int>& Scheduler::getWorkerQueue(uint32_t id) {
+folly::NotificationQueue<Event>& Scheduler::getWorkerQueue(uint32_t id) {
   return queues_[id];
 }
 
@@ -86,9 +86,9 @@ void Scheduler::waitNs(int64_t ns) {
   }
 }
 
-void Scheduler::messageAllWorkers(int message) {
+void Scheduler::messageAllWorkers(Event event) {
   for (int i = 0; i < queues_.size(); ++i) {
-    queues_[i].putMessage(message);
+    queues_[i].putMessage(event);
   }
 }
 
@@ -101,7 +101,7 @@ void Scheduler::messageAllWorkers(int message) {
  */
 void Scheduler::loop() {
   do {
-    messageAllWorkers(1);  // 1 = reset. TODO: Add enum.
+    messageAllWorkers(Event(EventType::RESET));
     next_ = 0;
     int64_t interval_ns = 1.0/rps_ * k_ns_per_s;
     int64_t a = 0, b = 0, budget = randomExponentialInterval(interval_ns);
@@ -116,7 +116,7 @@ void Scheduler::loop() {
       /* Decrease the sleep budget by the exact time slept (could have been
          more than the budget value), increase by the next interval */
       budget += randomExponentialInterval(interval_ns) - (a - b);
-      queues_[next_].putMessage(0);
+      queues_[next_].putMessage(Event(EventType::SEND_REQUEST));
       if (queues_[next_].size() > logging_threshold_ * logged_[next_]) {
         LOG(INFO) << "Notification queue for worker " << next_
                   << " is overloaded by factor of " << logged_[next_];
@@ -129,7 +129,7 @@ void Scheduler::loop() {
     }
     while (state_ == PAUSED) waitNs(1000);
   } while (state_ != STOPPING);
-  messageAllWorkers(-1);  // -1 = stop. TODO: Add enum.
+  messageAllWorkers(Event(EventType::STOP));
   promise_.setValue(folly::Unit());
 }
 

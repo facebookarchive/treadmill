@@ -17,6 +17,8 @@
 #include <folly/futures/Promise.h>
 #include <folly/io/async/NotificationQueue.h>
 
+#include "treadmill/Event.h"
+
 DECLARE_bool(wait_for_runner_ready);
 
 namespace facebook {
@@ -43,7 +45,7 @@ class Scheduler {
   // The scheduler _must_ be stopped first.
   void join();
 
-  folly::NotificationQueue<int>& getWorkerQueue(uint32_t id);
+  folly::NotificationQueue<Event>& getWorkerQueue(uint32_t id);
 
   void setRps(int32_t rps);
  private:
@@ -63,7 +65,7 @@ class Scheduler {
   /**
    * Puts given message on each worker's queue.
    */
-  void messageAllWorkers(int message);
+  void messageAllWorkers(Event event);
 
   void loop();
 
@@ -72,7 +74,7 @@ class Scheduler {
   uint32_t rps_;
 
   std::vector<uint64_t> logged_;
-  std::vector<folly::NotificationQueue<int>> queues_;
+  std::vector<folly::NotificationQueue<Event>> queues_;
   std::atomic<RunState> state_;
   std::unique_ptr<std::thread> thread_;
   folly::Promise<folly::Unit> promise_;
