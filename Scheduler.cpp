@@ -51,7 +51,9 @@ void Scheduler::resume() {
 }
 
 void Scheduler::setPhase(const std::string& phase_name) {
-  CHECK_EQ(state_, PAUSED);
+  if (FLAGS_wait_for_runner_ready) {
+    CHECK_EQ(state_, PAUSED);
+  }
   messageAllWorkers(Event(EventType::SET_PHASE, phase_name));
 }
 
