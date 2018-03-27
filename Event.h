@@ -22,6 +22,8 @@ enum class EventType {
   SEND_REQUEST,
   // Sets the phase of the test, which is stored as string in extraData
   SET_PHASE,
+  // Sets the max outstanding requests in the Worker
+  SET_MAX_OUTSTANDING,
 };
 
 class Event {

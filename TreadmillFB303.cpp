@@ -86,6 +86,11 @@ void TreadmillFB303::setRps(int32_t rps) {
   scheduler_.setRps(rps);
 }
 
+void TreadmillFB303::setMaxOutstanding(int32_t max_outstanding) {
+  LOG(INFO) << "TreadmillHandler::setMaxOutstanding to " << max_outstanding;
+  scheduler_.setMaxOutstandingRequests(max_outstanding);
+}
+
 namespace {
 folly::SharedMutex instance_mutex;
 std::shared_ptr<TreadmillFB303> instance;

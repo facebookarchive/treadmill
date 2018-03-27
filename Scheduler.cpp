@@ -57,6 +57,10 @@ void Scheduler::setPhase(const std::string& phase_name) {
   messageAllWorkers(Event(EventType::SET_PHASE, phase_name));
 }
 
+void Scheduler::setMaxOutstandingRequests(int32_t max_outstanding) {
+  messageAllWorkers(Event(EventType::SET_MAX_OUTSTANDING, max_outstanding));
+}
+
 void Scheduler::stop() {
   state_.store(STOPPING);
 }

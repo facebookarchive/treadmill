@@ -42,6 +42,7 @@ class TreadmillFB303 : public facebook::fb303::FacebookBase2,
   folly::Future<std::unique_ptr<::treadmill::ResumeResponse>> future_resume2(
       std::unique_ptr<::treadmill::ResumeRequest> req) override;
   void setRps(int32_t rps) override;
+  void setMaxOutstanding(int32_t max_outstanding) override;
 
   static void make_fb303(
       std::shared_ptr<std::thread>& server_thread,

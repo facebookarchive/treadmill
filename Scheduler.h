@@ -42,6 +42,9 @@ class Scheduler {
   // Set the phase of the test
   void setPhase(const std::string& phase_name);
 
+  // set the maximum outstanding requests for the Workers
+  void setMaxOutstandingRequests(int32_t max_outstanding);
+
   // It is safe to call stop() multiple times.
   void stop();
 

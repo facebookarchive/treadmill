@@ -29,4 +29,7 @@ service TreadmillService extends fb303.FacebookService {
   void setRps(
     1: i32 rps
   );
+  void setMaxOutstanding(
+    1: i32 max_outstanding
+  );
 }

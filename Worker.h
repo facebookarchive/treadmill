@@ -135,6 +135,10 @@ class Worker : private folly::NotificationQueue<Event>::Consumer {
     sd->setCounter(fullKey, value);
   }
 
+  void setMaxOutstanding(int32_t max_outstanding_requests) {
+    max_outstanding_requests_ = max_outstanding_requests;
+  }
+
   /**
    * Sender loop listens to the request queue and network events.
    * It will only send up to the outstanding requests limit.
@@ -175,6 +179,13 @@ class Worker : private folly::NotificationQueue<Event>::Consumer {
       workload_.reset();
     } else if (event.getEventType() == EventType::SEND_REQUEST) {
       sendRequest();
+    } else if (event.getEventType() == EventType::SET_MAX_OUTSTANDING) {
+      auto extraData = event.getExtraData();
+      if (!extraData.isInt()) {
+        LOG(ERROR) << "SET_MAX_OUTSTANDING event not an int: " << extraData;
+      } else {
+        setMaxOutstanding(extraData.asInt());
+      }
     } else if (event.getEventType() == EventType::SET_PHASE) {
       auto extraData = event.getExtraData();
       if (!extraData.isString()) {
@@ -269,7 +280,7 @@ class Worker : private folly::NotificationQueue<Event>::Consumer {
   std::atomic<bool> running_;
   int number_of_workers_;
   int number_of_connections_;
-  size_t max_outstanding_requests_;
+  int32_t max_outstanding_requests_;
   Workload<Service> workload_;
   int cpu_affinity_;
   int64_t last_throughput_time_{0};
