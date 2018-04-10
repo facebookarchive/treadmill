@@ -28,6 +28,8 @@ Scheduler::Scheduler(uint32_t rps, uint32_t number_of_workers,
                      uint32_t logging_threshold)
     : logging_threshold_(logging_threshold), rps_(rps),
       logged_(number_of_workers, 1), queues_(number_of_workers) {
+  state_.store(FLAGS_wait_for_runner_ready ? PAUSED : RUNNING,
+               std::memory_order_relaxed);
 }
 
 Scheduler::~Scheduler() {
