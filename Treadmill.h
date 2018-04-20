@@ -200,12 +200,19 @@ int run(int /*argc*/, char* /*argv*/ []) {
   if (FLAGS_worker_shutdown_delay > 0) {
     // Wait for workers to finish requests
     size_t secondsToWait = FLAGS_worker_shutdown_delay;
-    for (auto& it : workers) {
-      while (secondsToWait > 0 && it->hasMoreWork()) {
+    size_t remaining;
+    do {
+      remaining = 0;
+      for (auto& it : workers) {
+        if (it->hasMoreWork()) remaining++;
+      }
+      if (remaining > 0) {
+        LOG(INFO) << "waiting for " << remaining << " worker(s)";
         sleep(1);
         --secondsToWait;
       }
     }
+    while (secondsToWait > 0 && remaining > 0);
   }
 
   StatisticsManager::printAll();

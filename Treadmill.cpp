@@ -121,7 +121,7 @@ DEFINE_int32(latency_warmup_samples,
 DEFINE_int32(server_port, -1, "Port for fb303 server");
 
 DEFINE_int32(worker_shutdown_delay,
-             0,
+             1,
              "Seconds to allow for workers to gracefully shutdown");
 
 namespace facebook {

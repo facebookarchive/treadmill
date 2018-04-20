@@ -118,7 +118,7 @@ void ContinuousStatistic::setHistogramBins() {
  * @param value
  */
 void ContinuousStatistic::addSample(double value) {
-  if (histogram_ == nullptr) {
+  if (this->histogram_ == nullptr) {
     if (warmupSamples_ < nWarmupSamples_) {
       warmupSamples_++;
       return;
@@ -305,7 +305,7 @@ void ContinuousStatistic::combine(const Statistic& stat0) {
     return;
   }
 
-  // Rebin hitogram to make sure all the exceptional values are in the hitogram
+  // Rebin histogram to make sure all the exceptional values are in the histogram
   std::unique_ptr<ContinuousStatistic> stat_to_combine(
       new ContinuousStatistic(stat));
   if (stat_to_combine->exceptional_index_ != 0) {
