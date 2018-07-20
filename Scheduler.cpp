@@ -47,9 +47,13 @@ void Scheduler::pause() {
   state_.compare_exchange_strong(expected, PAUSED);
 }
 
-void Scheduler::resume() {
+bool Scheduler::resume() {
   RunState expected = PAUSED;
   state_.compare_exchange_strong(expected, RUNNING);
+
+  // Now return if we are running. It's possible that the scheduler was already
+  // running so we don't return the bool from compare_exchange_strong.
+  return state_ == RUNNING;
 }
 
 void Scheduler::setPhase(const std::string& phase_name) {

@@ -67,17 +67,20 @@ bool TreadmillFB303::pause() {
 
 bool TreadmillFB303::resume() {
   LOG(INFO) << "TreadmillHandler::resume";
-  scheduler_.resume();
-  return true;
+  return scheduler_.resume();
 }
 
 folly::Future<std::unique_ptr<ResumeResponse>> TreadmillFB303::future_resume2(
     std::unique_ptr<ResumeRequest> req) {
-  LOG(INFO) << "TreadmillHandler::resume2 with phase " << req->get_phaseName();
-  scheduler_.setPhase(req->get_phaseName());
-  scheduler_.resume();
+  // Get the phase name being super paranoid.
+  auto phaseName = req != nullptr ? req->get_phaseName() : "UNKNOWN_PHASE";
+  LOG(INFO) << "TreadmillHandler::resume2 with phase " << phaseName;
+  scheduler_.setPhase(phaseName);
   auto resp = std::make_unique<ResumeResponse>();
-  resp->set_success(true);
+  auto running = scheduler_.resume();
+  LOG(INFO) << "Scheduler is currently "
+            << (running ? "Running" : "Not Running");
+  resp->set_success(running);
   return folly::makeFuture(std::move(resp));
 }
 

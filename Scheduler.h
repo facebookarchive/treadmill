@@ -36,8 +36,9 @@ class Scheduler {
   // Transition from running to paused (no-op if not running).
   void pause();
 
-  // Transition from paused to running (no-op if not paused).
-  void resume();
+  // Transition from paused to running (no-op if not paused). Returns bool
+  // representing if the scheduler is now in a running state.
+  bool resume();
 
   // Set the phase of the test
   void setPhase(const std::string& phase_name);
