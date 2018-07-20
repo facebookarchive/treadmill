@@ -36,8 +36,11 @@ Scheduler::~Scheduler() {
 }
 
 folly::Future<folly::Unit> Scheduler::run() {
-  state_.store(FLAGS_wait_for_runner_ready ? PAUSED : RUNNING,
-               std::memory_order_relaxed);
+
+  if (state_ != RUNNING) {
+    LOG(INFO) << "Scheduler is not in the running state. "
+              << "Assuming resume will be called in future.";
+  }
   thread_ = std::make_unique<std::thread>([this] { this->loop(); });
   return promise_.getFuture();
 }

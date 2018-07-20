@@ -171,11 +171,15 @@ class Worker : private folly::NotificationQueue<Event>::Consumer {
 
   void messageAvailable(Event&& event) noexcept override {
     if (event.getEventType() == EventType::STOP || !running_) {
+      LOG(INFO) << "Stopping Worker because "
+                << ((event.getEventType() == EventType::STOP)
+                        ? "Event Type = Stop"
+                        : "running_ = false but got a message.");
       stopConsuming();
       // To avoid potential race condition
       running_.store(false);
-      return;
     } else if (event.getEventType() == EventType::RESET) {
+      LOG(INFO) << "Got EventType::RESET";
       workload_.reset();
     } else if (event.getEventType() == EventType::SEND_REQUEST) {
       sendRequest();
@@ -184,6 +188,8 @@ class Worker : private folly::NotificationQueue<Event>::Consumer {
       if (!extraData.isInt()) {
         LOG(ERROR) << "SET_MAX_OUTSTANDING event not an int: " << extraData;
       } else {
+        LOG(INFO) << "Got EventType::SET_MAX_OUTSTANDING = "
+                  << extraData.asInt();
         setMaxOutstanding(extraData.asInt());
       }
     } else if (event.getEventType() == EventType::SET_PHASE) {
@@ -191,10 +197,11 @@ class Worker : private folly::NotificationQueue<Event>::Consumer {
       if (!extraData.isString()) {
         LOG(ERROR) << "SET_PHASE event got invalid extra data: " << extraData;
       } else {
+        LOG(INFO) << "Got EventType::SET_PHASE = " << extraData.asString();
         workload_.setPhase(extraData.asString());
       }
     } else {
-        LOG(ERROR) << "Got unhandled event: " << int(event.getEventType());
+      LOG(ERROR) << "Got unhandled event: " << int(event.getEventType());
     }
   }
 
