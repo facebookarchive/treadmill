@@ -50,13 +50,13 @@ class Connection<SleepService> {
 
   folly::Future<SleepService::Reply>
   sendRequest(std::unique_ptr<typename SleepService::Request> request) {
-    auto f = client_->future_goSleep(request->sleep_time()).then(
-      [](folly::Try<int64_t>&& t) mutable {
-        StatisticsManager::get().getContinuousStat("SleepTime")
-          .addSample(t.value());
-        return SleepReply(t.value());
-      }
-    );
+    auto f = client_->future_goSleep(request->sleep_time())
+                 .thenTry([](folly::Try<int64_t>&& t) mutable {
+                   StatisticsManager::get()
+                       .getContinuousStat("SleepTime")
+                       .addSample(t.value());
+                   return SleepReply(t.value());
+                 });
     return f;
   }
 
