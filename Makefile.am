@@ -56,7 +56,7 @@ treadmill_sleep_SOURCES = \
 	services/sleep/gen-cpp2/sleep_data.cpp \
 	services/sleep/gen-cpp2/sleep_types.cpp \
 	services/sleep/gen-cpp2/Sleep.cpp \
-	services/sleep/gen-cpp2/Sleep_client.cpp \
+	services/sleep/gen-cpp2/SleepAsyncClient.cpp \
 	services/sleep/gen-cpp2/Sleep_processmap_binary.cpp \
 	services/sleep/gen-cpp2/Sleep_processmap_compact.cpp
 
