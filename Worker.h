@@ -223,30 +223,28 @@ class Worker : private folly::NotificationQueue<Event>::Consumer {
       conn_idx_ = (conn_idx_ + 1) % number_of_connections_;
       auto send_time = nowNs();
 
-      auto reply = connections_[conn_idx]->sendRequest(
-        std::move(std::get<0>(request_tuple))).then(
-          [send_time, this, pw] (
-            folly::Try<typename Service::Reply>&& t) mutable {
+      auto reply =
+          connections_[conn_idx]
+              ->sendRequest(std::move(std::get<0>(request_tuple)))
+              .thenTry([send_time, this, pw](
+                           folly::Try<typename Service::Reply>&& t) mutable {
+                auto recv_time = nowNs();
+                latency_statistic_->addSample((recv_time - send_time) / 1000.0);
+                n_throughput_requests_++;
+                if (t.hasException()) {
+                  n_exceptions_by_type_
+                      [t.exception().class_name().toStdString()]++;
+                  LOG(INFO) << t.exception().what();
+                  pw->setException(t.exception());
+                }
+                if (t.hasValue()) {
+                  pw->setValue(std::move(t.value()));
+                }
 
-            auto recv_time = nowNs();
-            latency_statistic_->addSample((recv_time - send_time)/1000.0);
-            n_throughput_requests_++;
-            if (t.hasException()) {
-              n_exceptions_by_type_[t.exception().class_name().toStdString()]++;
-              LOG(INFO) << t.exception().what();
-              pw->setException(t.exception());
-            }
-            if (t.hasValue()) {
-              pw->setValue(std::move(t.value()));
-            }
-
-            --outstanding_requests_;
-            this->setWorkerCounter(
-              kOutstandingRequestsCounter,
-              outstanding_requests_
-            );
-          }
-        );
+                --outstanding_requests_;
+                this->setWorkerCounter(
+                    kOutstandingRequestsCounter, outstanding_requests_);
+              });
       auto& f = std::get<2>(request_tuple);
       std::move(f).onError([this](folly::exception_wrapper ew) {
         n_uncaught_exceptions_by_type_[ew.class_name().toStdString()]++;
