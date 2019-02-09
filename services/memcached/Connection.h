@@ -14,8 +14,8 @@
 #include <folly/fibers/EventBaseLoopController.h>
 #include <folly/fibers/FiberManager.h>
 #include <folly/futures/Future.h>
-#include <folly/io/async/EventBase.h>
 #include <folly/io/IOBuf.h>
+#include <folly/io/async/EventBase.h>
 #include <mcrouter/lib/network/AsyncMcClient.h>
 #include <mcrouter/lib/network/gen/Memcache.h>
 
@@ -32,7 +32,6 @@ using facebook::memcache::ConnectionOptions;
 using facebook::memcache::McDeleteRequest;
 using facebook::memcache::McGetRequest;
 using facebook::memcache::McSetRequest;
-using facebook::memcache::McOperation;
 using folly::fibers::EventBaseLoopController;
 using folly::fibers::FiberManager;
 
@@ -52,29 +51,31 @@ class Connection<MemcachedService> {
     fm_ = std::make_unique<FiberManager>(std::move(loopController));
   }
 
-  bool isReady() const { return true; }
+  bool isReady() const {
+    return true;
+  }
 
-  folly::Future<MemcachedService::Reply>
-  sendRequest(std::unique_ptr<typename MemcachedService::Request> request) {
-    folly::MoveWrapper<folly::Promise<MemcachedService::Reply> > p;
+  folly::Future<MemcachedService::Reply> sendRequest(
+      std::unique_ptr<typename MemcachedService::Request> request) {
+    folly::MoveWrapper<folly::Promise<MemcachedService::Reply>> p;
     auto f = p->getFuture();
 
     if (request->which() == MemcachedRequest::GET) {
       auto req = std::make_shared<McGetRequest>(request->key());
-      fm_->addTask([this, req, p] () mutable {
+      fm_->addTask([this, req, p]() mutable {
         client_->sendSync(*req, std::chrono::milliseconds::zero());
         p->setValue(MemcachedService::Reply());
       });
     } else if (request->which() == MemcachedRequest::SET) {
       auto req = std::make_shared<McSetRequest>(request->key());
       req->value() = folly::IOBuf(folly::IOBuf::COPY_BUFFER, request->value());
-      fm_->addTask([this, req, p] () mutable {
+      fm_->addTask([this, req, p]() mutable {
         client_->sendSync(*req, std::chrono::milliseconds::zero());
         p->setValue(MemcachedService::Reply());
       });
     } else {
       auto req = std::make_shared<McDeleteRequest>(request->key());
-      fm_->addTask([this, req, p] () mutable {
+      fm_->addTask([this, req, p]() mutable {
         client_->sendSync(*req, std::chrono::milliseconds::zero());
         p->setValue(MemcachedService::Reply());
       });
