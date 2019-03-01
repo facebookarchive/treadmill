@@ -20,6 +20,23 @@ struct ResumeResponse {
   1: required bool success;
 }
 
+struct RateResponse {
+  /**
+   * The state of the scheduler
+   */
+  1: optional bool scheduler_running;
+
+  /**
+   * The request per second rate
+   */
+  2: optional i32 rps;
+
+  /**
+   * The maximum number of outstanding requests
+   */
+  3: optional i32 max_outstanding;
+}
+
 service TreadmillService extends fb303.FacebookService {
   bool pause();
   bool resume();
@@ -33,4 +50,5 @@ service TreadmillService extends fb303.FacebookService {
   void setMaxOutstanding(
     1: i32 max_outstanding
   );
+  RateResponse getRate();
 }

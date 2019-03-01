@@ -152,6 +152,7 @@ int run(int /*argc*/, char* /*argv*/ []) {
 
   Scheduler scheduler(FLAGS_request_per_second,
                       FLAGS_number_of_workers,
+                      FLAGS_max_outstanding_requests,
                       max_outstanding_requests_per_worker);
 
   // Init fb303

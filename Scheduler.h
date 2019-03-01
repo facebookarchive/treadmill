@@ -29,6 +29,9 @@ class Scheduler {
  public:
   Scheduler(uint32_t rps, uint32_t number_of_workers,
             uint32_t logging_threshold);
+  Scheduler(uint32_t rps, uint32_t number_of_workers,
+            uint32_t max_outstanding_requests,
+            uint32_t logging_threshold);
   ~Scheduler();
 
   folly::Future<folly::Unit> run();
@@ -40,8 +43,13 @@ class Scheduler {
   // representing if the scheduler is now in a running state.
   bool resume();
 
+  // Returns true if the scheduler state is equal to running
+  bool isRunning();
+
   // Set the phase of the test
   void setPhase(const std::string& phase_name);
+
+  int32_t getMaxOutstandingRequests();
 
   // set the maximum outstanding requests for the Workers
   void setMaxOutstandingRequests(int32_t max_outstanding);
@@ -53,6 +61,8 @@ class Scheduler {
   void join();
 
   folly::NotificationQueue<Event>& getWorkerQueue(uint32_t id);
+
+  int32_t getRps();
 
   void setRps(int32_t rps);
  private:
@@ -79,6 +89,7 @@ class Scheduler {
   uint32_t logging_threshold_;
   uint32_t next_{0};
   uint32_t rps_;
+  uint32_t max_outstanding_requests_;
 
   std::vector<uint64_t> logged_;
   std::vector<folly::NotificationQueue<Event>> queues_;

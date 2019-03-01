@@ -27,6 +27,17 @@ namespace treadmill {
 Scheduler::Scheduler(uint32_t rps, uint32_t number_of_workers,
                      uint32_t logging_threshold)
     : logging_threshold_(logging_threshold), rps_(rps),
+      max_outstanding_requests_(0),
+      logged_(number_of_workers, 1), queues_(number_of_workers) {
+  state_.store(FLAGS_wait_for_runner_ready ? PAUSED : RUNNING,
+               std::memory_order_relaxed);
+}
+
+Scheduler::Scheduler(uint32_t rps, uint32_t number_of_workers,
+                     uint32_t max_outstanding_requests,
+                     uint32_t logging_threshold)
+    : logging_threshold_(logging_threshold), rps_(rps),
+      max_outstanding_requests_(max_outstanding_requests),
       logged_(number_of_workers, 1), queues_(number_of_workers) {
   state_.store(FLAGS_wait_for_runner_ready ? PAUSED : RUNNING,
                std::memory_order_relaxed);
@@ -59,6 +70,10 @@ bool Scheduler::resume() {
   return state_ == RUNNING;
 }
 
+bool Scheduler::isRunning() {
+  return state_ == RUNNING;
+}
+
 void Scheduler::setPhase(const std::string& phase_name) {
   if (FLAGS_wait_for_runner_ready) {
     CHECK_EQ(state_, PAUSED);
@@ -66,8 +81,13 @@ void Scheduler::setPhase(const std::string& phase_name) {
   messageAllWorkers(Event(EventType::SET_PHASE, phase_name));
 }
 
-void Scheduler::setMaxOutstandingRequests(int32_t max_outstanding) {
-  messageAllWorkers(Event(EventType::SET_MAX_OUTSTANDING, max_outstanding));
+int32_t Scheduler::getMaxOutstandingRequests() {
+  return max_outstanding_requests_;
+}
+
+void Scheduler::setMaxOutstandingRequests(int32_t max_outstanding_requests) {
+  max_outstanding_requests_ = max_outstanding_requests;
+  messageAllWorkers(Event(EventType::SET_MAX_OUTSTANDING, max_outstanding_requests_));
 }
 
 void Scheduler::stop() {
@@ -81,6 +101,10 @@ void Scheduler::join() {
 
 folly::NotificationQueue<Event>& Scheduler::getWorkerQueue(uint32_t id) {
   return queues_[id];
+}
+
+int32_t Scheduler::getRps() {
+  return rps_;
 }
 
 void Scheduler::setRps(int32_t rps) {

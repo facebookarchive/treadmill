@@ -19,6 +19,7 @@
 #include "common/services/cpp/TLSConfig.h"
 
 using fb_status = facebook::fb303::cpp2::fb_status;
+using ::treadmill::RateResponse;
 using ::treadmill::ResumeRequest;
 using ::treadmill::ResumeResponse;
 
@@ -92,6 +93,14 @@ void TreadmillFB303::setRps(int32_t rps) {
 void TreadmillFB303::setMaxOutstanding(int32_t max_outstanding) {
   LOG(INFO) << "TreadmillHandler::setMaxOutstanding to " << max_outstanding;
   scheduler_.setMaxOutstandingRequests(max_outstanding);
+}
+
+folly::Future<std::unique_ptr< ::treadmill::RateResponse>> TreadmillFB303::future_getRate() {
+  auto response = std::make_unique<RateResponse>();
+  response->set_scheduler_running(scheduler_.isRunning());
+  response->set_rps(scheduler_.getRps());
+  response->set_max_outstanding(scheduler_.getMaxOutstandingRequests());
+  return folly::makeFuture(std::move(response));
 }
 
 namespace {
