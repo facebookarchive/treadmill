@@ -147,7 +147,8 @@ void Scheduler::loop() {
   do {
     messageAllWorkers(Event(EventType::RESET));
     next_ = 0;
-    int64_t interval_ns = 1.0/rps_ * k_ns_per_s;
+    int32_t rps = rps_;
+    int64_t interval_ns = 1.0/rps * k_ns_per_s;
     int64_t a = 0, b = 0, budget = randomExponentialInterval(interval_ns);
     while (state_ == RUNNING) {
       b = nowNs();
@@ -169,6 +170,10 @@ void Scheduler::loop() {
       ++next_;
       if (next_ == queues_.size()) {
         next_ = 0;
+      }
+      if (rps != rps_) {
+        rps = rps_;
+        interval_ns = 1.0/rps * k_ns_per_s;
       }
     }
     while (state_ == PAUSED) waitNs(1000);
