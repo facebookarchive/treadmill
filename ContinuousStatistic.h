@@ -12,6 +12,8 @@
 
 #include <vector>
 
+#include <gflags/gflags.h>
+
 #include <folly/dynamic.h>
 
 #include "treadmill/Histogram.h"
