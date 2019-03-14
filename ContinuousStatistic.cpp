@@ -71,8 +71,8 @@ void ContinuousStatistic::rebinHistogram(double target_max_value) {
   double new_max_value = 0.0;
   if (target_max_value < 0.0) {
     double max_exceptional = 0;
-    for (int i = 0; i < exceptional_index_; i++) {
-      max_exceptional = std::max(max_exceptional, exceptional_values_[i]);
+    for (double value: exceptional_values_) {
+      max_exceptional = std::max(max_exceptional, value);
     }
     double pow = std::log2(max_exceptional);
     new_max_value = std::pow(2, ceil(pow));
@@ -86,8 +86,8 @@ void ContinuousStatistic::rebinHistogram(double target_max_value) {
   std::unique_ptr<Histogram> new_histogram(new Histogram(input));
   new_histogram->insertSmallerHistogramSamples(this->histogram_);
 
-  for (int i = 0; i < exceptional_index_; i++) {
-    new_histogram->addSample(exceptional_values_[i]);
+  for (double value : exceptional_values_) {
+    new_histogram->addSample(value);
   }
   exceptional_index_ = 0;
   this->histogram_.swap(new_histogram);
