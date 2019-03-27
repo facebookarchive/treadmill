@@ -246,7 +246,7 @@ class Worker : private folly::NotificationQueue<Event>::Consumer {
                     kOutstandingRequestsCounter, outstanding_requests_);
               });
       auto& f = std::get<2>(request_tuple);
-      std::move(f).onError([this](folly::exception_wrapper ew) {
+      std::move(f).thenError([this](folly::exception_wrapper ew) {
         n_uncaught_exceptions_by_type_[ew.class_name().toStdString()]++;
         return folly::makeFuture<
             typename std::remove_reference<decltype(f)>::type::value_type>(ew);
