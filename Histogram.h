@@ -20,17 +20,16 @@ namespace treadmill {
 
 class HistogramInput {
  public:
-  HistogramInput(int number_of_bins, int min_value, int max_value) :
-    number_of_bins_(number_of_bins),
-    min_value_(min_value),
-    max_value_(max_value) {}
+  HistogramInput(int number_of_bins, double min_value, double max_value)
+      : number_of_bins_(number_of_bins),
+        min_value_(min_value),
+        max_value_(max_value) {}
 
-  HistogramInput() :
-    HistogramInput(0, 0, 0) {}
+  HistogramInput() : HistogramInput(0, 0, 0) {}
 
   int number_of_bins_;
-  int min_value_;
-  int max_value_;
+  double min_value_;
+  double max_value_;
 };
 
 // Class for histogram of the sampling data
@@ -43,12 +42,13 @@ class Histogram {
    * @param min_value The minimum value of the sample histogram
    * @param max_value The maximum value of the sample histogram
    */
-  Histogram(const int number_of_bins,
-            const double min_value,
-            const double max_value);
+  Histogram(
+      const int number_of_bins,
+      const double min_value,
+      const double max_value);
 
-  explicit Histogram(const HistogramInput& input) :
-    Histogram(input.number_of_bins_, input.min_value_, input.max_value_) {}
+  explicit Histogram(const HistogramInput& input)
+      : Histogram(input.number_of_bins_, input.min_value_, input.max_value_) {}
 
   /**
    * Add a sample to the histogram
@@ -93,8 +93,9 @@ class Histogram {
    * @param search_value The value to search for
    * @return The index of the closest bin
    */
-  static int findClosestBin(const std::vector<double>& values,
-                            const double search_value);
+  static int findClosestBin(
+      const std::vector<double>& values,
+      const double search_value);
   /**
    * Simple linear interpolation
    *
@@ -105,9 +106,12 @@ class Histogram {
    * @param x_value The X value to interpolate
    * @return The interpolated Y value
    */
-  static double linearInterpolate(const double bottom_x, const double top_x,
-                                  const double bottom_y, const double top_y,
-                                  const double x_value);
+  static double linearInterpolate(
+      const double bottom_x,
+      const double top_x,
+      const double bottom_y,
+      const double top_y,
+      const double x_value);
   /**
    * Update the CDF of the sample histogram
    */
@@ -121,6 +125,6 @@ class Histogram {
   std::vector<double> cdf_values_;
 };
 
-}  // namespace treadmill
-}  // namespace windtunnel
-}  // namespace facebook
+} // namespace treadmill
+} // namespace windtunnel
+} // namespace facebook

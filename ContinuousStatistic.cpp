@@ -23,19 +23,17 @@ namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
-const std::map<double, const std::string> kQuantiles = {
-  { 0.01, "p01" },
-  { 0.05, "p05" },
-  { 0.10, "p10" },
-  { 0.15, "p15" },
-  { 0.20, "p20" },
-  { 0.50, "p50" },
-  { 0.80, "p80" },
-  { 0.85, "p85" },
-  { 0.90, "p90" },
-  { 0.95, "p95" },
-  { 0.99, "p99" }
-};
+const std::map<double, const std::string> kQuantiles = {{0.01, "p01"},
+                                                        {0.05, "p05"},
+                                                        {0.10, "p10"},
+                                                        {0.15, "p15"},
+                                                        {0.20, "p20"},
+                                                        {0.50, "p50"},
+                                                        {0.80, "p80"},
+                                                        {0.85, "p85"},
+                                                        {0.90, "p90"},
+                                                        {0.95, "p95"},
+                                                        {0.99, "p99"}};
 
 /**
  * Orchestrates synchronization of histogram inputs so all threads have
@@ -46,11 +44,10 @@ const std::map<double, const std::string> kQuantiles = {
  *
  */
 HistogramInput synchronizeGlobalHistogramRange(
-                    std::string name,
-                    const HistogramInput& proposed) {
+    std::string name,
+    const HistogramInput& proposed) {
   static std::mutex global_mutex;
-  static std::unordered_map<std::string, HistogramInput>
-            proto_histogram_inputs;
+  static std::unordered_map<std::string, HistogramInput> proto_histogram_inputs;
   std::lock_guard<std::mutex> lock(global_mutex);
 
   HistogramInput accepted = proposed;
@@ -80,9 +77,7 @@ void ContinuousStatistic::rebinHistogram(double target_max_value) {
     new_max_value = target_max_value;
   }
 
-  HistogramInput input(kNumberOfBins,
-                       min_value,
-                       new_max_value);
+  HistogramInput input(kNumberOfBins, min_value, new_max_value);
   std::unique_ptr<Histogram> new_histogram(new Histogram(input));
   new_histogram->insertSmallerHistogramSamples(this->histogram_);
 
@@ -97,18 +92,14 @@ void ContinuousStatistic::setHistogramBins() {
   double min_value = 0.0;
   double max_value = 1.0;
   if (!calibrationSamples_.empty()) {
-    min_value = *std::min_element(calibrationSamples_.begin(),
-                                  calibrationSamples_.end());
-    max_value = *std::max_element(calibrationSamples_.begin(),
-                                  calibrationSamples_.end());
+    min_value = *std::min_element(
+        calibrationSamples_.begin(), calibrationSamples_.end());
+    max_value = *std::max_element(
+        calibrationSamples_.begin(), calibrationSamples_.end());
   }
-  HistogramInput input(kNumberOfBins,
-                       min_value / 2.0,
-                       max_value * 2.0);
-  HistogramInput acceptedHistogram
-      = synchronizeGlobalHistogramRange(
-          this->getName(),
-          input);
+  HistogramInput input(kNumberOfBins, min_value / 2.0, max_value * 2.0);
+  HistogramInput acceptedHistogram =
+      synchronizeGlobalHistogramRange(this->getName(), input);
   histogram_.reset(new Histogram(acceptedHistogram));
 }
 
@@ -174,7 +165,7 @@ double ContinuousStatistic::getAverage() const {
   if (s0_ == 0) {
     return 0;
   }
-  return s1_ / (double) s0_;
+  return s1_ / (double)s0_;
 }
 
 double ContinuousStatistic::getStdDev() const {
@@ -185,7 +176,11 @@ double ContinuousStatistic::getStdDev() const {
 }
 
 double ContinuousStatistic::getCV() const {
-  return this->getStdDev() / this->getAverage();
+  // Avoid division by zero exception
+  if (this->getAverage() != 0) {
+    return this->getStdDev() / this->getAverage();
+  }
+  return -1.0;
 }
 
 /**
@@ -227,20 +222,18 @@ void ContinuousStatistic::printStatistic() const {
     return;
   }
   LOG(INFO) << "N Samples: " << s0_;
-  LOG(INFO) << "Average: " << this->getAverage()
-            << " +/- " << meanConfidence();
+  LOG(INFO) << "Average: " << this->getAverage() << " +/- " << meanConfidence();
   LOG(INFO) << "Std. Dev.: " << this->getStdDev();
   LOG(INFO) << "Cv.: " << this->getCV();
   LOG(INFO) << "Min: " << this->min_;
   LOG(INFO) << "Max: " << this->max_;
   for (auto p : kQuantiles) {
-    LOG(INFO) << p.second << " Percentile: "
-              << this->histogram_->getQuantile(p.first);
-  //            << " +/- " << quantileConfidence(p.first);
+    LOG(INFO) << p.second
+              << " Percentile: " << this->histogram_->getQuantile(p.first);
+    //            << " +/- " << quantileConfidence(p.first);
   }
   LOG(INFO) << "Min Bin " << histogram_->getMinBin();
   LOG(INFO) << "Max Bin " << histogram_->getMaxBin();
-
 }
 
 folly::dynamic ContinuousStatistic::toDynamic() const {
@@ -257,8 +250,8 @@ folly::dynamic ContinuousStatistic::toDynamic() const {
   return map;
 }
 
-std::unordered_map<std::string, int64_t>
-    ContinuousStatistic::getCounters() const {
+std::unordered_map<std::string, int64_t> ContinuousStatistic::getCounters()
+    const {
   std::unordered_map<std::string, int64_t> m;
   m[name_ + ".count"] = s0_;
   m[name_ + ".avg"] = getAverage();
@@ -269,12 +262,11 @@ std::unordered_map<std::string, int64_t>
     }
   }
   return m;
-
 }
 
 void ContinuousStatistic::combine(const Statistic& stat0) {
   const ContinuousStatistic& stat =
-    dynamic_cast<const ContinuousStatistic&>(stat0);
+      dynamic_cast<const ContinuousStatistic&>(stat0);
 
   // Leveraging this:
   // http://en.wikipedia.org/wiki/
@@ -286,10 +278,11 @@ void ContinuousStatistic::combine(const Statistic& stat0) {
     } else if (stat.s0_ <= 0.0) {
       // no-op
     } else {
-    double delta = (stat.a_ - a_);
-    double mean = a_ + delta * (stat.s0_ / (s0_ + stat.s0_));
-    this->a_ = mean;
-    this->q_ = q_ + stat.q_ + delta * delta * s0_ * stat.s0_ / (s0_ * stat.s0_);
+      double delta = (stat.a_ - a_);
+      double mean = a_ + delta * (stat.s0_ / (s0_ + stat.s0_));
+      this->a_ = mean;
+      this->q_ =
+          q_ + stat.q_ + delta * delta * s0_ * stat.s0_ / (s0_ * stat.s0_);
     }
   }
 
@@ -297,15 +290,16 @@ void ContinuousStatistic::combine(const Statistic& stat0) {
   this->s1_ += stat.s1_;
   this->s2_ += stat.s2_;
 
-  this->min_ = (this->minSet_ == true ? std::min(this->min_, stat.min_) :
-                                        stat.min_);
-  this->max_ = (this->maxSet_ == true ? std::max(this->max_, stat.max_) :
-                                        stat.max_);
+  this->min_ =
+      (this->minSet_ == true ? std::min(this->min_, stat.min_) : stat.min_);
+  this->max_ =
+      (this->maxSet_ == true ? std::max(this->max_, stat.max_) : stat.max_);
   if (stat.histogram_ == nullptr) {
     return;
   }
 
-  // Rebin histogram to make sure all the exceptional values are in the histogram
+  // Rebin histogram to make sure all the exceptional values are in the
+  // histogram
   std::unique_ptr<ContinuousStatistic> stat_to_combine(
       new ContinuousStatistic(stat));
   if (stat_to_combine->exceptional_index_ != 0) {
@@ -316,8 +310,9 @@ void ContinuousStatistic::combine(const Statistic& stat0) {
     this->histogram_.reset(new Histogram(*stat_to_combine->histogram_));
   } else {
     // Use the larger max_value for the combined histogram
-    double new_max_value = std::max(this->histogram_->getMaxBin(),
-                                    stat_to_combine->histogram_->getMaxBin());
+    double new_max_value = std::max(
+        this->histogram_->getMaxBin(),
+        stat_to_combine->histogram_->getMaxBin());
     if (this->histogram_->getMaxBin() != new_max_value) {
       this->rebinHistogram(new_max_value);
     }
@@ -328,6 +323,6 @@ void ContinuousStatistic::combine(const Statistic& stat0) {
   }
 }
 
-}  // namespace treadmill
-}  // namespace windtunnel
-}  // namespace facebook
+} // namespace treadmill
+} // namespace windtunnel
+} // namespace facebook
