@@ -14,6 +14,7 @@
 
 #include <memory>
 
+#include <folly/Conv.h>
 #include <folly/Singleton.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include "common/services/cpp/TLSConfig.h"
@@ -33,7 +34,8 @@ TreadmillFB303::TreadmillFB303(Scheduler& scheduler)
     : FacebookBase2("Treadmill"),
       status_(fb_status::STARTING),
       aliveSince_(time(nullptr)),
-      scheduler_(scheduler) {}
+      scheduler_(scheduler),
+      configuration_(std::make_unique<std::map<std::string, std::string>>()) {}
 
 TreadmillFB303::~TreadmillFB303() {}
 
@@ -63,6 +65,7 @@ void TreadmillFB303::getCounters(std::map<std::string, int64_t>& _return) {
 bool TreadmillFB303::pause() {
   LOG(INFO) << "TreadmillHandler::pause";
   scheduler_.pause();
+  configuration_->clear();
   return true;
 }
 
@@ -101,6 +104,50 @@ folly::Future<std::unique_ptr< ::treadmill::RateResponse>> TreadmillFB303::futur
   response->set_rps(scheduler_.getRps());
   response->set_max_outstanding(scheduler_.getMaxOutstandingRequests());
   return folly::makeFuture(std::move(response));
+}
+
+folly::Future<std::unique_ptr<std::string>>
+    TreadmillFB303::future_getConfiguration(
+        std::unique_ptr<std::string> key) {
+  LOG(INFO) << "TreadmillHandler::getConfiguration: " << *key;
+
+  if (configuration_->count(*key) > 0) {
+    auto value = std::make_unique<std::string>(configuration_->at(*key));
+    LOG(INFO) << "returning " << *key << " = " << *value;
+    return folly::makeFuture(std::move(value));
+  }
+  auto value = std::make_unique<std::string>();
+  return folly::makeFuture(std::move(value));
+}
+
+void TreadmillFB303::setConfiguration(std::unique_ptr<std::string> key,
+    std::unique_ptr<std::string> value) {
+  LOG(INFO) << "TreadmillHandler::setConfiguration: " << *key << " = " <<
+      *value;
+  configuration_->emplace(*key, *value);
+}
+
+uint32_t TreadmillFB303::getConfigurationValue(const std::string &key,
+    uint32_t defaultValue) {
+  if (configuration_->count(key) > 0) {
+    auto value = std::make_unique<std::string>(configuration_->at(key));
+    if (auto result = folly::tryTo<uint32_t>(*value)) {
+        return result.value();
+    }
+    LOG(WARNING) << "failed to convert value [" << *value << "]";
+    // fall through
+  }
+  return defaultValue;
+}
+
+std::unique_ptr<std::string> TreadmillFB303::getConfigurationValue(
+    const std::string &key, const std::string &defaultValue) {
+  if (configuration_->count(key) > 0) {
+    return std::make_unique<std::string>(configuration_->at(key));
+  }
+  else {
+    return std::make_unique<std::string>(defaultValue);
+  }
 }
 
 namespace {

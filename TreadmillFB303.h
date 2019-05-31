@@ -45,6 +45,14 @@ class TreadmillFB303 : public facebook::fb303::FacebookBase2,
   void setMaxOutstanding(int32_t max_outstanding) override;
   folly::Future<std::unique_ptr<::treadmill::RateResponse>> future_getRate() override;
 
+  folly::Future<std::unique_ptr<std::string>> future_getConfiguration(
+      std::unique_ptr<std::string> key) override;
+  void setConfiguration(std::unique_ptr<std::string> key,
+      std::unique_ptr<std::string> value) override;
+  uint32_t getConfigurationValue(const std::string &key, uint32_t defaultValue);
+  std::unique_ptr<std::string> getConfigurationValue(const std::string &key,
+      const std::string &defaultValue);
+
   static void make_fb303(
       std::shared_ptr<std::thread>& server_thread,
       int server_port,
@@ -55,6 +63,7 @@ class TreadmillFB303 : public facebook::fb303::FacebookBase2,
   const int64_t aliveSince_;
   folly::SharedMutex mutex_;
   Scheduler& scheduler_;
+  std::unique_ptr<std::map<std::string, std::string>> configuration_;
 };
 
 extern std::shared_ptr<TreadmillFB303> getGlobalTreadmillFB303();

@@ -51,4 +51,7 @@ service TreadmillService extends fb303.FacebookService {
     1: i32 max_outstanding
   );
   RateResponse getRate();
+
+  string getConfiguration(1: string key);
+  void setConfiguration(1: string key, 2: string value);
 }
