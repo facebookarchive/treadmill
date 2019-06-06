@@ -14,7 +14,7 @@
 #include <thread>
 #include <vector>
 
-#include <folly/futures/helpers.h>
+#include <folly/futures/Future.h>
 #include <folly/json.h>
 #include <folly/String.h>
 #include <gflags/gflags.h>
