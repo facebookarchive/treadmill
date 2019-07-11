@@ -50,7 +50,7 @@ fb_status TreadmillFB303::getStatus() {
 }
 
 void TreadmillFB303::getStatusDetails(std::string& _return) {
-  _return = fb303::cpp2::_fb_status_VALUES_TO_NAMES.at(getStatus());
+  _return = fb303::cpp2::_fb303_status_VALUES_TO_NAMES.at(getStatus());
 }
 
 int64_t TreadmillFB303::aliveSince() {
