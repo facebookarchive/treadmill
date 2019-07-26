@@ -25,6 +25,10 @@ DEFINE_string(hostname,
               "localhost",
               "The host to load test.");
 
+DEFINE_bool(wait_for_target_ready,
+            false,
+            "If true, wait until the target is ready.");
+
 DEFINE_string(counter_name,
               "",
               "Counter to compare against threshold (e.g, foo.bar.count).");
