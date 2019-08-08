@@ -1,6 +1,6 @@
 ## Treadmill [![Build Status](https://travis-ci.org/facebook/treadmill.svg?branch=master)](https://travis-ci.org/facebook/treadmill)
 
-Treadmill is an open-source modular load testing platform for characeterizing
+Treadmill is an open-source modular load testing platform for characterizing
 server-side applications (_e.g._, [Memcached](http://memcached.org/),
 [Mcrouter](https://github.com/facebook/mcrouter), and
 [FBThrift](https://github.com/facebook/fbthrift).
