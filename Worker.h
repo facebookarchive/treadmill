@@ -20,16 +20,16 @@
 #include <folly/Memory.h>
 #include <folly/MoveWrapper.h>
 #include <folly/String.h>
-#include <folly/system/ThreadName.h>
 #include <folly/futures/Future.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/NotificationQueue.h>
+#include <folly/system/ThreadName.h>
 
 #include "treadmill/Connection.h"
+#include "treadmill/Event.h"
 #include "treadmill/StatisticsManager.h"
 #include "treadmill/Util.h"
 #include "treadmill/Workload.h"
-#include "treadmill/Event.h"
 
 DECLARE_bool(wait_for_target_ready);
 DECLARE_string(counter_name);
@@ -40,30 +40,31 @@ namespace windtunnel {
 namespace treadmill {
 
 constexpr folly::StringPiece kOutstandingRequestsCounter =
-  "outstanding_requests";
+    "outstanding_requests";
 
 template <class Service>
 class Worker : private folly::NotificationQueue<Event>::Consumer {
  public:
-  Worker(int worker_id,
-         folly::NotificationQueue<Event>& queue,
-         int number_of_workers,
-         int number_of_connections,
-         int max_outstanding_requests,
-         const folly::dynamic& config,
-         int cpu_affinity,
-         std::function<void()> terminate_early_fn) :
-      worker_id_(worker_id),
-      number_of_workers_(number_of_workers),
-      number_of_connections_(number_of_connections),
-      max_outstanding_requests_(max_outstanding_requests),
-      workload_(config),
-      cpu_affinity_(cpu_affinity),
-      queue_(queue),
-      terminate_early_fn_(terminate_early_fn) {
+  Worker(
+      int worker_id,
+      folly::NotificationQueue<Event>& queue,
+      int number_of_workers,
+      int number_of_connections,
+      int max_outstanding_requests,
+      const folly::dynamic& config,
+      int cpu_affinity,
+      std::function<void()> terminate_early_fn)
+      : worker_id_(worker_id),
+        number_of_workers_(number_of_workers),
+        number_of_connections_(number_of_connections),
+        max_outstanding_requests_(max_outstanding_requests),
+        workload_(config),
+        cpu_affinity_(cpu_affinity),
+        queue_(queue),
+        terminate_early_fn_(terminate_early_fn) {
     for (int i = 0; i < number_of_connections_; i++) {
       connections_.push_back(
-                    std::make_unique<Connection<Service>>(event_base_));
+          std::make_unique<Connection<Service>>(event_base_));
     }
 
     setWorkerCounter(kOutstandingRequestsCounter, 0);
@@ -72,12 +73,12 @@ class Worker : private folly::NotificationQueue<Event>::Consumer {
   ~Worker() override {}
 
   void run() {
-    //If countername is specified then make sure wait_for_target was also true
-    if (!FLAGS_counter_name.empty() && (!FLAGS_wait_for_target_ready ||
-        FLAGS_counter_threshold<0)) {
+    // If countername is specified then make sure wait_for_target was also true
+    if (!FLAGS_counter_name.empty() &&
+        (!FLAGS_wait_for_target_ready || FLAGS_counter_threshold < 0)) {
       LOG(FATAL) << "--counter_name " << FLAGS_counter_name
-        << " specified without --wait_for_target_ready"
-        << " or valid --counter_threshold value";
+                 << " specified without --wait_for_target_ready"
+                 << " or valid --counter_threshold value";
     }
 
     if (FLAGS_wait_for_target_ready) {
@@ -91,15 +92,13 @@ class Worker : private folly::NotificationQueue<Event>::Consumer {
     }
 
     running_.store(true, std::memory_order_relaxed);
-    sender_thread_ = std::make_unique<std::thread>(
-      [this] { this->senderLoop(); });
+    sender_thread_ =
+        std::make_unique<std::thread>([this] { this->senderLoop(); });
   }
 
   void stop() {
     running_.store(false);
-    auto stopper = [this] () {
-      event_base_.terminateLoopSoon();
-    };
+    auto stopper = [this]() { event_base_.terminateLoopSoon(); };
     event_base_.runInEventBaseThread(stopper);
     LOG(INFO) << "Worker " << worker_id_ << " terminating";
   }
@@ -114,7 +113,7 @@ class Worker : private folly::NotificationQueue<Event>::Consumer {
 
   folly::dynamic makeConfigOutputs(std::vector<Worker*> worker_refs) {
     std::vector<Workload<Service>*> workload_refs;
-    for (auto worker: worker_refs) {
+    for (auto worker : worker_refs) {
       workload_refs.push_back(&(worker->workload_));
     }
     return workload_.makeConfigOutputs(workload_refs);
@@ -122,11 +121,7 @@ class Worker : private folly::NotificationQueue<Event>::Consumer {
 
  private:
   void setWorkerCounter(folly::StringPiece key, int64_t value) {
-    std::string fullKey = folly::sformat(
-      "worker.{}.{}",
-      worker_id_,
-      key
-    );
+    std::string fullKey = folly::sformat("worker.{}.{}", worker_id_, key);
 
     auto sd = facebook::stats::ServiceData::get();
     sd->setCounter(fullKey, value);
@@ -150,16 +145,16 @@ class Worker : private folly::NotificationQueue<Event>::Consumer {
         LOG(ERROR) << "Failed to set CPU affinity";
       }
     }
-    throughput_statistic_ = &StatisticsManager::get()
-      .getContinuousStat(THROUGHPUT);
-    outstanding_statistic_ = &StatisticsManager::get()
-      .getContinuousStat(OUTSTANDING_REQUESTS);
-    latency_statistic_ = &StatisticsManager::get()
-      .getContinuousStat(REQUEST_LATENCY);
-    exceptions_statistic_ = &StatisticsManager::get()
-      .getCounterStat(EXCEPTIONS);
-    uncaught_exceptions_statistic_ = &StatisticsManager::get()
-      .getCounterStat(UNCAUGHT_EXCEPTIONS);
+    throughput_statistic_ =
+        &StatisticsManager::get().getContinuousStat(THROUGHPUT);
+    outstanding_statistic_ =
+        &StatisticsManager::get().getContinuousStat(OUTSTANDING_REQUESTS);
+    latency_statistic_ =
+        &StatisticsManager::get().getContinuousStat(REQUEST_LATENCY);
+    exceptions_statistic_ =
+        &StatisticsManager::get().getCounterStat(EXCEPTIONS);
+    uncaught_exceptions_statistic_ =
+        &StatisticsManager::get().getCounterStat(UNCAUGHT_EXCEPTIONS);
     last_throughput_time_ = nowNs();
 
     startConsuming(&event_base_, &queue_);
@@ -203,10 +198,7 @@ class Worker : private folly::NotificationQueue<Event>::Consumer {
   }
 
   void sendRequest() {
-    if (
-           outstanding_requests_ < max_outstanding_requests_ &&
-           running_) {
-
+    if (outstanding_requests_ < max_outstanding_requests_ && running_) {
       auto request_tuple = workload_.getNextRequest();
       if (std::get<0>(request_tuple) == nullptr) {
         LOG(INFO) << "terminating";
@@ -226,7 +218,12 @@ class Worker : private folly::NotificationQueue<Event>::Consumer {
               .thenTry([send_time, this, pw](
                            folly::Try<typename Service::Reply>&& t) mutable {
                 auto recv_time = nowNs();
-                latency_statistic_->addSample((recv_time - send_time) / 1000.0);
+                if (running_) {
+                  // If the worker is not in running state, latency stat have
+                  // already been released
+                  latency_statistic_->addSample(
+                      (recv_time - send_time) / 1000.0);
+                }
                 n_throughput_requests_++;
                 if (t.hasException()) {
                   n_exceptions_by_type_
@@ -252,10 +249,10 @@ class Worker : private folly::NotificationQueue<Event>::Consumer {
 
     // Estimate throughput and outstanding requests
     auto t = nowNs();
-    double throughput_delta = double(t - last_throughput_time_)/k_ns_per_s;
+    double throughput_delta = double(t - last_throughput_time_) / k_ns_per_s;
     if (throughput_delta >= 0.1) {
-      double throughput = n_throughput_requests_ / throughput_delta *
-                          number_of_workers_;
+      double throughput =
+          n_throughput_requests_ / throughput_delta * number_of_workers_;
       throughput_statistic_->addSample(throughput);
       n_throughput_requests_ = 0;
       last_throughput_time_ = t;
@@ -302,6 +299,6 @@ class Worker : private folly::NotificationQueue<Event>::Consumer {
   std::function<void()> terminate_early_fn_;
 };
 
-}  // namespace treadmill
-}  // namespace windtunnel
-}  // namespace facebook
+} // namespace treadmill
+} // namespace windtunnel
+} // namespace facebook
