@@ -19,6 +19,10 @@
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include "common/services/cpp/TLSConfig.h"
 
+DEFINE_bool(require_configuration_on_resume,
+            false,
+            "If true, 'resume' only when configuration is available");
+
 using fb_status = facebook::fb303::cpp2::fb_status;
 using ::treadmill::RateResponse;
 using ::treadmill::ResumeRequest;
@@ -65,12 +69,15 @@ void TreadmillFB303::getCounters(std::map<std::string, int64_t>& _return) {
 bool TreadmillFB303::pause() {
   LOG(INFO) << "TreadmillHandler::pause";
   scheduler_.pause();
-  configuration_->clear();
   return true;
 }
 
 bool TreadmillFB303::resume() {
   LOG(INFO) << "TreadmillHandler::resume";
+  if (FLAGS_require_configuration_on_resume && configuration_->empty()) {
+    LOG(WARNING) << "refusing resume without configuration";
+    return false;
+  }
   return scheduler_.resume();
 }
 
@@ -148,6 +155,15 @@ std::unique_ptr<std::string> TreadmillFB303::getConfigurationValue(
   else {
     return std::make_unique<std::string>(defaultValue);
   }
+}
+
+void TreadmillFB303::clearConfiguration() {
+  LOG(INFO) << "TreadmillHandler::clearConfiguration";
+  configuration_->clear();
+}
+
+bool TreadmillFB303::configurationEmpty() const {
+  return configuration_->empty();
 }
 
 namespace {

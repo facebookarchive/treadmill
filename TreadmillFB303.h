@@ -52,6 +52,8 @@ class TreadmillFB303 : public facebook::fb303::FacebookBase2,
   uint32_t getConfigurationValue(const std::string &key, uint32_t defaultValue);
   std::unique_ptr<std::string> getConfigurationValue(const std::string &key,
       const std::string &defaultValue);
+  void clearConfiguration() override;
+  bool configurationEmpty() const;
 
   static void make_fb303(
       std::shared_ptr<std::thread>& server_thread,

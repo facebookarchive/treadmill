@@ -54,4 +54,5 @@ service TreadmillService extends fb303.FacebookService {
 
   string getConfiguration(1: string key);
   void setConfiguration(1: string key, 2: string value);
+  void clearConfiguration();
 }
