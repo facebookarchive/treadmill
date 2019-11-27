@@ -189,10 +189,10 @@ int run(int /*argc*/, char* /*argv*/ []) {
   }
 
   // Start the test and wait for it to finish.
-  std::vector<folly::Future<folly::Unit>> futs;
+  std::vector<folly::SemiFuture<folly::Unit>> futs;
   futs.push_back(scheduler.run());
-  futs.push_back(folly::futures::sleepUnsafe(std::chrono::seconds(FLAGS_runtime)));
-  folly::collectAny(futs).wait();
+  futs.push_back(folly::futures::sleep(std::chrono::seconds(FLAGS_runtime)));
+  folly::collectAnySemiFuture(futs).wait();
 
   LOG(INFO) << "Stopping and joining scheduler thread";
   scheduler.stop();
