@@ -55,6 +55,9 @@ class TreadmillFB303 : public facebook::fb303::FacebookBase2,
   void clearConfiguration() override;
   bool configurationEmpty() const;
 
+  void watchdogUpdate();
+  bool watchdogTimeoutCheck(bool raise=true);
+
   static void make_fb303(
       std::shared_ptr<std::thread>& server_thread,
       int server_port,
@@ -66,6 +69,8 @@ class TreadmillFB303 : public facebook::fb303::FacebookBase2,
   folly::SharedMutex mutex_;
   Scheduler& scheduler_;
   std::unique_ptr<std::map<std::string, std::string>> configuration_;
+  uint32_t watchdogDurationSec_;
+  time_t lastHeartbeat_;
 };
 
 extern std::shared_ptr<TreadmillFB303> getGlobalTreadmillFB303();

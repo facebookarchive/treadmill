@@ -18,10 +18,14 @@
 #include <folly/Singleton.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include "common/services/cpp/TLSConfig.h"
+#include "common/time/ClockGettimeNS.h"
 
 DEFINE_bool(require_configuration_on_resume,
             false,
             "If true, 'resume' only when configuration is available");
+DEFINE_bool(enable_watchdog_timer,
+            false,
+            "If true, a watchdog timer will be maintained during a run.");
 
 using fb_status = facebook::fb303::cpp2::fb_status;
 using ::treadmill::RateResponse;
@@ -39,7 +43,9 @@ TreadmillFB303::TreadmillFB303(Scheduler& scheduler)
       status_(fb_status::STARTING),
       aliveSince_(time(nullptr)),
       scheduler_(scheduler),
-      configuration_(std::make_unique<std::map<std::string, std::string>>()) {}
+      configuration_(std::make_unique<std::map<std::string, std::string>>()),
+      watchdogDurationSec_(0),
+      lastHeartbeat_(0) {}
 
 TreadmillFB303::~TreadmillFB303() {}
 
@@ -69,11 +75,13 @@ void TreadmillFB303::getCounters(std::map<std::string, int64_t>& _return) {
 bool TreadmillFB303::pause() {
   LOG(INFO) << "TreadmillHandler::pause";
   scheduler_.pause();
+  watchdogDurationSec_ = 0;
   return true;
 }
 
 bool TreadmillFB303::resume() {
   LOG(INFO) << "TreadmillHandler::resume";
+  watchdogUpdate();
   if (FLAGS_require_configuration_on_resume && configuration_->empty()) {
     LOG(WARNING) << "refusing resume without configuration";
     return false;
@@ -86,6 +94,7 @@ folly::Future<std::unique_ptr<ResumeResponse>> TreadmillFB303::future_resume2(
   // Get the phase name being super paranoid.
   auto phaseName = req != nullptr ? req->get_phaseName() : "UNKNOWN_PHASE";
   LOG(INFO) << "TreadmillHandler::resume2 with phase " << phaseName;
+  watchdogUpdate();
   scheduler_.setPhase(phaseName);
   auto resp = std::make_unique<ResumeResponse>();
   auto running = scheduler_.resume();
@@ -97,11 +106,13 @@ folly::Future<std::unique_ptr<ResumeResponse>> TreadmillFB303::future_resume2(
 
 void TreadmillFB303::setRps(int32_t rps) {
   LOG(INFO) << "TreadmillHandler::setRps to " << rps;
+  watchdogUpdate();
   scheduler_.setRps(rps);
 }
 
 void TreadmillFB303::setMaxOutstanding(int32_t max_outstanding) {
   LOG(INFO) << "TreadmillHandler::setMaxOutstanding to " << max_outstanding;
+  watchdogUpdate();
   scheduler_.setMaxOutstandingRequests(max_outstanding);
 }
 
@@ -117,6 +128,7 @@ folly::Future<std::unique_ptr<std::string>>
     TreadmillFB303::future_getConfiguration(
         std::unique_ptr<std::string> key) {
   LOG(INFO) << "TreadmillHandler::getConfiguration: " << *key;
+  watchdogUpdate();
 
   if (configuration_->count(*key) > 0) {
     auto value = std::make_unique<std::string>(configuration_->at(*key));
@@ -131,7 +143,18 @@ void TreadmillFB303::setConfiguration(std::unique_ptr<std::string> key,
     std::unique_ptr<std::string> value) {
   LOG(INFO) << "TreadmillHandler::setConfiguration: " << *key << " = " <<
       *value;
+  watchdogUpdate();
+
   configuration_->emplace(*key, *value);
+  if (FLAGS_enable_watchdog_timer && *key == "watchdog_sec") {
+      LOG(INFO) << "TreadmillHandler::watchdog timer value (secs) = " << *value;
+      if (auto result = folly::tryTo<uint32_t>(*value)) {
+        watchdogDurationSec_ = result.value();
+      }
+      else {
+        watchdogDurationSec_ = 0; // disabled
+      }
+  }
 }
 
 uint32_t TreadmillFB303::getConfigurationValue(const std::string &key,
@@ -159,11 +182,32 @@ std::unique_ptr<std::string> TreadmillFB303::getConfigurationValue(
 
 void TreadmillFB303::clearConfiguration() {
   LOG(INFO) << "TreadmillHandler::clearConfiguration";
+  watchdogUpdate();
   configuration_->clear();
 }
 
 bool TreadmillFB303::configurationEmpty() const {
   return configuration_->empty();
+}
+
+void TreadmillFB303::watchdogUpdate() {
+  if (FLAGS_enable_watchdog_timer && watchdogDurationSec_ > 0) {
+    lastHeartbeat_ = fb_time_seconds();
+  }
+}
+
+bool TreadmillFB303::watchdogTimeoutCheck(bool raise) {
+  if (FLAGS_enable_watchdog_timer && watchdogDurationSec_ > 0) {
+    time_t now = fb_time_seconds();
+    if (now - watchdogDurationSec_ > lastHeartbeat_) {
+      LOG(WARNING) << "watchdog timeout: no contact since " << lastHeartbeat_;
+      if (raise) {
+        abort();
+      }
+      return true;
+    }
+  }
+  return false;
 }
 
 namespace {
