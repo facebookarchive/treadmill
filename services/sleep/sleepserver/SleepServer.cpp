@@ -16,7 +16,6 @@
 #include "treadmill/services/sleep/sleepserver/SleepHandler.h"
 
 using namespace apache::thrift;
-using namespace apache::thrift::async;
 
 using namespace facebook::windtunnel::treadmill::services::sleep;
 
