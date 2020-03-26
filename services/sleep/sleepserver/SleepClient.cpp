@@ -11,12 +11,11 @@
 #include <gflags/gflags.h>
 
 #include "treadmill/services/sleep/gen-cpp2/Sleep.h"
-#include <thrift/lib/cpp/async/TAsyncSocket.h>
+#include <folly/io/async/AsyncSocket.h>
 #include <thrift/lib/cpp2/async/HeaderClientChannel.h>
 
 using namespace folly;
 using namespace apache::thrift;
-using namespace apache::thrift::async;
 using namespace facebook::windtunnel::treadmill::services::sleep;
 
 DEFINE_int32(port,
@@ -37,8 +36,8 @@ int main(int argc, char* argv[]) {
 
   EventBase event_base;
 
-  std::shared_ptr<TAsyncSocket> socket(
-      TAsyncSocket::newSocket(&event_base, FLAGS_hostname, FLAGS_port));
+  std::shared_ptr<AsyncSocket> socket(
+      AsyncSocket::newSocket(&event_base, FLAGS_hostname, FLAGS_port));
 
   SleepAsyncClient client(HeaderClientChannel::newChannel(socket));
 

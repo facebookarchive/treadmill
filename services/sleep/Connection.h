@@ -18,7 +18,7 @@
 #include "treadmill/StatisticsManager.h"
 
 #include "treadmill/services/sleep/gen-cpp2/Sleep.h"
-#include <thrift/lib/cpp/async/TAsyncSocket.h>
+#include <folly/io/async/AsyncSocket.h>
 #include <thrift/lib/cpp2/async/HeaderClientChannel.h>
 
 DECLARE_string(hostname);
@@ -33,8 +33,8 @@ class Connection<SleepService> {
  public:
   Connection<SleepService>(folly::EventBase& event_base) {
     std::string host = nsLookUp(FLAGS_hostname);
-    std::shared_ptr<apache::thrift::async::TAsyncSocket> socket(
-        apache::thrift::async::TAsyncSocket::newSocket(&event_base,
+    std::shared_ptr<folly::AsyncSocket> socket(
+        folly::AsyncSocket::newSocket(&event_base,
                                                        host,
                                                        FLAGS_port));
     std::unique_ptr<
