@@ -20,5 +20,5 @@ int main(int argc, char* argv[]) {
   facebook::windtunnel::treadmill::init(argc, argv);
   // Start treadmill
   return facebook::windtunnel::treadmill::run<
-    facebook::windtunnel::treadmill::SleepService>(argc, argv);
+      facebook::windtunnel::treadmill::SleepService>(argc, argv);
 }

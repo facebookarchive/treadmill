@@ -22,8 +22,7 @@ namespace treadmill {
 
 class SleepReply {
  public:
-  explicit SleepReply(int64_t sleep_time)
-    : sleep_time_(sleep_time) { }
+  explicit SleepReply(int64_t sleep_time) : sleep_time_(sleep_time) {}
 
   int64_t sleep_time() {
     return sleep_time_;
@@ -35,15 +34,12 @@ class SleepReply {
 
 class SleepRequest : public Request {
  public:
-  enum Operation {
-    SLEEP
-  };
+  enum Operation { SLEEP };
 
   SleepRequest(Operation type, int64_t sleep_time)
-    : type_(type),
-      sleep_time_(sleep_time) { }
+      : type_(type), sleep_time_(sleep_time) {}
 
-  virtual ~SleepRequest() { }
+  virtual ~SleepRequest() {}
 
   Operation which() {
     return type_;

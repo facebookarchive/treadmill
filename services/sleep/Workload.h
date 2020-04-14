@@ -22,20 +22,20 @@ namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
-template<>
+template <>
 class Workload<SleepService> : public WorkloadBase<Workload<SleepService>> {
  public:
   Workload<SleepService>(folly::dynamic /*config*/) {}
 
   void reset() {}
 
-  std::tuple<std::unique_ptr<SleepService::Request>,
-             folly::Promise<SleepService::Reply>,
-             folly::Future<SleepService::Reply>>
+  std::tuple<
+      std::unique_ptr<SleepService::Request>,
+      folly::Promise<SleepService::Reply>,
+      folly::Future<SleepService::Reply>>
   getNextRequest() {
-    std::unique_ptr<SleepService::Request> request
-      = std::make_unique<SleepRequest>(SleepRequest::SLEEP,
-                                         FLAGS_sleep_time);
+    std::unique_ptr<SleepService::Request> request =
+        std::make_unique<SleepRequest>(SleepRequest::SLEEP, FLAGS_sleep_time);
     folly::Promise<SleepService::Reply> p;
     auto f = p.getFuture();
     return std::make_tuple(std::move(request), std::move(p), std::move(f));

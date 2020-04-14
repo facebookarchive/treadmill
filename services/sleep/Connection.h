@@ -14,12 +14,12 @@
 #include "treadmill/services/sleep/SleepService.h"
 
 #include "treadmill/Connection.h"
-#include "treadmill/Util.h"
 #include "treadmill/StatisticsManager.h"
+#include "treadmill/Util.h"
 
-#include "treadmill/services/sleep/gen-cpp2/Sleep.h"
 #include <folly/io/async/AsyncSocket.h>
 #include <thrift/lib/cpp2/async/HeaderClientChannel.h>
+#include "treadmill/services/sleep/gen-cpp2/Sleep.h"
 
 DECLARE_string(hostname);
 DECLARE_int32(port);
@@ -28,28 +28,28 @@ namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
-template<>
+template <>
 class Connection<SleepService> {
  public:
   Connection<SleepService>(folly::EventBase& event_base) {
     std::string host = nsLookUp(FLAGS_hostname);
     std::shared_ptr<folly::AsyncSocket> socket(
-        folly::AsyncSocket::newSocket(&event_base,
-                                                       host,
-                                                       FLAGS_port));
+        folly::AsyncSocket::newSocket(&event_base, host, FLAGS_port));
     std::unique_ptr<
-      apache::thrift::HeaderClientChannel,
-      folly::DelayedDestruction::Destructor> channel(
-          new apache::thrift::HeaderClientChannel(socket));
+        apache::thrift::HeaderClientChannel,
+        folly::DelayedDestruction::Destructor>
+        channel(new apache::thrift::HeaderClientChannel(socket));
 
-    client_ = std::make_unique<services::sleep::SleepAsyncClient>(
-                std::move(channel));
+    client_ =
+        std::make_unique<services::sleep::SleepAsyncClient>(std::move(channel));
   }
 
-  bool isReady() const { return true; }
+  bool isReady() const {
+    return true;
+  }
 
-  folly::Future<SleepService::Reply>
-  sendRequest(std::unique_ptr<typename SleepService::Request> request) {
+  folly::Future<SleepService::Reply> sendRequest(
+      std::unique_ptr<typename SleepService::Request> request) {
     auto f = client_->future_goSleep(request->sleep_time())
                  .thenTry([](folly::Try<int64_t>&& t) mutable {
                    StatisticsManager::get()

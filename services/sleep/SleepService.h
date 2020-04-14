@@ -12,9 +12,10 @@
 
 #include "treadmill/services/sleep/Request.h"
 
-DEFINE_int64(sleep_time,
-             1000,
-             "Requested microseconds to sleep for (default:1000)");
+DEFINE_int64(
+    sleep_time,
+    1000,
+    "Requested microseconds to sleep for (default:1000)");
 
 namespace facebook {
 namespace windtunnel {
