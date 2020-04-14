@@ -31,7 +31,8 @@ namespace treadmill {
 template <>
 class Connection<SleepService> {
  public:
-  Connection<SleepService>(folly::EventBase& event_base) {
+  Connection<SleepService>(folly::EventBase& event_base)
+      : histo_(StatisticsManager::get()->getContinuousStat("SleepTime")) {
     std::string host = nsLookUp(FLAGS_hostname);
     std::shared_ptr<folly::AsyncSocket> socket(
         folly::AsyncSocket::newSocket(&event_base, host, FLAGS_port));
@@ -51,16 +52,15 @@ class Connection<SleepService> {
   folly::Future<SleepService::Reply> sendRequest(
       std::unique_ptr<typename SleepService::Request> request) {
     auto f = client_->future_goSleep(request->sleep_time())
-                 .thenTry([](folly::Try<int64_t>&& t) mutable {
-                   StatisticsManager::get()
-                       .getContinuousStat("SleepTime")
-                       .addSample(t.value());
+                 .thenTry([histo = histo_](folly::Try<int64_t>&& t) mutable {
+                   histo->addValue(t.value());
                    return SleepReply(t.value());
                  });
     return f;
   }
 
  private:
+  std::shared_ptr<StatisticsManager::Histogram> histo_;
   std::unique_ptr<services::sleep::SleepAsyncClient> client_;
 };
 

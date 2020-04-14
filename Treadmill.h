@@ -14,9 +14,9 @@
 #include <thread>
 #include <vector>
 
+#include <folly/String.h>
 #include <folly/futures/Future.h>
 #include <folly/json.h>
-#include <folly/String.h>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 
@@ -25,10 +25,10 @@
 #include "treadmill/TreadmillFB303.h"
 #include "treadmill/Worker.h"
 
-#include "treadmill/if/gen-cpp2/TreadmillService.h"
 #include "common/fb303/cpp/FacebookBase2.h"
 #include "common/services/cpp/ServiceFramework.h"
 #include "thrift/lib/cpp2/server/ThriftServer.h"
+#include "treadmill/if/gen-cpp2/TreadmillService.h"
 
 // The path to the workload configuration file
 DECLARE_string(config_file);
@@ -109,9 +109,9 @@ namespace treadmill {
 template <typename Service>
 int run(int /*argc*/, char* /*argv*/ []) {
   std::vector<std::unique_ptr<Worker<Service>>> workers;
-  double rps = FLAGS_request_per_second / (double) FLAGS_number_of_workers;
+  double rps = FLAGS_request_per_second / (double)FLAGS_number_of_workers;
   int max_outstanding_requests_per_worker =
-    FLAGS_max_outstanding_requests / FLAGS_number_of_workers;
+      FLAGS_max_outstanding_requests / FLAGS_number_of_workers;
   LOG(INFO) << "Desired rps per worker: " << rps;
   LOG(INFO) << "Max outstanding requests per worker: "
             << max_outstanding_requests_per_worker;
@@ -150,37 +150,30 @@ int run(int /*argc*/, char* /*argv*/ []) {
     }
   }
 
-  Scheduler scheduler(FLAGS_request_per_second,
-                      FLAGS_number_of_workers,
-                      FLAGS_max_outstanding_requests,
-                      max_outstanding_requests_per_worker);
+  Scheduler scheduler(
+      FLAGS_request_per_second,
+      FLAGS_number_of_workers,
+      FLAGS_max_outstanding_requests,
+      max_outstanding_requests_per_worker);
 
   // Init fb303
   std::shared_ptr<std::thread> server_thread;
   if (FLAGS_server_port > 0) {
-    TreadmillFB303::make_fb303(
-      server_thread,
-      FLAGS_server_port,
-      scheduler
-    );
+    TreadmillFB303::make_fb303(server_thread, FLAGS_server_port, scheduler);
   }
 
-  auto terminate_early_fn = [&scheduler]() {
-    scheduler.stop();
-  };
+  auto terminate_early_fn = [&scheduler]() { scheduler.stop(); };
 
   for (int i = 0; i < FLAGS_number_of_workers; i++) {
     workers.push_back(std::make_unique<Worker<Service>>(
-                        i,
-                        scheduler.getWorkerQueue(i),
-                        FLAGS_number_of_workers,
-                        FLAGS_number_of_connections,
-                        max_outstanding_requests_per_worker,
-                        config,
-                        cpu_affinity_list[i],
-                        terminate_early_fn
-                      )
-    );
+        i,
+        scheduler.getWorkerQueue(i),
+        FLAGS_number_of_workers,
+        FLAGS_number_of_connections,
+        max_outstanding_requests_per_worker,
+        config,
+        cpu_affinity_list[i],
+        terminate_early_fn));
   }
 
   // Start testing
@@ -205,30 +198,18 @@ int run(int /*argc*/, char* /*argv*/ []) {
     do {
       remaining = 0;
       for (auto& it : workers) {
-        if (it->hasMoreWork()) remaining++;
+        if (it->hasMoreWork())
+          remaining++;
       }
       if (remaining > 0) {
         LOG(INFO) << "waiting for " << remaining << " worker(s)";
         sleep(1);
         --secondsToWait;
       }
-    }
-    while (secondsToWait > 0 && remaining > 0);
+    } while (secondsToWait > 0 && remaining > 0);
   }
 
-  StatisticsManager::printAll();
-  if (FLAGS_output_file != "") {
-    int fd = open(FLAGS_output_file.c_str(),
-                  O_WRONLY | O_CREAT | O_TRUNC,
-                  0666);
-    if (fd == -1) {
-      LOG(FATAL) << "Open to write file failed: " << FLAGS_output_file;
-    }
-    std::string json = StatisticsManager::toJson();
-    writeBlock(fd, json.c_str(), json.size());
-    close(fd);
-  }
-
+  StatisticsManager::get()->print();
   LOG(INFO) << "Stopping workers";
 
   // We already stored stats, so just drop all remaining scheduled request.
@@ -245,14 +226,14 @@ int run(int /*argc*/, char* /*argv*/ []) {
   if (FLAGS_config_out_file != "") {
     LOG(INFO) << "Saving config";
     std::vector<Worker<Service>*> workerRefs;
-    for (auto& worker: workers) {
+    for (auto& worker : workers) {
       workerRefs.push_back(worker.get());
     }
     auto config_output = workers[0]->makeConfigOutputs(workerRefs);
     writeDynamicToFile(FLAGS_config_out_file, config_output);
   }
   auto counters = stats::ServiceData::get()->getCounters();
-  for (auto& pair: counters) {
+  for (auto& pair : counters) {
     LOG(INFO) << pair.first << ": " << pair.second;
   }
 

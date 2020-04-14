@@ -12,108 +12,101 @@
 
 #include <glog/logging.h>
 
+#include <folly/Format.h>
 #include <folly/Memory.h>
+#include <folly/Singleton.h>
 #include <folly/dynamic.h>
 #include <folly/json.h>
-#include <folly/ThreadLocal.h>
 
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
-class StatsTag;
-static folly::ThreadLocal<StatisticsManager, StatsTag> localManager;
+namespace {
+struct PrivateTag {};
 
-/* static */ StatisticsManager& StatisticsManager::get() {
-  return *localManager;
-}
+static folly::Singleton<StatisticsManager, PrivateTag> managerSingle;
+const auto kQuantiles = std::array<double, 13>{{0.01,
+                                                0.05,
+                                                0.10,
+                                                0.15,
+                                                0.20,
+                                                0.50,
+                                                0.80,
+                                                0.85,
+                                                0.90,
+                                                0.95,
+                                                0.99,
+                                                0.999,
+                                                1.0}};
 
-/* static */ void StatisticsManager::printAll() {
-  StatisticsManager combined = getCombined();
-  combined.print();
+} // namespace
+/* static */ std::shared_ptr<StatisticsManager> StatisticsManager::get() {
+  return managerSingle.try_get();
 }
 
 void StatisticsManager::print() const {
   LOG(INFO) << "Statistics:";
   LOG(INFO) << "";
-  for (auto& stat: stat_map_) {
-    LOG(INFO) << stat.second->getName();
-    stat.second->printStatistic();
-  }
-}
-
-void StatisticsManager::combine(const StatisticsManager& other) {
-  for (const auto& pair: other.stat_map_) {
-    const auto& key = pair.first;
-    const Statistic& stat = *pair.second;
-    auto it = stat_map_.find(key);
-    if (it == stat_map_.end()) {
-      stat_map_[key] = stat.clone();
-    } else {
-      it->second->combine(stat);
+  count_map_.withWLock([](auto& m) {
+    for (auto& cp : m) {
+      LOG(INFO) << cp.first;
+      cp.second->printStatistic();
     }
-  }
-}
+  });
 
-ContinuousStatistic& StatisticsManager::getContinuousStat(
-    const std::string& name) {
-  auto it = stat_map_.find(name);
-  if (it == stat_map_.end()) {
-    if (name == REQUEST_LATENCY) {
-      // More warmup and calibration samples for request latency
-      it = stat_map_.emplace(name, std::make_unique<ContinuousStatistic>(
-        name, FLAGS_latency_warmup_samples, FLAGS_latency_calibration_samples)
-      ).first;
-    } else {
-      it = stat_map_.emplace(name, std::make_unique<ContinuousStatistic>(
-        name)).first;
+  histo_map_.withWLock([](auto& m) {
+    for (auto& cp : m) {
+      // Unlike the counter there's no printStatistic for our histograms. So we
+      // have to do that here.
+      LOG(INFO) << cp.first;
+      cp.second->flush();
+      auto est = cp.second->estimateQuantiles(kQuantiles);
+
+      LOG(INFO) << "Count: " << folly::sformat("{:.0f}", est.count);
+      LOG(INFO) << "Avg: " << est.sum / std::max(1.0, est.count);
+      for (const auto& q : est.quantiles) {
+        LOG(INFO) << folly::sformat("P{:.0f}: {:.2f}", q.first * 100, q.second);
+      }
     }
-  }
-  return dynamic_cast<ContinuousStatistic&>(*it->second);
+  });
 }
 
-CounterStatistic& StatisticsManager::getCounterStat(
+std::shared_ptr<StatisticsManager::Histogram>
+StatisticsManager::getContinuousStat(const std::string& name) {
+  return histo_map_.withWLock([&](auto& m) {
+    auto it = m.find(name);
+
+    if (it != m.end()) {
+      return it->second;
+    } else {
+      // We don't want to construct a counter unless we know the counter isn't
+      // there. That does lead to two reads into the map. Oh well.
+      auto ptr = std::make_shared<StatisticsManager::Histogram>();
+      m.emplace(name, ptr);
+      return ptr;
+    }
+  });
+}
+
+std::shared_ptr<StatisticsManager::Counter> StatisticsManager::getCounterStat(
     const std::string& name) {
-  auto it = stat_map_.find(name);
-  if (it == stat_map_.end()) {
-    it = stat_map_.emplace(name, std::make_unique<CounterStatistic>(
-      name)).first;
-  }
-  return dynamic_cast<CounterStatistic&>(*it->second);
+  return count_map_.withWLock([&](auto& m) {
+    // Try and see if the counter is in the map
+    auto it = m.find(name);
+
+    if (it != m.end()) {
+      return it->second;
+    } else {
+      // We don't want to construct a counter unless we know the counter isn't
+      // there. That does lead to two reads into the map. Oh well.
+      auto ptr = std::make_shared<StatisticsManager::Counter>(name);
+      m.emplace(name, ptr);
+      return ptr;
+    }
+  });
 }
 
-/* static */ StatisticsManager StatisticsManager::getCombined() {
-  StatisticsManager combined;
-  for (const auto& manager : localManager.accessAllThreads()) {
-    combined.combine(manager);
-  }
-  return combined;
-}
-
-
-/* static */ std::string StatisticsManager::toJson() {
-  StatisticsManager combined = getCombined();
-  folly::dynamic map = folly::dynamic::object;
-  for (auto& pair: combined.stat_map_) {
-    map[pair.first] = pair.second->toDynamic();
-  }
-  folly::json::serialization_opts opts;
-  opts.allow_nan_inf = true;
-  opts.allow_non_string_keys = true;
-  return folly::json::serialize(map, opts);
-}
-
-/* static */
-std::map<std::string, int64_t> StatisticsManager::exportAllCounters() {
-  StatisticsManager combined = getCombined();
-  std::map<std::string, int64_t> m;
-  for (const auto& p1: combined.stat_map_) {
-    const auto m2 = p1.second->getCounters();
-    m.insert(m2.begin(), m2.end());
-  }
-  return m;
-}
-
-}  // namespace treadmill
-}  // namespace windtunnel
-}  // namespace facebook
+} // namespace treadmill
+} // namespace windtunnel
+} // namespace facebook

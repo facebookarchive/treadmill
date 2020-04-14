@@ -145,16 +145,13 @@ class Worker : private folly::NotificationQueue<Event>::Consumer {
         LOG(ERROR) << "Failed to set CPU affinity";
       }
     }
-    throughput_statistic_ =
-        &StatisticsManager::get().getContinuousStat(THROUGHPUT);
-    outstanding_statistic_ =
-        &StatisticsManager::get().getContinuousStat(OUTSTANDING_REQUESTS);
-    latency_statistic_ =
-        &StatisticsManager::get().getContinuousStat(REQUEST_LATENCY);
-    exceptions_statistic_ =
-        &StatisticsManager::get().getCounterStat(EXCEPTIONS);
+    auto manager = StatisticsManager::get();
+    outstanding_statistic_ = manager->getContinuousStat(OUTSTANDING_REQUESTS);
+    throughput_statistic_ = manager->getContinuousStat(THROUGHPUT);
+    latency_statistic_ = manager->getContinuousStat(REQUEST_LATENCY);
+    exceptions_statistic_ = manager->getCounterStat(EXCEPTIONS);
     uncaught_exceptions_statistic_ =
-        &StatisticsManager::get().getCounterStat(UNCAUGHT_EXCEPTIONS);
+        manager->getCounterStat(UNCAUGHT_EXCEPTIONS);
     last_throughput_time_ = nowNs();
 
     startConsuming(&event_base_, &queue_);
@@ -221,7 +218,7 @@ class Worker : private folly::NotificationQueue<Event>::Consumer {
                 if (running_) {
                   // If the worker is not in running state, latency stat have
                   // already been released
-                  latency_statistic_->addSample(
+                  latency_statistic_->addValue(
                       (recv_time - send_time) / 1000.0);
                 }
                 n_throughput_requests_++;
@@ -253,11 +250,11 @@ class Worker : private folly::NotificationQueue<Event>::Consumer {
     if (throughput_delta >= 0.1) {
       double throughput =
           n_throughput_requests_ / throughput_delta * number_of_workers_;
-      throughput_statistic_->addSample(throughput);
+      throughput_statistic_->addValue(throughput);
       n_throughput_requests_ = 0;
       last_throughput_time_ = t;
       double outstanding = outstanding_requests_ * number_of_workers_;
-      outstanding_statistic_->addSample(outstanding);
+      outstanding_statistic_->addValue(outstanding);
     }
 
     for (auto p : n_exceptions_by_type_) {
@@ -291,11 +288,12 @@ class Worker : private folly::NotificationQueue<Event>::Consumer {
   std::unique_ptr<std::thread> sender_thread_;
   size_t conn_idx_{0};
   size_t outstanding_requests_{0};
-  ContinuousStatistic* latency_statistic_{nullptr};
-  ContinuousStatistic* throughput_statistic_{nullptr};
-  ContinuousStatistic* outstanding_statistic_{nullptr};
-  CounterStatistic* exceptions_statistic_{nullptr};
-  CounterStatistic* uncaught_exceptions_statistic_{nullptr};
+  std::shared_ptr<StatisticsManager::Histogram> latency_statistic_{nullptr};
+  std::shared_ptr<StatisticsManager::Histogram> outstanding_statistic_{nullptr};
+  std::shared_ptr<StatisticsManager::Histogram> throughput_statistic_{nullptr};
+  std::shared_ptr<StatisticsManager::Counter> exceptions_statistic_{nullptr};
+  std::shared_ptr<StatisticsManager::Counter> uncaught_exceptions_statistic_{
+      nullptr};
   std::function<void()> terminate_early_fn_;
 };
 

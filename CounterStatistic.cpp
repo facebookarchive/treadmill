@@ -26,39 +26,12 @@ namespace treadmill {
  */
 void CounterStatistic::printStatistic() const {
   LOG(INFO) << "Count: " << count_;
-  for (const auto& p : subkey_count_) {
-    LOG(INFO) << "Count[" << p.first << "]: " << p.second;
-  }
+  std::for_each(
+      subkey_count_.cbegin(), subkey_count_.cend(), [](const auto& p) {
+        LOG(INFO) << "Count[" << p.first << "]: " << p.second.data;
+      });
 }
 
-folly::dynamic CounterStatistic::toDynamic() const {
-  folly::dynamic map = folly::dynamic::object;
-  map["count"] = this->count_;
-  for (const auto& p : subkey_count_) {
-    map[p.first] = p.second;
-  }
-  return map;
-}
-
-std::unordered_map<std::string, int64_t> CounterStatistic::getCounters() const {
-  std::unordered_map<std::string, int64_t> m;
-  m[name_] = count_;
-  for (const auto& p : subkey_count_) {
-    m[name_ + '.' + p.first] = p.second;
-  }
-  return m;
-}
-
-void CounterStatistic::combine(const Statistic& stat0) {
-  const CounterStatistic& stat =
-    dynamic_cast<const CounterStatistic&>(stat0);
-
-  count_ += stat.count_;
-  for (const auto& p : stat.subkey_count_) {
-    subkey_count_[p.first] += p.second;
-  }
-}
-
-}  // namespace treadmill
-}  // namespace windtunnel
-}  // namespace facebook
+} // namespace treadmill
+} // namespace windtunnel
+} // namespace facebook

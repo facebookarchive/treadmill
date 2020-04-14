@@ -13,12 +13,10 @@
 #include <memory>
 #include <unordered_map>
 
-#include "treadmill/ContinuousStatistic.h"
-#include "treadmill/CounterStatistic.h"
-#include "treadmill/Statistic.h"
+#include <folly/Synchronized.h>
+#include <folly/stats/QuantileEstimator.h>
 
-DECLARE_int32(latency_calibration_samples);
-DECLARE_int32(latency_warmup_samples);
+#include "treadmill/CounterStatistic.h"
 
 namespace facebook {
 namespace windtunnel {
@@ -33,35 +31,30 @@ const std::string UNCAUGHT_EXCEPTIONS = "uncaught_exceptions";
 
 class StatisticsManager {
  public:
-  StatisticsManager() {}
+  using Histogram = folly::SimpleQuantileEstimator<>;
+  using Counter = CounterStatistic;
+  using HistoMapType =
+      std::unordered_map<std::string, std::shared_ptr<Histogram>>;
+  using CounterMapType =
+      std::unordered_map<std::string, std::shared_ptr<Counter>>;
 
+  StatisticsManager() {}
   virtual ~StatisticsManager() {}
 
   void print() const;
+  std::string toJson();
 
-  static StatisticsManager& get();
-  static StatisticsManager getCombined();
-  static void printAll();
-  static std::string toJson();
-  static std::map<std::string, int64_t> exportAllCounters();
-
-  ContinuousStatistic& getContinuousStat(const std::string& name);
-  CounterStatistic& getCounterStat(const std::string& name);
+  static std::shared_ptr<StatisticsManager> get();
+  std::shared_ptr<Histogram> getContinuousStat(const std::string& name);
+  std::shared_ptr<Counter> getCounterStat(const std::string& name);
 
   StatisticsManager(StatisticsManager const&);
   void operator=(StatisticsManager const&);
 
-  using StatMapType =
-    std::unordered_map<std::string, std::unique_ptr<Statistic>>;
-
-  const StatMapType& getStatMap() const { return stat_map_; }
-
- private:
-  void combine(const StatisticsManager& other);
-
-  StatMapType stat_map_;
+  folly::Synchronized<HistoMapType> histo_map_;
+  folly::Synchronized<CounterMapType> count_map_;
 };
 
-}  // namespace treadmill
-}  // namespace windtunnel
-}  // namespace facebook
+} // namespace treadmill
+} // namespace windtunnel
+} // namespace facebook

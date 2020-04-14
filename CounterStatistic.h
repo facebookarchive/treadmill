@@ -10,63 +10,54 @@
 
 #pragma once
 
+#include <atomic>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-#include <folly/dynamic.h>
-
-#include "treadmill/Statistic.h"
+#include <folly/AtomicUnorderedMap.h>
 
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
-class CounterStatistic : public Statistic {
+class CounterStatistic {
  public:
-  explicit CounterStatistic(const std::string& name)
-      : Statistic(name) {}
+  explicit CounterStatistic(const std::string& /* name */) {}
 
-  CounterStatistic(const CounterStatistic& other)
-      : Statistic(other.name_) {
-    count_ = other.count_;
-    subkey_count_ = other.subkey_count_;
-  }
-
-  std::unique_ptr<Statistic> clone() const override {
-    return std::unique_ptr<Statistic>(new CounterStatistic(*this));
-  }
-
-  void printStatistic() const override;
-
-  folly::dynamic toDynamic() const override;
-
-  std::unordered_map<std::string, int64_t> getCounters() const override;
-
-  void combine(const Statistic& stat) override;
-
-  void increase(size_t n = 1, const std::string& subkey = "") {
+  void increase(int64_t n, const std::string& subkey) {
     count_ += n;
     if (!subkey.empty()) {
-      subkey_count_[subkey] += n;
+      subkey_count_
+          .findOrConstruct(
+              subkey,
+              [](void* raw) { return new (raw) std::atomic<int64_t>{0}; })
+          .first->second.data += n;
     }
   }
 
-  size_t getCount() const {
+  int64_t getCount() const {
     return count_;
   }
 
-  size_t getCount(const std::string& subkey) const {
-    auto it = subkey_count_.find(subkey);
-    return (it == subkey_count_.end()) ? 0 : it->second;
+  int64_t getCount(const std::string& subkey) {
+    return subkey_count_
+        .findOrConstruct(
+            subkey,
+            [=](void* raw) { return new (raw) std::atomic<int64_t>{0}; })
+        .first->second.data;
   }
 
- private:
-  size_t count_ = 0;
-  std::unordered_map<std::string, size_t> subkey_count_;
+  void printStatistic() const;
 
+ private:
+  int64_t count_ = 0;
+  folly::AtomicUnorderedInsertMap<std::string, folly::MutableAtom<int64_t>>
+      subkey_count_ = folly::
+          AtomicUnorderedInsertMap<std::string, folly::MutableAtom<int64_t>>{
+              10 * 1024};
 };
 
-}  // namespace treadmill
-}  // namespace windtunnel
-}  // namespace facebook
+} // namespace treadmill
+} // namespace windtunnel
+} // namespace facebook
