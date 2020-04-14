@@ -280,14 +280,14 @@ class Worker : private folly::NotificationQueue<Event>::Consumer {
   Workload<Service> workload_;
   int cpu_affinity_;
   int64_t last_throughput_time_{0};
-  size_t n_throughput_requests_{0};
+  std::atomic<int64_t> n_throughput_requests_{0};
   std::unordered_map<std::string, size_t> n_exceptions_by_type_;
   std::unordered_map<std::string, size_t> n_uncaught_exceptions_by_type_;
 
   folly::NotificationQueue<Event>& queue_;
   std::unique_ptr<std::thread> sender_thread_;
   size_t conn_idx_{0};
-  size_t outstanding_requests_{0};
+  std::atomic<int64_t> outstanding_requests_{0};
   std::shared_ptr<StatisticsManager::Histogram> latency_statistic_{nullptr};
   std::shared_ptr<StatisticsManager::Histogram> outstanding_statistic_{nullptr};
   std::shared_ptr<StatisticsManager::Histogram> throughput_statistic_{nullptr};
