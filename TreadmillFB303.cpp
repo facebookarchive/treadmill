@@ -118,9 +118,9 @@ void TreadmillFB303::setMaxOutstanding(int32_t max_outstanding) {
 
 folly::Future<std::unique_ptr< ::treadmill::RateResponse>> TreadmillFB303::future_getRate() {
   auto response = std::make_unique<RateResponse>();
-  response->set_scheduler_running(scheduler_.isRunning());
-  response->set_rps(scheduler_.getRps());
-  response->set_max_outstanding(scheduler_.getMaxOutstandingRequests());
+  response->scheduler_running_ref() = scheduler_.isRunning();
+  response->rps_ref() = scheduler_.getRps();
+  response->max_outstanding_ref() = scheduler_.getMaxOutstandingRequests();
   return folly::makeFuture(std::move(response));
 }
 
