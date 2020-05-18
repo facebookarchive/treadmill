@@ -185,7 +185,7 @@ int run(int /*argc*/, char* /*argv*/ []) {
   std::vector<folly::SemiFuture<folly::Unit>> futs;
   futs.push_back(scheduler.run());
   futs.push_back(folly::futures::sleep(std::chrono::seconds(FLAGS_runtime)));
-  folly::collectAnySemiFuture(futs).wait();
+  folly::collectAny(futs).wait();
 
   LOG(INFO) << "Stopping and joining scheduler thread";
   scheduler.stop();
