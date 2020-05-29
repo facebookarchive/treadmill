@@ -18,7 +18,6 @@
 #include <functional>
 #include <cmath>
 
-#include <folly/Memory.h>
 
 namespace facebook {
 namespace windtunnel {
