@@ -68,7 +68,7 @@ class Connection<MemcachedService> {
       });
     } else if (request->which() == MemcachedRequest::SET) {
       auto req = std::make_shared<McSetRequest>(request->key());
-      req->value() = folly::IOBuf(folly::IOBuf::COPY_BUFFER, request->value());
+      req->value_ref() = folly::IOBuf(folly::IOBuf::COPY_BUFFER, request->value());
       fm_->addTask([this, req, p]() mutable {
         client_->sendSync(*req, std::chrono::milliseconds::zero());
         p->setValue(MemcachedService::Reply());
