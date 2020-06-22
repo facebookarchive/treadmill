@@ -20,12 +20,14 @@
 #include "common/services/cpp/TLSConfig.h"
 #include "common/time/ClockGettimeNS.h"
 
-DEFINE_bool(require_configuration_on_resume,
-            false,
-            "If true, 'resume' only when configuration is available");
-DEFINE_bool(enable_watchdog_timer,
-            false,
-            "If true, a watchdog timer will be maintained during a run.");
+DEFINE_bool(
+    require_configuration_on_resume,
+    false,
+    "If true, 'resume' only when configuration is available");
+DEFINE_bool(
+    enable_watchdog_timer,
+    false,
+    "If true, a watchdog timer will be maintained during a run.");
 
 using fb_status = facebook::fb303::cpp2::fb_status;
 using ::treadmill::RateResponse;
@@ -117,7 +119,8 @@ void TreadmillFB303::setMaxOutstanding(int32_t max_outstanding) {
   scheduler_.setMaxOutstandingRequests(max_outstanding);
 }
 
-folly::Future<std::unique_ptr< ::treadmill::RateResponse>> TreadmillFB303::future_getRate() {
+folly::Future<std::unique_ptr<::treadmill::RateResponse>>
+TreadmillFB303::future_getRate() {
   auto response = std::make_unique<RateResponse>();
   response->scheduler_running_ref() = scheduler_.isRunning();
   response->rps_ref() = scheduler_.getRps();
@@ -126,8 +129,7 @@ folly::Future<std::unique_ptr< ::treadmill::RateResponse>> TreadmillFB303::futur
 }
 
 folly::Future<std::unique_ptr<std::string>>
-    TreadmillFB303::future_getConfiguration(
-        std::unique_ptr<std::string> key) {
+TreadmillFB303::future_getConfiguration(std::unique_ptr<std::string> key) {
   LOG(INFO) << "TreadmillHandler::getConfiguration: " << *key;
   watchdogUpdate();
 
@@ -141,32 +143,33 @@ folly::Future<std::unique_ptr<std::string>>
   return folly::makeFuture(std::move(value));
 }
 
-void TreadmillFB303::setConfiguration(std::unique_ptr<std::string> key,
+void TreadmillFB303::setConfiguration(
+    std::unique_ptr<std::string> key,
     std::unique_ptr<std::string> value) {
-  LOG(INFO) << "TreadmillHandler::setConfiguration: " << *key << " = " <<
-      *value;
+  LOG(INFO) << "TreadmillHandler::setConfiguration: " << *key << " = "
+            << *value;
   watchdogUpdate();
 
   folly::SharedMutex::WriteHolder guard(mutex_);
   configuration_->insert_or_assign(*key, *value);
   if (FLAGS_enable_watchdog_timer && *key == "watchdog_sec") {
-      LOG(INFO) << "TreadmillHandler::watchdog timer value (secs) = " << *value;
-      if (auto result = folly::tryTo<uint32_t>(*value)) {
-        watchdogDurationSec_ = result.value();
-      }
-      else {
-        watchdogDurationSec_ = 0; // disabled
-      }
+    LOG(INFO) << "TreadmillHandler::watchdog timer value (secs) = " << *value;
+    if (auto result = folly::tryTo<uint32_t>(*value)) {
+      watchdogDurationSec_ = result.value();
+    } else {
+      watchdogDurationSec_ = 0; // disabled
+    }
   }
 }
 
-uint32_t TreadmillFB303::getConfigurationValue(const std::string &key,
+uint32_t TreadmillFB303::getConfigurationValue(
+    const std::string& key,
     uint32_t defaultValue) {
   folly::SharedMutex::ReadHolder guard(mutex_);
   if (configuration_->count(key) > 0) {
     auto value = std::make_unique<std::string>(configuration_->at(key));
     if (auto result = folly::tryTo<uint32_t>(*value)) {
-        return result.value();
+      return result.value();
     }
     LOG(WARNING) << "failed to convert value [" << *value << "]";
     // fall through
@@ -175,12 +178,12 @@ uint32_t TreadmillFB303::getConfigurationValue(const std::string &key,
 }
 
 std::unique_ptr<std::string> TreadmillFB303::getConfigurationValue(
-    const std::string &key, const std::string &defaultValue) {
+    const std::string& key,
+    const std::string& defaultValue) {
   folly::SharedMutex::ReadHolder guard(mutex_);
   if (configuration_->count(key) > 0) {
     return std::make_unique<std::string>(configuration_->at(key));
-  }
-  else {
+  } else {
     return std::make_unique<std::string>(defaultValue);
   }
 }
