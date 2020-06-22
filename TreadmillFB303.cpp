@@ -82,6 +82,7 @@ bool TreadmillFB303::pause() {
 bool TreadmillFB303::resume() {
   LOG(INFO) << "TreadmillHandler::resume";
   watchdogUpdate();
+  folly::SharedMutex::ReadHolder guard(mutex_);
   if (FLAGS_require_configuration_on_resume && configuration_->empty()) {
     LOG(WARNING) << "refusing resume without configuration";
     return false;
@@ -130,6 +131,7 @@ folly::Future<std::unique_ptr<std::string>>
   LOG(INFO) << "TreadmillHandler::getConfiguration: " << *key;
   watchdogUpdate();
 
+  folly::SharedMutex::ReadHolder guard(mutex_);
   if (configuration_->count(*key) > 0) {
     auto value = std::make_unique<std::string>(configuration_->at(*key));
     LOG(INFO) << "returning " << *key << " = " << *value;
@@ -145,7 +147,8 @@ void TreadmillFB303::setConfiguration(std::unique_ptr<std::string> key,
       *value;
   watchdogUpdate();
 
-  configuration_->emplace(*key, *value);
+  folly::SharedMutex::WriteHolder guard(mutex_);
+  configuration_->insert_or_assign(*key, *value);
   if (FLAGS_enable_watchdog_timer && *key == "watchdog_sec") {
       LOG(INFO) << "TreadmillHandler::watchdog timer value (secs) = " << *value;
       if (auto result = folly::tryTo<uint32_t>(*value)) {
@@ -159,6 +162,7 @@ void TreadmillFB303::setConfiguration(std::unique_ptr<std::string> key,
 
 uint32_t TreadmillFB303::getConfigurationValue(const std::string &key,
     uint32_t defaultValue) {
+  folly::SharedMutex::ReadHolder guard(mutex_);
   if (configuration_->count(key) > 0) {
     auto value = std::make_unique<std::string>(configuration_->at(key));
     if (auto result = folly::tryTo<uint32_t>(*value)) {
@@ -172,6 +176,7 @@ uint32_t TreadmillFB303::getConfigurationValue(const std::string &key,
 
 std::unique_ptr<std::string> TreadmillFB303::getConfigurationValue(
     const std::string &key, const std::string &defaultValue) {
+  folly::SharedMutex::ReadHolder guard(mutex_);
   if (configuration_->count(key) > 0) {
     return std::make_unique<std::string>(configuration_->at(key));
   }
@@ -183,10 +188,12 @@ std::unique_ptr<std::string> TreadmillFB303::getConfigurationValue(
 void TreadmillFB303::clearConfiguration() {
   LOG(INFO) << "TreadmillHandler::clearConfiguration";
   watchdogUpdate();
+  folly::SharedMutex::WriteHolder guard(mutex_);
   configuration_->clear();
 }
 
 bool TreadmillFB303::configurationEmpty() const {
+  folly::SharedMutex::ReadHolder guard(mutex_);
   return configuration_->empty();
 }
 
