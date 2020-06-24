@@ -103,7 +103,7 @@ folly::Future<std::unique_ptr<ResumeResponse>> TreadmillFB303::future_resume2(
   auto running = scheduler_.resume();
   LOG(INFO) << "Scheduler is currently "
             << (running ? "Running" : "Not Running");
-  resp->set_success(running);
+  resp->success_ref() = running;
   return folly::makeFuture(std::move(resp));
 }
 
