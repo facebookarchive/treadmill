@@ -32,12 +32,20 @@ template <class Service>
 class Workload {
   /**
    * Workloads are implemented as template specializations that derive from
-   * WorkloadBase using themselves as template parameter and also implement:
+   * WorkloadBase using themselves as template parameter. Example:
+   *   class Workload<MyService> : BaseWorkload<Workload<MyService>> {...};
    *
-   * Workload(folly::dynamic config)
-   * reset() - to reset their internal state. (Used via Scheduler::resume to
-   *           re-synchronize A/B sides after pausing.)
-   * getNextRequest() - to get one request from the workload.
+   * Any specialization of Workload must implement the following functions:
+   *  explicit Workload<Service>(folly::dynamic config)
+   *  void reset() - to reset their internal state. (Used via Scheduler::resume
+   *                 to re-synchronize A/B sides after pausing.)
+   *  std::tuple<
+   *              std::unique_ptr<HhvmHttpReplayService::Request>,
+   *              folly::Promise<HhvmHttpReplayService::Reply>,
+   *              folly::Future<HhvmHttpReplayService::Reply>
+   *            > getNextRequest() - to get one request from the workload.
+   *  folly::dynamic makeConfigOutputs(
+   *      std::vector<Workload<HhvmHttpReplayService>*>)
    */
 };
 
