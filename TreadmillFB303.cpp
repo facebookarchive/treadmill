@@ -203,6 +203,7 @@ bool TreadmillFB303::configurationEmpty() const {
 void TreadmillFB303::watchdogUpdate() {
   if (FLAGS_enable_watchdog_timer && watchdogDurationSec_ > 0) {
     lastHeartbeat_ = fb_time_seconds();
+    LOG(INFO) << "watchdog update = " << lastHeartbeat_;
   }
 }
 
