@@ -70,6 +70,31 @@ class Worker : private folly::NotificationQueue<Event>::Consumer {
     setWorkerCounter(kOutstandingRequestsCounter, 0);
   }
 
+  Worker(
+      int worker_id,
+      folly::NotificationQueue<Event>& queue,
+      int number_of_workers,
+      int number_of_connections,
+      int max_outstanding_requests,
+      const folly::dynamic& config,
+      int cpu_affinity,
+      std::function<void()> terminate_early_fn,
+      Workload<Service> workload
+  ): Worker(
+        worker_id,
+        queue,
+        number_of_workers,
+        number_of_connections,
+        max_outstanding_requests,
+        config,
+        cpu_affinity,
+        terminate_early_fn
+  ){
+    workload_ = workload;
+  }
+
+
+
   ~Worker() override {}
 
   void run() {

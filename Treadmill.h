@@ -100,25 +100,35 @@ namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
+template <class Service>
+class TreadmillRunner{
+  public:
+  TreadmillRunner(){
+    rps = FLAGS_request_per_second / (double)FLAGS_number_of_workers;
+    max_outstanding_requests_per_worker =
+      FLAGS_max_outstanding_requests / FLAGS_number_of_workers;
+    config = folly::dynamic::object;
+    scheduler = std::make_unique<Scheduler>(
+      FLAGS_request_per_second,
+      FLAGS_number_of_workers,
+      FLAGS_max_outstanding_requests,
+      max_outstanding_requests_per_worker);
+    cpu_affinity_list = std::vector<int>(FLAGS_number_of_workers, -1);
+    terminate_early_fn = [&scheduler = scheduler]() { scheduler->stop(); };
+  }
+  virtual ~TreadmillRunner(){};
 /**
  * Press start to rock
  *
  * @param argc Argument count
  * @param argv Argument vector
  */
-template <typename Service>
 int run(int /*argc*/, char* /*argv*/ []) {
-  std::vector<std::unique_ptr<Worker<Service>>> workers;
-  double rps = FLAGS_request_per_second / (double)FLAGS_number_of_workers;
-  int max_outstanding_requests_per_worker =
-      FLAGS_max_outstanding_requests / FLAGS_number_of_workers;
   LOG(INFO) << "Desired rps per worker: " << rps;
   LOG(INFO) << "Max outstanding requests per worker: "
             << max_outstanding_requests_per_worker;
   LOG(INFO) << "N Workers: " << FLAGS_number_of_workers;
   LOG(INFO) << "N Connections: " << FLAGS_number_of_connections;
-
-  folly::dynamic config = folly::dynamic::object;
   if (FLAGS_config_in_file != "") {
     config = readDynamicFromFile(FLAGS_config_in_file);
   }
@@ -126,8 +136,6 @@ int run(int /*argc*/, char* /*argv*/ []) {
     folly::dynamic config2 = folly::parseJson(FLAGS_config_in_json);
     config.update(config2);
   }
-  int cpu_affinity_list[FLAGS_number_of_workers];
-  std::fill_n(cpu_affinity_list, FLAGS_number_of_workers, -1);
 
   if (FLAGS_cpu_affinity != "") {
     int total_number_of_cores = std::thread::hardware_concurrency();
@@ -150,31 +158,12 @@ int run(int /*argc*/, char* /*argv*/ []) {
     }
   }
 
-  Scheduler scheduler(
-      FLAGS_request_per_second,
-      FLAGS_number_of_workers,
-      FLAGS_max_outstanding_requests,
-      max_outstanding_requests_per_worker);
-
   // Init fb303
   std::shared_ptr<std::thread> server_thread;
   if (FLAGS_server_port > 0) {
-    TreadmillFB303::make_fb303(server_thread, FLAGS_server_port, scheduler);
+    TreadmillFB303::make_fb303(server_thread, FLAGS_server_port, *scheduler);
   }
-
-  auto terminate_early_fn = [&scheduler]() { scheduler.stop(); };
-
-  for (int i = 0; i < FLAGS_number_of_workers; i++) {
-    workers.push_back(std::make_unique<Worker<Service>>(
-        i,
-        scheduler.getWorkerQueue(i),
-        FLAGS_number_of_workers,
-        FLAGS_number_of_connections,
-        max_outstanding_requests_per_worker,
-        config,
-        cpu_affinity_list[i],
-        terminate_early_fn));
-  }
+  initializeWorkers();
 
   // Start testing
   for (int i = 0; i < FLAGS_number_of_workers; i++) {
@@ -183,13 +172,13 @@ int run(int /*argc*/, char* /*argv*/ []) {
 
   // Start the test and wait for it to finish.
   std::vector<folly::SemiFuture<folly::Unit>> futs;
-  futs.push_back(scheduler.run());
+  futs.push_back(scheduler->run());
   futs.push_back(folly::futures::sleep(std::chrono::seconds(FLAGS_runtime)));
   folly::collectAny(futs).wait();
 
   LOG(INFO) << "Stopping and joining scheduler thread";
-  scheduler.stop();
-  scheduler.join();
+  scheduler->stop();
+  scheduler->join();
 
   if (FLAGS_worker_shutdown_delay > 0) {
     // Wait for workers to finish requests
@@ -242,7 +231,39 @@ int run(int /*argc*/, char* /*argv*/ []) {
   return 0;
 }
 
+virtual void initializeWorkers(){
+  for (int i = 0; i < FLAGS_number_of_workers; i++) {
+    workers.push_back(std::make_unique<Worker<Service>>(
+        i,
+        scheduler->getWorkerQueue(i),
+        FLAGS_number_of_workers,
+        FLAGS_number_of_connections,
+        max_outstanding_requests_per_worker,
+        config,
+        cpu_affinity_list[i],
+        terminate_early_fn));
+  }
+}
+
+  protected:
+    std::vector<std::unique_ptr<Worker<Service>>> workers;
+    std::unique_ptr<Scheduler> scheduler;
+    int max_outstanding_requests_per_worker;
+    folly::dynamic config;
+    std::vector<int> cpu_affinity_list;
+    std::function<void()> terminate_early_fn;
+  private:
+    double rps;
+};
+
+
 void init(int argc, char* argv[]);
+
+template <class Service>
+int run(int argc, char* argv[]) {
+  TreadmillRunner runner = TreadmillRunner<Service>();
+  return runner.run(argc, argv);
+};
 
 } // namespace treadmill
 } // namespace windtunnel
