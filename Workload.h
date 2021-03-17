@@ -16,7 +16,7 @@ namespace treadmill {
 
 template <class Workload>
 class WorkloadBase {
-public:
+ public:
   void setPhase(const std::string& phase) {
     phase_ = phase;
   }
@@ -24,7 +24,7 @@ public:
     return phase_;
   }
 
-protected:
+ protected:
   std::string phase_;
 };
 
@@ -49,6 +49,6 @@ class Workload {
    */
 };
 
-}  // namespace treadmill
-}  // namespace windtunnel
-}  // namespace facebook
+} // namespace treadmill
+} // namespace windtunnel
+} // namespace facebook

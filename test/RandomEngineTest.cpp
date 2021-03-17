@@ -12,12 +12,11 @@
 
 #include "treadmill/RandomEngine.h"
 
-#include <vector>
-#include <thread>
-#include <numeric>
-#include <functional>
 #include <cmath>
-
+#include <functional>
+#include <numeric>
+#include <thread>
+#include <vector>
 
 namespace facebook {
 namespace windtunnel {
@@ -28,7 +27,7 @@ namespace {
 using facebook::windtunnel::treadmill::RandomEngine;
 using facebook::windtunnel::treadmill::ThreadSafeRandomEngine;
 
-void checkCorrelation (std::function<double(double,double)> prng) {
+void checkCorrelation(std::function<double(double, double)> prng) {
   // test 10 threads
   const int kNumThreads = 10;
   // test 100000 numbers in [0,100]
@@ -89,12 +88,11 @@ TEST(StatisticTest, CrossThreadCorrelation) {
 
 } // namespace
 
+} // namespace treadmill
+} // namespace windtunnel
+} // namespace facebook
 
-}  // namespace treadmill
-}  // namespace windtunnel
-}  // namespace facebook
-
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   testing::InitGoogleTest(&argc, argv);
   FLAGS_treadmill_random_seed = 0;
   return RUN_ALL_TESTS();

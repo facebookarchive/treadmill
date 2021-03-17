@@ -20,20 +20,14 @@ namespace treadmill {
 
 class Request;
 
-class MemcachedReply {
-};
+class MemcachedReply {};
 
 class MemcachedRequest : public Request {
  public:
-  enum Operation {
-    GET,
-    SET,
-    DELETE
-  };
+  enum Operation { GET, SET, DELETE };
 
   MemcachedRequest(Operation type, std::string key)
-    : type_(type),
-      key_(std::move(key)) { }
+      : type_(type), key_(std::move(key)) {}
 
   virtual ~MemcachedRequest() {}
 
@@ -63,6 +57,6 @@ class MemcachedRequest : public Request {
   std::string value_;
 };
 
-}  // namespace treadmill
-}  // namespace windtunnel
-}  // namespace facebook
+} // namespace treadmill
+} // namespace windtunnel
+} // namespace facebook

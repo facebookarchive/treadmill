@@ -101,161 +101,161 @@ namespace windtunnel {
 namespace treadmill {
 
 template <class Service>
-class TreadmillRunner{
-  public:
-  TreadmillRunner(){
+class TreadmillRunner {
+ public:
+  TreadmillRunner() {
     rps = FLAGS_request_per_second / (double)FLAGS_number_of_workers;
     max_outstanding_requests_per_worker =
-      FLAGS_max_outstanding_requests / FLAGS_number_of_workers;
+        FLAGS_max_outstanding_requests / FLAGS_number_of_workers;
     config = folly::dynamic::object;
     scheduler = std::make_unique<Scheduler>(
-      FLAGS_request_per_second,
-      FLAGS_number_of_workers,
-      FLAGS_max_outstanding_requests,
-      max_outstanding_requests_per_worker);
+        FLAGS_request_per_second,
+        FLAGS_number_of_workers,
+        FLAGS_max_outstanding_requests,
+        max_outstanding_requests_per_worker);
     cpu_affinity_list = std::vector<int>(FLAGS_number_of_workers, -1);
     terminate_early_fn = [&scheduler = scheduler]() { scheduler->stop(); };
   }
   virtual ~TreadmillRunner(){};
-/**
- * Press start to rock
- *
- * @param argc Argument count
- * @param argv Argument vector
- */
-int run(int /*argc*/, char* /*argv*/ []) {
-  LOG(INFO) << "Desired rps per worker: " << rps;
-  LOG(INFO) << "Max outstanding requests per worker: "
-            << max_outstanding_requests_per_worker;
-  LOG(INFO) << "N Workers: " << FLAGS_number_of_workers;
-  LOG(INFO) << "N Connections: " << FLAGS_number_of_connections;
-  if (FLAGS_config_in_file != "") {
-    config = readDynamicFromFile(FLAGS_config_in_file);
-  }
-  if (FLAGS_config_in_json != "") {
-    folly::dynamic config2 = folly::parseJson(FLAGS_config_in_json);
-    config.update(config2);
-  }
+  /**
+   * Press start to rock
+   *
+   * @param argc Argument count
+   * @param argv Argument vector
+   */
+  int run(int /*argc*/, char* /*argv*/[]) {
+    LOG(INFO) << "Desired rps per worker: " << rps;
+    LOG(INFO) << "Max outstanding requests per worker: "
+              << max_outstanding_requests_per_worker;
+    LOG(INFO) << "N Workers: " << FLAGS_number_of_workers;
+    LOG(INFO) << "N Connections: " << FLAGS_number_of_connections;
+    if (FLAGS_config_in_file != "") {
+      config = readDynamicFromFile(FLAGS_config_in_file);
+    }
+    if (FLAGS_config_in_json != "") {
+      folly::dynamic config2 = folly::parseJson(FLAGS_config_in_json);
+      config.update(config2);
+    }
 
-  if (FLAGS_cpu_affinity != "") {
-    int total_number_of_cores = std::thread::hardware_concurrency();
-    std::vector<folly::StringPiece> affinity_string_list;
-    folly::split(",", FLAGS_cpu_affinity, affinity_string_list);
-    if (affinity_string_list.size() != FLAGS_number_of_workers) {
-      LOG(FATAL) << "Length of the CPU affinity list ("
-                 << affinity_string_list.size()
-                 << ") does not match the number of workers ("
-                 << FLAGS_number_of_workers << ")";
-    } else {
-      for (int i = 0; i < FLAGS_number_of_workers; i++) {
-        int cpu_affinity = folly::to<int>(affinity_string_list[i]);
-        if (cpu_affinity >= 0 && cpu_affinity < total_number_of_cores) {
-          cpu_affinity_list[i] = cpu_affinity;
-        } else {
-          LOG(FATAL) << "Core " << cpu_affinity << " does not exist";
+    if (FLAGS_cpu_affinity != "") {
+      int total_number_of_cores = std::thread::hardware_concurrency();
+      std::vector<folly::StringPiece> affinity_string_list;
+      folly::split(",", FLAGS_cpu_affinity, affinity_string_list);
+      if (affinity_string_list.size() != FLAGS_number_of_workers) {
+        LOG(FATAL) << "Length of the CPU affinity list ("
+                   << affinity_string_list.size()
+                   << ") does not match the number of workers ("
+                   << FLAGS_number_of_workers << ")";
+      } else {
+        for (int i = 0; i < FLAGS_number_of_workers; i++) {
+          int cpu_affinity = folly::to<int>(affinity_string_list[i]);
+          if (cpu_affinity >= 0 && cpu_affinity < total_number_of_cores) {
+            cpu_affinity_list[i] = cpu_affinity;
+          } else {
+            LOG(FATAL) << "Core " << cpu_affinity << " does not exist";
+          }
         }
       }
     }
-  }
 
-  // Init fb303
-  std::shared_ptr<std::thread> server_thread;
-  if (FLAGS_server_port > 0) {
-    TreadmillFB303::make_fb303(server_thread, FLAGS_server_port, *scheduler);
-  }
-  initializeWorkers();
-
-  // Start testing
-  for (int i = 0; i < FLAGS_number_of_workers; i++) {
-    workers[i]->run();
-  }
-
-  // Start the test and wait for it to finish.
-  std::vector<folly::SemiFuture<folly::Unit>> futs;
-  futs.push_back(scheduler->run());
-  futs.push_back(folly::futures::sleep(std::chrono::seconds(FLAGS_runtime)));
-  folly::collectAny(futs).wait();
-
-  LOG(INFO) << "Stopping and joining scheduler thread";
-  scheduler->stop();
-  scheduler->join();
-
-  if (FLAGS_worker_shutdown_delay > 0) {
-    // Wait for workers to finish requests
-    size_t secondsToWait = FLAGS_worker_shutdown_delay;
-    size_t remaining;
-    do {
-      remaining = 0;
-      for (auto& it : workers) {
-        if (it->hasMoreWork())
-          remaining++;
-      }
-      if (remaining > 0) {
-        LOG(INFO) << "waiting for " << remaining << " worker(s)";
-        sleep(1);
-        --secondsToWait;
-      }
-    } while (secondsToWait > 0 && remaining > 0);
-  }
-
-  StatisticsManager::get()->print();
-  LOG(INFO) << "Stopping workers";
-
-  // We already stored stats, so just drop all remaining scheduled request.
-  for (int i = 0; i < FLAGS_number_of_workers; i++) {
-    workers[i]->stop();
-  }
-
-  LOG(INFO) << "Joining worker threads";
-
-  // Join worker threads
-  for (int i = 0; i < FLAGS_number_of_workers; i++) {
-    workers[i]->join();
-  }
-  if (FLAGS_config_out_file != "") {
-    LOG(INFO) << "Saving config";
-    std::vector<Worker<Service>*> workerRefs;
-    for (auto& worker : workers) {
-      workerRefs.push_back(worker.get());
+    // Init fb303
+    std::shared_ptr<std::thread> server_thread;
+    if (FLAGS_server_port > 0) {
+      TreadmillFB303::make_fb303(server_thread, FLAGS_server_port, *scheduler);
     }
-    auto config_output = workers[0]->makeConfigOutputs(workerRefs);
-    writeDynamicToFile(FLAGS_config_out_file, config_output);
+    initializeWorkers();
+
+    // Start testing
+    for (int i = 0; i < FLAGS_number_of_workers; i++) {
+      workers[i]->run();
+    }
+
+    // Start the test and wait for it to finish.
+    std::vector<folly::SemiFuture<folly::Unit>> futs;
+    futs.push_back(scheduler->run());
+    futs.push_back(folly::futures::sleep(std::chrono::seconds(FLAGS_runtime)));
+    folly::collectAny(futs).wait();
+
+    LOG(INFO) << "Stopping and joining scheduler thread";
+    scheduler->stop();
+    scheduler->join();
+
+    if (FLAGS_worker_shutdown_delay > 0) {
+      // Wait for workers to finish requests
+      size_t secondsToWait = FLAGS_worker_shutdown_delay;
+      size_t remaining;
+      do {
+        remaining = 0;
+        for (auto& it : workers) {
+          if (it->hasMoreWork())
+            remaining++;
+        }
+        if (remaining > 0) {
+          LOG(INFO) << "waiting for " << remaining << " worker(s)";
+          sleep(1);
+          --secondsToWait;
+        }
+      } while (secondsToWait > 0 && remaining > 0);
+    }
+
+    StatisticsManager::get()->print();
+    LOG(INFO) << "Stopping workers";
+
+    // We already stored stats, so just drop all remaining scheduled request.
+    for (int i = 0; i < FLAGS_number_of_workers; i++) {
+      workers[i]->stop();
+    }
+
+    LOG(INFO) << "Joining worker threads";
+
+    // Join worker threads
+    for (int i = 0; i < FLAGS_number_of_workers; i++) {
+      workers[i]->join();
+    }
+    if (FLAGS_config_out_file != "") {
+      LOG(INFO) << "Saving config";
+      std::vector<Worker<Service>*> workerRefs;
+      for (auto& worker : workers) {
+        workerRefs.push_back(worker.get());
+      }
+      auto config_output = workers[0]->makeConfigOutputs(workerRefs);
+      writeDynamicToFile(FLAGS_config_out_file, config_output);
+    }
+    auto counters = stats::ServiceData::get()->getCounters();
+    for (auto& pair : counters) {
+      LOG(INFO) << pair.first << ": " << pair.second;
+    }
+
+    LOG(INFO) << "Complete";
+
+    return 0;
   }
-  auto counters = stats::ServiceData::get()->getCounters();
-  for (auto& pair : counters) {
-    LOG(INFO) << pair.first << ": " << pair.second;
+
+  virtual void initializeWorkers() {
+    for (int i = 0; i < FLAGS_number_of_workers; i++) {
+      workers.push_back(std::make_unique<Worker<Service>>(
+          i,
+          scheduler->getWorkerQueue(i),
+          FLAGS_number_of_workers,
+          FLAGS_number_of_connections,
+          max_outstanding_requests_per_worker,
+          config,
+          cpu_affinity_list[i],
+          terminate_early_fn));
+    }
   }
 
-  LOG(INFO) << "Complete";
+ protected:
+  std::vector<std::unique_ptr<Worker<Service>>> workers;
+  std::unique_ptr<Scheduler> scheduler;
+  int max_outstanding_requests_per_worker;
+  folly::dynamic config;
+  std::vector<int> cpu_affinity_list;
+  std::function<void()> terminate_early_fn;
 
-  return 0;
-}
-
-virtual void initializeWorkers(){
-  for (int i = 0; i < FLAGS_number_of_workers; i++) {
-    workers.push_back(std::make_unique<Worker<Service>>(
-        i,
-        scheduler->getWorkerQueue(i),
-        FLAGS_number_of_workers,
-        FLAGS_number_of_connections,
-        max_outstanding_requests_per_worker,
-        config,
-        cpu_affinity_list[i],
-        terminate_early_fn));
-  }
-}
-
-  protected:
-    std::vector<std::unique_ptr<Worker<Service>>> workers;
-    std::unique_ptr<Scheduler> scheduler;
-    int max_outstanding_requests_per_worker;
-    folly::dynamic config;
-    std::vector<int> cpu_affinity_list;
-    std::function<void()> terminate_early_fn;
-  private:
-    double rps;
+ private:
+  double rps;
 };
-
 
 void init(int argc, char* argv[]);
 

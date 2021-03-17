@@ -10,44 +10,53 @@
 
 #include "treadmill/Scheduler.h"
 
+#include <folly/Memory.h>
 #include <folly/futures/Future.h>
 #include <folly/futures/Promise.h>
-#include <folly/Memory.h>
 
 #include "treadmill/Util.h"
 
-DEFINE_bool(wait_for_runner_ready,
-            false,
-            "If true, wait for a 'resume' message before sending requests.");
+DEFINE_bool(
+    wait_for_runner_ready,
+    false,
+    "If true, wait for a 'resume' message before sending requests.");
 
 namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
-Scheduler::Scheduler(uint32_t rps, uint32_t number_of_workers,
-                     uint32_t logging_threshold)
-    : logging_threshold_(logging_threshold), rps_(rps),
+Scheduler::Scheduler(
+    uint32_t rps,
+    uint32_t number_of_workers,
+    uint32_t logging_threshold)
+    : logging_threshold_(logging_threshold),
+      rps_(rps),
       max_outstanding_requests_(0),
-      logged_(number_of_workers, 1), queues_(number_of_workers) {
-  state_.store(FLAGS_wait_for_runner_ready ? PAUSED : RUNNING,
-               std::memory_order_relaxed);
+      logged_(number_of_workers, 1),
+      queues_(number_of_workers) {
+  state_.store(
+      FLAGS_wait_for_runner_ready ? PAUSED : RUNNING,
+      std::memory_order_relaxed);
 }
 
-Scheduler::Scheduler(uint32_t rps, uint32_t number_of_workers,
-                     uint32_t max_outstanding_requests,
-                     uint32_t logging_threshold)
-    : logging_threshold_(logging_threshold), rps_(rps),
+Scheduler::Scheduler(
+    uint32_t rps,
+    uint32_t number_of_workers,
+    uint32_t max_outstanding_requests,
+    uint32_t logging_threshold)
+    : logging_threshold_(logging_threshold),
+      rps_(rps),
       max_outstanding_requests_(max_outstanding_requests),
-      logged_(number_of_workers, 1), queues_(number_of_workers) {
-  state_.store(FLAGS_wait_for_runner_ready ? PAUSED : RUNNING,
-               std::memory_order_relaxed);
+      logged_(number_of_workers, 1),
+      queues_(number_of_workers) {
+  state_.store(
+      FLAGS_wait_for_runner_ready ? PAUSED : RUNNING,
+      std::memory_order_relaxed);
 }
 
-Scheduler::~Scheduler() {
-}
+Scheduler::~Scheduler() {}
 
 folly::Future<folly::Unit> Scheduler::run() {
-
   if (state_ != RUNNING) {
     LOG(INFO) << "Scheduler is not in the running state. "
               << "Assuming resume will be called in future.";
@@ -87,7 +96,8 @@ int32_t Scheduler::getMaxOutstandingRequests() {
 
 void Scheduler::setMaxOutstandingRequests(int32_t max_outstanding_requests) {
   max_outstanding_requests_ = max_outstanding_requests;
-  messageAllWorkers(Event(EventType::SET_MAX_OUTSTANDING, max_outstanding_requests_));
+  messageAllWorkers(
+      Event(EventType::SET_MAX_OUTSTANDING, max_outstanding_requests_));
 }
 
 void Scheduler::stop() {
@@ -115,7 +125,7 @@ double Scheduler::randomExponentialInterval(double mean) {
   static std::mt19937* rng = new std::mt19937();
   std::uniform_real_distribution<double> dist(0, 1.0);
   /* Cap the lower end so that we don't return infinity */
-  return - log(std::max(dist(*rng), 1e-9)) * mean;
+  return -log(std::max(dist(*rng), 1e-9)) * mean;
 }
 
 void Scheduler::waitNs(int64_t ns) {
@@ -148,7 +158,7 @@ void Scheduler::loop() {
     messageAllWorkers(Event(EventType::RESET));
     next_ = 0;
     int32_t rps = rps_;
-    int64_t interval_ns = 1.0/rps * k_ns_per_s;
+    int64_t interval_ns = 1.0 / rps * k_ns_per_s;
     int64_t a = 0, b = 0, budget = randomExponentialInterval(interval_ns);
     while (state_ == RUNNING) {
       b = nowNs();
@@ -173,15 +183,16 @@ void Scheduler::loop() {
       }
       if (rps != rps_) {
         rps = rps_;
-        interval_ns = 1.0/rps * k_ns_per_s;
+        interval_ns = 1.0 / rps * k_ns_per_s;
       }
     }
-    while (state_ == PAUSED) waitNs(1000);
+    while (state_ == PAUSED)
+      waitNs(1000);
   } while (state_ != STOPPING);
   messageAllWorkers(Event(EventType::STOP));
   promise_.setValue(folly::Unit());
 }
 
-}  // namespace treadmill
-}  // namespace windtunnel
-}  // namespace facebook
+} // namespace treadmill
+} // namespace windtunnel
+} // namespace facebook

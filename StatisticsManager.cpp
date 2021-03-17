@@ -26,19 +26,20 @@ namespace {
 struct PrivateTag {};
 
 static folly::Singleton<StatisticsManager, PrivateTag> managerSingle;
-const auto kQuantiles = std::array<double, 13>{{0.01,
-                                                0.05,
-                                                0.10,
-                                                0.15,
-                                                0.20,
-                                                0.50,
-                                                0.80,
-                                                0.85,
-                                                0.90,
-                                                0.95,
-                                                0.99,
-                                                0.999,
-                                                1.0}};
+const auto kQuantiles = std::array<double, 13>{
+    {0.01,
+     0.05,
+     0.10,
+     0.15,
+     0.20,
+     0.50,
+     0.80,
+     0.85,
+     0.90,
+     0.95,
+     0.99,
+     0.999,
+     1.0}};
 
 } // namespace
 /* static */ std::shared_ptr<StatisticsManager> StatisticsManager::get() {

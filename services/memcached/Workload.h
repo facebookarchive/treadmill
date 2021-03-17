@@ -29,10 +29,7 @@ template <>
 class Workload<MemcachedService>
     : public WorkloadBase<Workload<MemcachedService>> {
  public:
-  enum State {
-    WARMUP,
-    GET
-  };
+  enum State { WARMUP, GET };
 
   Workload<MemcachedService>(folly::dynamic /*config*/)
       : state_(State::WARMUP), index_(0) {}
@@ -41,9 +38,10 @@ class Workload<MemcachedService>
     index_ = 0;
   }
 
-  std::tuple<std::unique_ptr<MemcachedService::Request>,
-             Promise<MemcachedService::Reply>,
-             Future<MemcachedService::Reply>>
+  std::tuple<
+      std::unique_ptr<MemcachedService::Request>,
+      Promise<MemcachedService::Reply>,
+      Future<MemcachedService::Reply>>
   getNextRequest() {
     if (index_ == FLAGS_number_of_keys) {
       index_ = 0;
@@ -53,16 +51,16 @@ class Workload<MemcachedService>
 
     std::unique_ptr<MemcachedService::Request> request;
     if (state_ == State::WARMUP) {
-      request = std::make_unique<MemcachedRequest>(MemcachedRequest::SET,
-                                                     std::move(key));
+      request = std::make_unique<MemcachedRequest>(
+          MemcachedRequest::SET, std::move(key));
       request->setValue(std::to_string(index_));
       if (index_ == FLAGS_number_of_keys - 1) {
         LOG(INFO) << "WARMUP complete";
         state_ = State::GET;
       }
     } else if (state_ == State::GET) {
-      request = std::make_unique<MemcachedRequest>(MemcachedRequest::GET,
-                                                     std::move(key));
+      request = std::make_unique<MemcachedRequest>(
+          MemcachedRequest::GET, std::move(key));
     }
     Promise<MemcachedService::Reply> p;
     auto f = p.getFuture();
@@ -80,6 +78,6 @@ class Workload<MemcachedService>
   int index_;
 };
 
-}  // namespace treadmill
-}  // namespace windtunnel
-}  // namespace facebook
+} // namespace treadmill
+} // namespace windtunnel
+} // namespace facebook

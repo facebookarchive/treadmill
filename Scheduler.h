@@ -27,11 +27,15 @@ namespace treadmill {
 
 class Scheduler {
  public:
-  Scheduler(uint32_t rps, uint32_t number_of_workers,
-            uint32_t logging_threshold);
-  Scheduler(uint32_t rps, uint32_t number_of_workers,
-            uint32_t max_outstanding_requests,
-            uint32_t logging_threshold);
+  Scheduler(
+      uint32_t rps,
+      uint32_t number_of_workers,
+      uint32_t logging_threshold);
+  Scheduler(
+      uint32_t rps,
+      uint32_t number_of_workers,
+      uint32_t max_outstanding_requests,
+      uint32_t logging_threshold);
   ~Scheduler();
 
   folly::Future<folly::Unit> run();
@@ -65,6 +69,7 @@ class Scheduler {
   int32_t getRps();
 
   void setRps(int32_t rps);
+
  private:
   enum RunState { RUNNING, PAUSED, STOPPING };
 
@@ -98,6 +103,6 @@ class Scheduler {
   folly::Promise<folly::Unit> promise_;
 };
 
-}  // namespace treadmill
-}  // namespace windtunnel
-}  // namespace facebook
+} // namespace treadmill
+} // namespace windtunnel
+} // namespace facebook

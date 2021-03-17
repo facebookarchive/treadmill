@@ -10,25 +10,22 @@
 
 #include <gflags/gflags.h>
 
-#include "treadmill/services/sleep/gen-cpp2/Sleep.h"
 #include <folly/io/async/AsyncSocket.h>
 #include <thrift/lib/cpp2/async/HeaderClientChannel.h>
+#include "treadmill/services/sleep/gen-cpp2/Sleep.h"
 
 using namespace folly;
 using namespace apache::thrift;
 using namespace facebook::windtunnel::treadmill::services::sleep;
 
-DEFINE_int32(port,
-             12345,
-             "Port for sleep service (default: 12345).");
+DEFINE_int32(port, 12345, "Port for sleep service (default: 12345).");
 
-DEFINE_string(hostname,
-              "127.0.0.1",
-              "Hostname of the server (default: localhost).");
+DEFINE_string(
+    hostname,
+    "127.0.0.1",
+    "Hostname of the server (default: localhost).");
 
-DEFINE_int32(sleep_time,
-             1000,
-             "The sleep time to send (default: 1000).");
+DEFINE_int32(sleep_time, 1000, "The sleep time to send (default: 1000).");
 
 int main(int argc, char* argv[]) {
   google::InitGoogleLogging(argv[0]);

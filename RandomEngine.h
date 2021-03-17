@@ -105,6 +105,6 @@ struct ThreadSafeRandomEngine {
   static folly::ThreadLocalPtr<std::mt19937_64> random_engine_;
 };
 
-}  // namespace treadmill
-}  // namespace windtunnel
-}  // namespace facebook
+} // namespace treadmill
+} // namespace windtunnel
+} // namespace facebook

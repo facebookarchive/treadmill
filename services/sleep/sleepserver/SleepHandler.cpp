@@ -35,7 +35,8 @@ Future<int64_t> SleepHandler::future_goSleep(int64_t time) {
 
   folly::RequestEventBase::get()->runInEventBaseThread(
       [promise, time]() mutable {
-        struct timeval start_time, end_time, diff_time;;
+        struct timeval start_time, end_time, diff_time;
+        ;
         gettimeofday(&start_time, nullptr);
         usleep(time);
         gettimeofday(&end_time, nullptr);

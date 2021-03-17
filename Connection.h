@@ -30,30 +30,30 @@ namespace treadmill {
  * */
 template <class Service>
 class Connection {
-public:
-/**
- * Sample implementation below shows how to wait for a specific counter
- * value to cross a threshold
- * e.g. usage: --wait_for_target_ready --counter_threshold 10
- * --counter_name thrift.accepted_connections.count
- * */
+ public:
+  /**
+   * Sample implementation below shows how to wait for a specific counter
+   * value to cross a threshold
+   * e.g. usage: --wait_for_target_ready --counter_threshold 10
+   * --counter_name thrift.accepted_connections.count
+   * */
 
   bool isReady() const {
-    if(!FLAGS_counter_name.empty()) {
+    if (!FLAGS_counter_name.empty()) {
       int64_t value = client_->sync_getCounter(FLAGS_counter_name);
-      if(value < FLAGS_counter_threshold) {
-        LOG(INFO) << "Threshold: "
-          << FLAGS_counter_threshold << " Counter: "
-          << FLAGS_counter_name << " Value: " << value;
+      if (value < FLAGS_counter_threshold) {
+        LOG(INFO) << "Threshold: " << FLAGS_counter_threshold
+                  << " Counter: " << FLAGS_counter_name << " Value: " << value;
         return false;
       }
     }
     return true;
   }
-private:
+
+ private:
   std::unique_ptr<typename Service::Client> client_;
 };
 
-}  // namespace treadmill
-}  // namespace windtunnel
-}  // namespace facebook
+} // namespace treadmill
+} // namespace windtunnel
+} // namespace facebook

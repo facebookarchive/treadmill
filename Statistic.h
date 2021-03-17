@@ -20,8 +20,7 @@ namespace treadmill {
 
 class Statistic {
  public:
-  explicit Statistic(const std::string& name)
-    : name_(name) {}
+  explicit Statistic(const std::string& name) : name_(name) {}
 
   virtual ~Statistic() {}
 
@@ -44,6 +43,6 @@ class Statistic {
   std::string name_;
 };
 
-}  // namespace treadmill
-}  // namespace windtunnel
-}  // namespace facebook
+} // namespace treadmill
+} // namespace windtunnel
+} // namespace facebook

@@ -8,7 +8,6 @@
  *
  */
 
-
 #include "treadmill/services/sleep/Connection.h"
 #include "treadmill/services/sleep/Workload.h"
 

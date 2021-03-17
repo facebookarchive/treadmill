@@ -58,14 +58,12 @@ void readBlock(int fd, char* buffer, int buffer_size);
  * @param buffer The buffer to write
  * @param buffer_size The size of the write buffer
  */
-void writeBlock(int fd,
-                const char* buffer,
-                int buffer_size);
+void writeBlock(int fd, const char* buffer, int buffer_size);
 
 std::string nsLookUp(const std::string& hostname);
 
 double time_s();
 
-}  // namespace treadmill
-}  // namespace windtunnel
-}  // namespace facebook
+} // namespace treadmill
+} // namespace windtunnel
+} // namespace facebook

@@ -11,8 +11,8 @@
 #include "treadmill/Util.h"
 
 #include <arpa/inet.h>
-#include <fstream>
 #include <netdb.h>
+#include <fstream>
 #include <sstream>
 
 #include <sys/time.h>
@@ -82,7 +82,6 @@ folly::dynamic readDynamicFromFile(std::string filename) {
   return folly::parseJson(s);
 }
 
-
 /**
  * Read a line from the file descriptor
  *
@@ -112,9 +111,8 @@ int readLine(int fd, char* buffer, int buffer_size) {
 void readBlock(int fd, char* buffer, int buffer_size) {
   int total_bytes_read = 0;
   while (total_bytes_read != buffer_size) {
-    int bytes_read = read(fd,
-                          buffer + total_bytes_read,
-                          buffer_size - total_bytes_read);
+    int bytes_read =
+        read(fd, buffer + total_bytes_read, buffer_size - total_bytes_read);
     // Read syscall failed.
     if (bytes_read < 0) {
       string sys_error = string(strerror(errno));
@@ -137,14 +135,11 @@ void readBlock(int fd, char* buffer, int buffer_size) {
  * @param buffer The buffer to write
  * @param buffer_size The size of the write buffer
  */
-void writeBlock(int fd,
-                const char* buffer,
-                int buffer_size) {
+void writeBlock(int fd, const char* buffer, int buffer_size) {
   int total_bytes_written = 0;
   while (total_bytes_written != buffer_size) {
-    int bytes_written = write(fd,
-                              buffer + total_bytes_written,
-                              buffer_size - total_bytes_written);
+    int bytes_written = write(
+        fd, buffer + total_bytes_written, buffer_size - total_bytes_written);
     // Write syscall failed.
     if (bytes_written < 0) {
       LOG(INFO) << "Attempted write size "
@@ -172,42 +167,31 @@ double time_s() {
 std::string nsLookUp(const string& hostname) {
   string ret;
   struct addrinfo hints;
-  struct addrinfo *res;
+  struct addrinfo* res;
   memset(&hints, 0, sizeof(hints));
-  hints.ai_family = AF_UNSPEC;  /* Allow IPv4 or IPv6 */
+  hints.ai_family = AF_UNSPEC; /* Allow IPv4 or IPv6 */
 
   int error = -1;
-  for (int attempt = 0;
-       (error != 0) && (attempt < kNumberOfAttempts);
-       attempt++
-  ) {
+  for (int attempt = 0; (error != 0) && (attempt < kNumberOfAttempts);
+       attempt++) {
     error = getaddrinfo(hostname.c_str(), nullptr, &hints, &res);
   }
 
-  if (error == 0 ) {
+  if (error == 0) {
     int len = res->ai_addrlen;
 
     if (res->ai_addr->sa_family == AF_INET) {
       // IPv4
       char ip_address[INET_ADDRSTRLEN];
-      struct sockaddr_in* addr = (struct sockaddr_in*) res->ai_addr;
-      inet_ntop(
-        AF_INET,
-        &(addr->sin_addr.s_addr),
-        ip_address,
-        INET_ADDRSTRLEN
-      );
+      struct sockaddr_in* addr = (struct sockaddr_in*)res->ai_addr;
+      inet_ntop(AF_INET, &(addr->sin_addr.s_addr), ip_address, INET_ADDRSTRLEN);
       ret = string(ip_address);
     } else {
       // IPv6
       char ip_address[INET6_ADDRSTRLEN];
-      struct sockaddr_in6* addr = (struct sockaddr_in6*) res->ai_addr;
+      struct sockaddr_in6* addr = (struct sockaddr_in6*)res->ai_addr;
       inet_ntop(
-        AF_INET6,
-        &(addr->sin6_addr.s6_addr),
-        ip_address,
-        INET6_ADDRSTRLEN
-      );
+          AF_INET6, &(addr->sin6_addr.s6_addr), ip_address, INET6_ADDRSTRLEN);
       ret = string(ip_address);
     }
     freeaddrinfo(res);
@@ -219,6 +203,6 @@ std::string nsLookUp(const string& hostname) {
   return ret;
 }
 
-}  // namespace treadmill
-}  // namespace windtunnel
-}  // namespace facebook
+} // namespace treadmill
+} // namespace windtunnel
+} // namespace facebook

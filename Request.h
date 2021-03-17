@@ -14,8 +14,7 @@ namespace facebook {
 namespace windtunnel {
 namespace treadmill {
 
-class Request {
-};
+class Request {};
 
 } // namespace treadmill
 } // namespace windtunnel

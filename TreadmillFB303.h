@@ -43,20 +43,23 @@ class TreadmillFB303 : public facebook::fb303::FacebookBase2,
       std::unique_ptr<::treadmill::ResumeRequest> req) override;
   void setRps(int32_t rps) override;
   void setMaxOutstanding(int32_t max_outstanding) override;
-  folly::Future<std::unique_ptr<::treadmill::RateResponse>> future_getRate() override;
+  folly::Future<std::unique_ptr<::treadmill::RateResponse>> future_getRate()
+      override;
 
   folly::Future<std::unique_ptr<std::string>> future_getConfiguration(
       std::unique_ptr<std::string> key) override;
-  void setConfiguration(std::unique_ptr<std::string> key,
+  void setConfiguration(
+      std::unique_ptr<std::string> key,
       std::unique_ptr<std::string> value) override;
-  uint32_t getConfigurationValue(const std::string &key, uint32_t defaultValue);
-  std::unique_ptr<std::string> getConfigurationValue(const std::string &key,
-      const std::string &defaultValue);
+  uint32_t getConfigurationValue(const std::string& key, uint32_t defaultValue);
+  std::unique_ptr<std::string> getConfigurationValue(
+      const std::string& key,
+      const std::string& defaultValue);
   void clearConfiguration() override;
   bool configurationEmpty() const;
 
   void watchdogUpdate();
-  bool watchdogTimeoutCheck(bool raise=true);
+  bool watchdogTimeoutCheck(bool raise = true);
 
   static void make_fb303(
       std::shared_ptr<std::thread>& server_thread,
