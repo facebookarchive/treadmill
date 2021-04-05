@@ -12,6 +12,8 @@
 
 #include <folly/Memory.h>
 
+#include "common/thrift/thrift/gen-cpp2/MonitorAsyncClient.h"
+
 DECLARE_string(counter_name);
 DECLARE_int32(counter_threshold);
 
@@ -51,7 +53,7 @@ class Connection {
   }
 
  private:
-  std::unique_ptr<typename Service::Client> client_;
+  std::unique_ptr<facebook::thrift::MonitorAsyncClient> client_;
 };
 
 } // namespace treadmill
