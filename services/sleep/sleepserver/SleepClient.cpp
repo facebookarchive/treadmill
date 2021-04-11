@@ -33,10 +33,9 @@ int main(int argc, char* argv[]) {
 
   EventBase event_base;
 
-  std::shared_ptr<AsyncSocket> socket(
-      AsyncSocket::newSocket(&event_base, FLAGS_hostname, FLAGS_port));
+  auto socket = AsyncSocket::newSocket(&event_base, FLAGS_hostname, FLAGS_port);
 
-  SleepAsyncClient client(HeaderClientChannel::newChannel(socket));
+  SleepAsyncClient client(HeaderClientChannel::newChannel(std::move(socket)));
 
   auto sleep_time = client.future_goSleep(FLAGS_sleep_time).getVia(&event_base);
   LOG(INFO) << "Slept for " << sleep_time << " microseconds.";
