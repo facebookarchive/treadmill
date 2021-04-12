@@ -34,12 +34,11 @@ class Connection<SleepService> {
   Connection<SleepService>(folly::EventBase& event_base)
       : histo_(StatisticsManager::get()->getContinuousStat("SleepTime")) {
     std::string host = nsLookUp(FLAGS_hostname);
-    std::shared_ptr<folly::AsyncSocket> socket(
-        folly::AsyncSocket::newSocket(&event_base, host, FLAGS_port));
+    auto socket = folly::AsyncSocket::newSocket(&event_base, host, FLAGS_port);
     std::unique_ptr<
         apache::thrift::HeaderClientChannel,
         folly::DelayedDestruction::Destructor>
-        channel(new apache::thrift::HeaderClientChannel(socket));
+        channel(new apache::thrift::HeaderClientChannel(std::move(socket)));
 
     client_ =
         std::make_unique<services::sleep::SleepAsyncClient>(std::move(channel));
