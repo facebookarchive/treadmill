@@ -35,10 +35,8 @@ class Connection<SleepService> {
       : histo_(StatisticsManager::get()->getContinuousStat("SleepTime")) {
     std::string host = nsLookUp(FLAGS_hostname);
     auto socket = folly::AsyncSocket::newSocket(&event_base, host, FLAGS_port);
-    std::unique_ptr<
-        apache::thrift::HeaderClientChannel,
-        folly::DelayedDestruction::Destructor>
-        channel(new apache::thrift::HeaderClientChannel(std::move(socket)));
+    auto channel =
+        apache::thrift::HeaderClientChannel::newChannel(std::move(socket));
 
     client_ =
         std::make_unique<services::sleep::SleepAsyncClient>(std::move(channel));
