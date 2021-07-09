@@ -9,6 +9,7 @@
  */
 
 #include "TreadmillFB303.h"
+#include "thrift/lib/cpp/util/EnumUtils.h"
 
 #include "Scheduler.h"
 
@@ -62,7 +63,7 @@ fb_status TreadmillFB303::getStatus() {
 }
 
 void TreadmillFB303::getStatusDetails(std::string& _return) {
-  _return = fb303::cpp2::_fb303_status_VALUES_TO_NAMES.at(getStatus());
+  _return = apache::thrift::util::enumNameOrThrow(getStatus());
 }
 
 int64_t TreadmillFB303::aliveSince() {
