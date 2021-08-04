@@ -44,12 +44,8 @@ service TreadmillService extends fb303.FacebookService {
    * Temporary renaming of resume for backwards compatibility
    */
   ResumeResponse resume2(ResumeRequest req);
-  void setRps(
-    1: i32 rps
-  );
-  void setMaxOutstanding(
-    1: i32 max_outstanding
-  );
+  void setRps(1: i32 rps);
+  void setMaxOutstanding(1: i32 max_outstanding);
   RateResponse getRate();
 
   string getConfiguration(1: string key);
